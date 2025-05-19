@@ -1,2 +1,3 @@
-function App() { return <div>Bienvenue sur Famille AAA's</div>; }
-export default App;
+export default function App() {
+  return <h1>Bienvenue sur Famille AAA's (démo)</h1>
+}
