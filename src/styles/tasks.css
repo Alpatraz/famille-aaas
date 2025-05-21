@@ -1,46 +1,90 @@
-.task-list, .reward-list {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-  }
-  
-  .task-row, .reward-row {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 6px 0;
-    border-bottom: 1px solid #eee;
-  }
-  
-  .task-row:last-child,
-  .reward-row:last-child {
-    border-bottom: none;
-  }
-  
-  .task-label {
-    flex: 1;
-    font-size: 1rem;
-  }
-  
-  .tag {
-    background-color: #eef2f7;
-    padding: 2px 8px;
-    border-radius: 6px;
-    font-size: 0.8rem;
-    color: #333;
-    margin: 0 1rem;
-  }
-  
-  .reward-button {
-    background-color: #fff7e6;
-    border: 1px solid #f0c36d;
-    padding: 4px 10px;
-    border-radius: 6px;
-    cursor: pointer;
-    transition: all 0.2s ease;
-  }
-  
-  .reward-button:hover {
-    background-color: #ffebc0;
-  }
-  
+/* --- Listes --- */
+.task-list,
+.reward-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+/* --- Rangées individuelles --- */
+.task-row,
+.reward-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 12px;
+  border-bottom: 1px solid #eee;
+  background-color: #fff;
+  font-size: 0.95rem;
+}
+
+.task-row:last-child,
+.reward-row:last-child {
+  border-bottom: none;
+}
+
+/* --- Nom de tâche ou récompense --- */
+.task-label,
+.reward-label {
+  flex: 1;
+  font-weight: 500;
+}
+
+/* --- Pastille de points --- */
+.tag {
+  background-color: #eef2f7;
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 0.8rem;
+  color: #333;
+  margin: 0 1rem;
+  white-space: nowrap;
+}
+
+/* --- Bouton récompense --- */
+.reward-button {
+  background-color: #fff7e6;
+  border: 1px solid #f0c36d;
+  padding: 4px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.85rem;
+  transition: background-color 0.2s ease;
+}
+
+.reward-button:hover {
+  background-color: #ffebc0;
+}
+
+/* --- Case à cocher alignée --- */
+input[type='checkbox'] {
+  transform: scale(1.2);
+  margin-left: 0.5rem;
+}
+
+.accordion-section {
+  margin-bottom: 1rem;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  overflow: hidden;
+  background-color: #fff;
+}
+
+.accordion-header {
+  padding: 10px 12px;
+  background-color: #f7f7f7;
+  font-weight: 600;
+  font-size: 1rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  cursor: pointer;
+  border-bottom: 1px solid #ddd;
+}
+
+.accordion-content {
+  padding: 10px 12px;
+}

@@ -1,0 +1,109 @@
+/* eventPopup.css */
+
+.event-popup {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 90%;
+  max-width: 420px;
+  background-color: #fff;
+  border-radius: 12px;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.2);
+  z-index: 2000;
+  padding: 1.5rem;
+  animation: fadeIn 0.2s ease-in-out;
+}
+
+.event-popup h3 {
+  margin-top: 0;
+  font-size: 1.4rem;
+  margin-bottom: 1rem;
+}
+
+.event-popup label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: 500;
+}
+
+.event-popup input,
+.event-popup select {
+  width: 100%;
+  margin-bottom: 1rem;
+  padding: 8px 10px;
+  font-size: 1rem;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  background-color: #f9f9f9;
+}
+
+.event-popup .popup-buttons {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 1rem;
+}
+
+.event-popup button {
+  padding: 8px 14px;
+  font-size: 1rem;
+  border-radius: 8px;
+  cursor: pointer;
+  border: none;
+}
+
+.event-popup .btn-save {
+  background-color: #4caf50;
+  color: #fff;
+}
+
+.event-popup .btn-delete {
+  background-color: #f44336;
+  color: white;
+}
+
+.event-popup .btn-cancel {
+  background-color: #e0e0e0;
+  color: #333;
+}
+
+.event-popup .close-icon {
+  position: absolute;
+  top: 10px;
+  right: 14px;
+  font-size: 1.2rem;
+  cursor: pointer;
+  color: #999;
+}
+
+.event-popup .close-icon:hover {
+  color: #000;
+}
+
+.event-popup .participant-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 1rem;
+}
+
+.event-popup .participant-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 8px;
+  background-color: #eee;
+  border-radius: 8px;
+  font-size: 0.9rem;
+}
+
+/* Optional animation */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -60%);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, -50%);
+  }
+}
