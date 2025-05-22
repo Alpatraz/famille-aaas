@@ -2,7 +2,7 @@
 import { useEffect, useState } from "react";
 import { db } from "../firebase";
 import { collection, getDocs } from "firebase/firestore";
-import "../styles/calendar.css";
+import "../styles/Calendar.css";
 import { addDays, format, startOfWeek } from "date-fns";
 import fr from "date-fns/locale/fr";
 
