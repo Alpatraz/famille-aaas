@@ -1,0 +1,42 @@
+.child-card {
+    background: #fffef8;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    padding: 1rem;
+    margin-bottom: 1rem;
+    border-left: 6px solid #ff9800;
+  }
+  
+  .child-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.8rem;
+  }
+  
+  .points-bar {
+    text-align: right;
+  }
+  
+  .points {
+    font-weight: bold;
+    font-size: 1rem;
+    color: #444;
+  }
+  
+  .bar {
+    background: #eee;
+    width: 100px;
+    height: 8px;
+    border-radius: 4px;
+    margin-top: 4px;
+    overflow: hidden;
+  }
+  
+  .bar .fill {
+    height: 100%;
+    background-color: #4caf50;
+    transition: width 0.3s ease;
+  }
+  
+  

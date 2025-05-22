@@ -1,0 +1,98 @@
+/* eventPopup.css */
+
+.event-popup {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  z-index: 1000;
+  padding: 1.5rem;
+  width: 90%;
+  max-width: 500px;
+  font-family: 'Inter', sans-serif;
+}
+
+.event-popup h2 {
+  margin-top: 0;
+  margin-bottom: 1rem;
+  font-size: 1.5rem;
+  color: #333;
+  text-align: center;
+}
+
+.event-popup label {
+  display: block;
+  margin-bottom: 1rem;
+  font-weight: 500;
+  font-size: 0.95rem;
+}
+
+.event-popup input[type="text"],
+.event-popup input[type="time"],
+.event-popup input[type="date"] {
+  width: 100%;
+  padding: 8px 10px;
+  font-size: 0.95rem;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+  margin-top: 4px;
+  box-sizing: border-box;
+}
+
+.event-popup .participants-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.event-popup .participant-option {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.95rem;
+  padding: 4px 0;
+}
+
+.event-popup .participant-option input[type="checkbox"] {
+  margin: 0;
+}
+
+.popup-buttons {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-top: 1.5rem;
+}
+
+.popup-buttons button {
+  flex: 1;
+  padding: 10px;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.popup-buttons .save-btn {
+  background-color: #d1f2eb;
+  color: #1d6b65;
+}
+
+.popup-buttons .delete-btn {
+  background-color: #ffe6e6;
+  color: #b30000;
+}
+
+.popup-buttons .close-btn {
+  background-color: #e6e6e6;
+  color: #444;
+}
+
+.popup-buttons button:hover {
+  filter: brightness(0.95);
+}
