@@ -1,11 +1,13 @@
 /* calendar.css */
 .calendar-wrapper {
   padding: 1.5rem;
+  width: 100%;
   max-width: 100%;
   box-sizing: border-box;
   background: #ffffff;
   border-radius: 16px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  overflow-x: auto;
 }
 
 .calendar-header-bar {
@@ -50,13 +52,15 @@
 
 .calendar-grid {
   display: grid;
-  grid-template-columns: repeat(7, 1fr);
+  grid-template-columns: repeat(7, minmax(140px, 1fr));
   gap: 0.75rem;
+  min-width: min-content;
 }
 
 @media screen and (max-width: 768px) {
   .calendar-grid {
     grid-template-columns: 1fr;
+    min-width: 100%;
   }
   
   .calendar-wrapper {
@@ -250,4 +254,83 @@
 
 .event-form button[type="button"]:hover {
   background-color: #dee2e6;
+}
+
+/* Styles pour le popup d'événement */
+.event-detail {
+  margin-bottom: 0.8rem;
+  font-size: 1rem;
+  color: #495057;
+}
+
+.event-participants {
+  margin-top: 1.5rem;
+}
+
+.participant-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.8rem;
+  margin-top: 0.8rem;
+}
+
+.participant-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background-color: #f8f9fa;
+  padding: 0.5rem 0.8rem;
+  border-radius: 8px;
+}
+
+.participant-avatar {
+  font-size: 1.2rem;
+}
+
+.participant-name {
+  font-size: 0.9rem;
+  color: #495057;
+}
+
+.event-actions {
+  display: flex;
+  gap: 0.8rem;
+  margin-top: 2rem;
+  justify-content: flex-end;
+}
+
+.edit-button,
+.delete-button,
+.close-button {
+  padding: 0.6rem 1rem;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  font-size: 0.9rem;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  transition: all 0.2s ease;
+}
+
+.edit-button {
+  background-color: #4dabf7;
+  color: white;
+}
+
+.delete-button {
+  background-color: #ff6b6b;
+  color: white;
+}
+
+.close-button {
+  background-color: #e9ecef;
+  color: #495057;
+}
+
+.edit-button:hover,
+.delete-button:hover,
+.close-button:hover {
+  transform: translateY(-1px);
+  filter: brightness(95%);
 }
