@@ -1,129 +1,127 @@
-/* --- Couleurs et fond --- */
-body {
-  margin: 0;
-  font-family: 'Inter', sans-serif;
-  background-color: #f6f6f6;
-  color: #333;
-}
-
-/* --- Titres --- */
-h1 {
-  font-size: 2rem;
-  font-weight: 600;
-  margin-bottom: 1rem;
-}
-
-h2, h3 {
-  font-weight: 500;
-  margin-bottom: 0.5rem;
-}
-
-/* --- Grille principale --- */
+/* === STRUCTURE GÉNÉRALE === */
 .dashboard-grid {
   display: grid;
-  grid-template-columns: 2fr 1fr;
-  gap: 1.5rem;
-  margin-top: 2rem;
+  gap: 1rem;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  margin-top: 1.5rem;
+  align-items: start;
 }
 
-@media (max-width: 768px) {
+.dashboard-section {
+  background: #ffffff;
+  border-radius: 16px;
+  padding: 1.2rem;
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.06);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  min-height: 160px;
+  position: relative;
+}
+
+.dashboard-section:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 18px rgba(0, 0, 0, 0.08);
+}
+
+.dashboard-section h2 {
+  margin-bottom: 0.8rem;
+  font-size: 1.4rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.dashboard-section p {
+  margin: 0.3rem 0;
+  font-size: 0.95rem;
+  line-height: 1.4;
+}
+
+/* === VARIANTS === */
+.dashboard-section.full-width {
+  grid-column: 1 / -1;
+}
+
+.dashboard-section.compact {
+  padding: 1rem;
+  font-size: 0.95rem;
+}
+
+/* === LIGNE 3 BLOCS ÉGAUX === */
+.dashboard-row {
+  display: flex;
+  gap: 1rem;
+  width: 100%;
+  margin-top: 1rem;
+  flex-wrap: wrap;
+}
+
+.dashboard-third {
+  flex: 1;
+  min-width: 280px;
+}
+
+/* === BLOCS CLIQUABLES === */
+.dashboard-clickable {
+  cursor: pointer;
+  transition: box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+.dashboard-clickable:hover {
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.08);
+  transform: translateY(-2px);
+}
+
+/* === CALENDRIER === */
+.calendar-priority {
+  grid-column: 1 / -1;
+}
+
+/* === TÂCHES ENFANTS MINI === */
+.dashboard-section.child-task-card {
+  padding: 0.8rem;
+  background: #fffef8;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+/* === TAG VISUEL ILLUSTRATION (optionnel) === */
+.dashboard-section::before {
+  content: '';
+  position: absolute;
+  top: -10px;
+  right: -10px;
+  width: 48px;
+  height: 48px;
+  background-image: url('/icons/card-decoration.svg'); /* facultatif */
+  background-size: contain;
+  background-repeat: no-repeat;
+  opacity: 0.1;
+  pointer-events: none;
+}
+
+/* === RESPONSIVE === */
+@media (max-width: 600px) {
   .dashboard-grid {
     grid-template-columns: 1fr;
   }
-}
 
-/* --- Composants / sections --- */
-.dashboard-section {
-  background-color: #ffffff;
-  padding: 1rem;
-  border-radius: 12px;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
-  overflow-x: auto;
-}
+  .dashboard-row {
+    flex-direction: column;
+  }
 
-/* --- Boutons --- */
-button {
-  background-color: #f2f2f2;
-  border: 1px solid #ccc;
-  padding: 6px 12px;
-  border-radius: 6px;
-  cursor: pointer;
-  transition: background-color 0.2s ease;
-  font-size: 1rem;
-}
-
-button:hover {
-  background-color: #e5e5e5;
-}
-
-/* --- Listes et tâches --- */
-ul {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-}
-
-li {
-  margin-bottom: 0.5rem;
-}
-
-/* --- Entrées simplifiées --- */
-input, select, textarea {
-  width: 100%;
-  padding: 6px 10px;
-  margin-top: 4px;
-  border: 1px solid #ccc;
-  border-radius: 6px;
-  font-size: 0.95rem;
-  background-color: #fff;
-}
-
-/* --- Avatar / messages --- */
-.avatar {
-  border-radius: 50%;
-  width: 32px;
-  height: 32px;
-  object-fit: cover;
-  margin-right: 8px;
-}
-
-/* --- Tags / pastilles --- */
-.tag {
-  display: inline-block;
-  background-color: #eee;
-  padding: 2px 8px;
-  border-radius: 6px;
-  font-size: 0.8rem;
-  margin-right: 6px;
-  color: #555;
-}
-
-/* --- Navigation responsive --- */
-.nav-button {
-  font-size: 0.9rem;
-  padding: 6px 10px;
-}
-
-@media (max-width: 768px) {
-  .nav-button {
-    font-size: 0.85rem;
-    padding: 5px 8px;
+  .dashboard-third {
+    width: 100%;
   }
 
   .dashboard-section h2 {
     font-size: 1.2rem;
   }
 
-  .dashboard-section h3 {
-    font-size: 1rem;
+  .dashboard-section {
+    padding: 1rem;
   }
-
-  button {
-    font-size: 0.9rem;
-  }
-} 
-
-/* --- Full width for mobile sections --- */
-.full-width {
-  grid-column: 1 / -1;
 }

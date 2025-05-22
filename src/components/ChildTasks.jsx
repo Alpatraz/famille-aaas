@@ -15,16 +15,35 @@ export default function ChildTasks({ name }) {
   const [loading, setLoading] = useState(true)
   const [tasks, setTasks] = useState([])
   const [rewards, setRewards] = useState([])
+  const [expanded, setExpanded] = useState(false)
+  const [view, setView] = useState('tasks')
 
   const today = format(new Date(), 'yyyy-MM-dd')
 
   useEffect(() => {
     const fetchData = async () => {
       const taskSnap = await getDocs(collection(db, 'tasks'))
-      setTasks(taskSnap.docs.map(doc => ({ id: doc.id, done: false, ...doc.data() })))
+      const loadedTasks = taskSnap.docs.map(doc => {
+        const data = doc.data()
+        return {
+          id: doc.id,
+          label: data.label || 'Tâche sans nom',
+          value: data.value || 0,
+          done: false
+        }
+      })
+      setTasks(loadedTasks)
 
       const rewardSnap = await getDocs(collection(db, 'rewards'))
-      setRewards(rewardSnap.docs.map(doc => ({ id: doc.id, ...doc.data() })))
+      const loadedRewards = rewardSnap.docs.map(doc => {
+        const data = doc.data()
+        return {
+          id: doc.id,
+          label: data.label || 'Récompense sans nom',
+          cost: data.cost || 0
+        }
+      })
+      setRewards(loadedRewards)
     }
 
     fetchData()
@@ -102,43 +121,82 @@ export default function ChildTasks({ name }) {
   if (loading) return <p>Chargement...</p>
 
   return (
-    <div className="dashboard-section">
-      <h3>🧒 {name}</h3>
-      <div className="tag">🔄 {pointsToday} pts aujourd’hui</div>
-      <div className="tag">🎯 {pointsTotal} pts au total</div>
+    <div className="dashboard-section" style={{ background: '#fdfdfd', borderRadius: '8px', padding: '1rem', boxShadow: '0 0 4px rgba(0,0,0,0.05)' }}>
+      {/* Mini aperçu */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <div>
+          <strong>{name}</strong><br />
+          <small>🎯 Points du jour : <strong>{pointsToday}</strong></small><br />
+          <small>💰 Total : <strong>{pointsTotal}</strong></small>
+        </div>
+        <button onClick={() => setExpanded(!expanded)} style={{ fontSize: '1.2rem', background: 'none', border: 'none', cursor: 'pointer' }}>
+          {expanded ? '▲' : '▼'}
+        </button>
+      </div>
 
-      <AccordionSection title="✅ Tâches" defaultOpen={true}>
-        <ul className="task-list">
-          {tasks.map(task => (
-            <li key={task.id} className="task-row">
-              <span className="task-label">{task.label}</span>
-              <span className="tag">+{task.value} pts</span>
-              <input
-                type="checkbox"
-                checked={task.done}
-                onChange={() => handleTaskToggle(task.id)}
-              />
-            </li>
-          ))}
-        </ul>
-      </AccordionSection>
+      {expanded && (
+        <div style={{ marginTop: '1rem' }}>
+          <div style={{ display: 'flex', gap: '1rem', marginBottom: '0.5rem' }}>
+            <button
+              onClick={() => setView('tasks')}
+              style={{
+                background: view === 'tasks' ? '#d0e9ff' : '#eee',
+                border: '1px solid #ccc',
+                borderRadius: '6px',
+                padding: '0.3rem 0.6rem',
+                cursor: 'pointer'
+              }}
+            >
+              ✅ Tâches
+            </button>
+            <button
+              onClick={() => setView('rewards')}
+              style={{
+                background: view === 'rewards' ? '#d0ffd9' : '#eee',
+                border: '1px solid #ccc',
+                borderRadius: '6px',
+                padding: '0.3rem 0.6rem',
+                cursor: 'pointer'
+              }}
+            >
+              🎁 Récompenses
+            </button>
+          </div>
 
-      <AccordionSection title="🎁 Récompenses" defaultOpen={true}>
-        <ul className="reward-list">
-          {rewards.map(reward => (
-            <li key={reward.id} className="reward-row">
-              <span className="reward-label">{reward.label}</span>
-              <span className="tag">{reward.cost} pts</span>
-              <button
-                className="reward-button"
-                onClick={() => handleRewardClick(reward.cost, reward.label)}
-              >
-                Utiliser 🎁
-              </button>
-            </li>
-          ))}
-        </ul>
-      </AccordionSection>
+          {view === 'tasks' && (
+            <ul className="task-list">
+              {tasks.map(task => (
+                <li key={task.id} className="task-row">
+                  <span className="task-label">{task.label}</span>
+                  <span className="tag">+{task.value} pts</span>
+                  <input
+                    type="checkbox"
+                    checked={task.done}
+                    onChange={() => handleTaskToggle(task.id)}
+                  />
+                </li>
+              ))}
+            </ul>
+          )}
+
+          {view === 'rewards' && (
+            <ul className="reward-list">
+              {rewards.map(reward => (
+                <li key={reward.id} className="reward-row">
+                  <span className="reward-label">{reward.label}</span>
+                  <span className="tag">{reward.cost} pts</span>
+                  <button
+                    className="reward-button"
+                    onClick={() => handleRewardClick(reward.cost, reward.label)}
+                  >
+                    Utiliser 🎁
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      )}
     </div>
   )
 }

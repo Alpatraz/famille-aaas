@@ -1,100 +1,185 @@
+// MealPlanner.jsx
 import React, { useEffect, useState } from 'react';
-import { db } from '../firebase'; // Assure-toi que ce chemin est bon
-import { doc, getDoc, setDoc } from 'firebase/firestore';
+import { db } from '../firebase';
+import { doc, getDoc, setDoc, updateDoc } from 'firebase/firestore';
 import { DndProvider, useDrag, useDrop } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
 import './MealPlanner.css';
 
 const jours = ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi', 'Dimanche'];
+const jourAbbr = { Lundi: 'Lu', Mardi: 'Ma', Mercredi: 'Me', Jeudi: 'Je', Vendredi: 'Ve', Samedi: 'Sa', Dimanche: 'Di' };
 
-const MealItem = ({ type, jour, meal, onChange }) => {
+const suggestionsLunch = [
+  'Wrap au poulet', 'Salade de pâtes', 'Riz sauté', 'Croque-monsieur', 'Soupe aux légumes'
+];
+
+const suggestionsSouper = [
+  'Spaghetti bolognaise', 'Poulet rôti', 'Tacos', 'Poisson grillé', 'Pizza maison'
+];
+
+const DraggableSuggestion = ({ name, type, getUsedDays }) => {
   const [{ isDragging }, dragRef] = useDrag({
     type: 'MEAL',
-    item: { jour, type, meal },
-    collect: (monitor) => ({
-      isDragging: monitor.isDragging(),
-    }),
+    item: { name, type },
+    collect: (monitor) => ({ isDragging: monitor.isDragging() }),
   });
 
+  const used = getUsedDays(name);
+
+  return (
+    <div ref={dragRef} className={`suggestion ${isDragging ? 'dragging' : ''}`}>
+      {name} {used.length > 0 && <span className="used-days">({used.join(', ')})</span>}
+    </div>
+  );
+};
+
+const DropZone = ({ jour, type, meals, onDropMeal, onRemoveMeal }) => {
   const [{ isOver }, dropRef] = useDrop({
     accept: 'MEAL',
-    drop: (item) => {
-      onChange(item.jour, item.type, '', true); // efface l'ancien
-      onChange(jour, type, item.meal);
-    },
-    collect: (monitor) => ({
-      isOver: monitor.isOver(),
-    }),
+    drop: (item) => onDropMeal(jour, type, item.name),
+    collect: (monitor) => ({ isOver: monitor.isOver() })
   });
 
   return (
-    <div
-      ref={(node) => dragRef(dropRef(node))}
-      className={`meal-box ${isDragging ? 'dragging' : ''} ${isOver ? 'hovered' : ''}`}
-      onClick={() => {
-        const nouveau = prompt(`Modifier le ${type.toLowerCase()} de ${jour}`, meal);
-        if (nouveau !== null) onChange(jour, type, nouveau);
-      }}
-    >
-      <strong>{type} :</strong> {meal || '—'}
+    <div ref={dropRef} className={`drop-zone ${isOver ? 'hovered' : ''}`}>
+      <strong>{type} :</strong>
+      {meals.length === 0 ? ' —' : (
+        <ul className="meal-list">
+          {meals.map((meal, i) => (
+            <li key={i}>
+              {meal} <button className="remove-btn" onClick={() => onRemoveMeal(jour, type, meal)}>❌</button>
+            </li>
+          ))}
+        </ul>
+      )}
     </div>
   );
 };
 
 export default function MealPlanner() {
   const [meals, setMeals] = useState({});
+  const [favoriteMeals, setFavoriteMeals] = useState([]);
 
   useEffect(() => {
     const fetchData = async () => {
       const ref = doc(db, 'repas', 'semaine');
       const snap = await getDoc(ref);
       if (snap.exists()) {
-        setMeals(snap.data());
-      } else {
-        const defaultMeals = {};
-        jours.forEach(j => defaultMeals[j] = {
-          lunch: `Suggestion lunch ${j}`,
-          souper: `Suggestion souper ${j}`,
-        });
-        setMeals(defaultMeals);
-        await setDoc(ref, defaultMeals);
+        const data = snap.data();
+        const normalized = {};
+        for (const j of jours) {
+          normalized[j] = {
+            lunch: Array.isArray(data[j]?.lunch) ? data[j].lunch : data[j]?.lunch ? [data[j].lunch] : [],
+            souper: Array.isArray(data[j]?.souper) ? data[j].souper : data[j]?.souper ? [data[j].souper] : []
+          };
+        }
+        setMeals(normalized);
+      }
+
+      const statsRef = doc(db, 'repas', 'stats');
+      const statsSnap = await getDoc(statsRef);
+      if (statsSnap.exists()) {
+        const statsData = statsSnap.data();
+        const sorted = Object.entries(statsData)
+          .sort((a, b) => b[1] - a[1])
+          .slice(0, 5)
+          .map(([name]) => name);
+        setFavoriteMeals(sorted);
       }
     };
     fetchData();
   }, []);
 
-  const handleChange = async (jour, type, value, remove = false) => {
+  const updateMeal = async (jour, type, name) => {
     const newMeals = { ...meals };
-    if (!newMeals[jour]) newMeals[jour] = {};
-    newMeals[jour][type.toLowerCase()] = remove ? '' : value;
+    if (!newMeals[jour][type.toLowerCase()].includes(name)) {
+      newMeals[jour][type.toLowerCase()].push(name);
+      setMeals(newMeals);
+      await setDoc(doc(db, 'repas', 'semaine'), newMeals);
+
+      const statsRef = doc(db, 'repas', 'stats');
+      const statsSnap = await getDoc(statsRef);
+      const statsData = statsSnap.exists() ? statsSnap.data() : {};
+      statsData[name] = (statsData[name] || 0) + 1;
+      await setDoc(statsRef, statsData);
+
+      const sorted = Object.entries(statsData)
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 5)
+        .map(([n]) => n);
+      setFavoriteMeals(sorted);
+    }
+  };
+
+  const removeMeal = async (jour, type, name) => {
+    const newMeals = { ...meals };
+    newMeals[jour][type.toLowerCase()] = newMeals[jour][type.toLowerCase()].filter(m => m !== name);
     setMeals(newMeals);
     await setDoc(doc(db, 'repas', 'semaine'), newMeals);
   };
 
+  const clearAllMeals = async () => {
+    const cleared = {};
+    jours.forEach(j => cleared[j] = { lunch: [], souper: [] });
+    setMeals(cleared);
+    await setDoc(doc(db, 'repas', 'semaine'), cleared);
+  };
+
+  const getUsedDays = (mealName) => {
+    const used = [];
+    for (const [j, dayMeals] of Object.entries(meals)) {
+      const all = [...(dayMeals.lunch || []), ...(dayMeals.souper || [])];
+      if (all.includes(mealName)) used.push(jourAbbr[j]);
+    }
+    return used;
+  };
+
   return (
-    <div className="meal-planner-container">
-      <h3 className="title">🍽️ Plan des repas</h3>
-      <DndProvider backend={HTML5Backend}>
-        <div className="grid-meals">
+    <DndProvider backend={HTML5Backend}>
+      <div className="meal-planner-full">
+        <div className="meal-suggestions">
+          {favoriteMeals.length > 0 && (
+            <>
+              <h4>⭐ Favoris</h4>
+              {favoriteMeals.map((name, i) => (
+                <DraggableSuggestion key={i} name={name} type="Mixed" getUsedDays={getUsedDays} />
+              ))}
+            </>
+          )}
+
+          <h4>🍱 Lunchs</h4>
+          {suggestionsLunch.map((name, i) => (
+            <DraggableSuggestion key={i} name={name} type="Lunch" getUsedDays={getUsedDays} />
+          ))}
+          <h4>🍽 Soupers</h4>
+          {suggestionsSouper.map((name, i) => (
+            <DraggableSuggestion key={i} name={name} type="Souper" getUsedDays={getUsedDays} />
+          ))}
+          <button className="clear-btn" onClick={clearAllMeals}>🧹 Vider la semaine</button>
+        </div>
+
+        <div className="meal-grid">
           {jours.map((jour) => (
-            <div key={jour} className="meal-card">
-              <h4>{jour}</h4>
-              <MealItem
+            <div key={jour} className="meal-day-card">
+              <h5>{jour}</h5>
+              <DropZone
+                jour={jour}
                 type="Lunch"
-                jour={jour}
-                meal={meals[jour]?.lunch || ''}
-                onChange={handleChange}
+                meals={meals[jour]?.lunch || []}
+                onDropMeal={updateMeal}
+                onRemoveMeal={removeMeal}
               />
-              <MealItem
-                type="Souper"
+              <DropZone
                 jour={jour}
-                meal={meals[jour]?.souper || ''}
-                onChange={handleChange}
+                type="Souper"
+                meals={meals[jour]?.souper || []}
+                onDropMeal={updateMeal}
+                onRemoveMeal={removeMeal}
               />
             </div>
           ))}
         </div>
-      </DndProvider>
-    </div>
+      </div>
+    </DndProvider>
   );
 }

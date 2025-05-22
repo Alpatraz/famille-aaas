@@ -1,87 +1,42 @@
-import { useEffect, useState } from "react";
-import { doc, updateDoc, deleteDoc } from "firebase/firestore";
-import { db } from "../firebase";
-import "../styles/eventPopup.css";
+// EventPopup.jsx
+export default function EventPopup({ event, users, onClose, onDelete, onEdit }) {
+  if (!event || !users) return null;
 
-export default function EventPopup({ event, onClose, onRefresh }) {
-  const [form, setForm] = useState({ title: "", date: "", participants: [] });
-
-  useEffect(() => {
-    if (event) {
-      setForm({
-        title: event.title,
-        date: event.date,
-        participants: event.participants || []
-      });
-    }
-  }, [event]);
-
-  const handleChange = (field, value) => {
-    setForm((prev) => ({ ...prev, [field]: value }));
-  };
-
-  const toggleParticipant = (name) => {
-    setForm((prev) => ({
-      ...prev,
-      participants: prev.participants.includes(name)
-        ? prev.participants.filter((p) => p !== name)
-        : [...prev.participants, name]
-    }));
-  };
-
-  const handleUpdate = async () => {
-    const ref = doc(db, "calendarEvents", event.id);
-    await updateDoc(ref, form);
-    onRefresh();
-    onClose();
-  };
-
-  const handleDelete = async () => {
-    const confirm = window.confirm("Supprimer cet événement ?");
-    if (!confirm) return;
-    await deleteDoc(doc(db, "calendarEvents", event.id));
-    onRefresh();
-    onClose();
-  };
+  const participants = (event.participants || []).map((uid) =>
+    users.find((u) => u.id === uid)
+  );
 
   return (
-    <div className="event-popup-overlay">
-      <div className="event-popup">
-        <h3>📆 Modifier l'événement</h3>
+    <div className="event-modal">
+      <div className="event-form">
+        <h3>📌 {event.title}</h3>
+        <p><strong>Date :</strong> {event.date}</p>
+        <p><strong>Heure :</strong> {event.startTime}</p>
+        <p><strong>Durée :</strong> {event.duration} min</p>
+        <p><strong>Participants :</strong></p>
+        <ul>
+          {participants.map((u, i) =>
+            u ? <li key={i}>{u.avatar || "👤"} {u.displayName}</li> : null
+          )}
+        </ul>
 
-        <label>Titre</label>
-        <input
-          type="text"
-          value={form.title}
-          onChange={(e) => handleChange("title", e.target.value)}
-        />
-
-        <label>Date</label>
-        <input
-          type="date"
-          value={form.date}
-          onChange={(e) => handleChange("date", e.target.value)}
-        />
-
-        <label>Participants</label>
-        <div className="participant-select">
-          {["Antoine", "Anna", "Alexandre", "Guillaume"].map((name) => (
-            <label key={name}>
-              <input
-                type="checkbox"
-                checked={form.participants.includes(name)}
-                onChange={() => toggleParticipant(name)}
-              />
-              {name}
-            </label>
-          ))}
-        </div>
-
-        <div className="event-popup-buttons">
-          <button onClick={handleUpdate}>💾 Enregistrer</button>
-          <button onClick={handleDelete} className="delete-btn">
-            🗑️ Supprimer
-          </button>
+        <div style={{ display: "flex", justifyContent: "flex-end", gap: "1rem" }}>
+          {onEdit && (
+            <button
+              style={{ backgroundColor: "#1976d2", color: "white" }}
+              onClick={() => onEdit(event)}
+            >
+              Modifier
+            </button>
+          )}
+          {onDelete && (
+            <button
+              style={{ backgroundColor: "#c62828", color: "white" }}
+              onClick={() => onDelete(event.id)}
+            >
+              Supprimer
+            </button>
+          )}
           <button onClick={onClose}>Fermer</button>
         </div>
       </div>
