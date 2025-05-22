@@ -1,7 +1,7 @@
 // MealPlanner.jsx
 import React, { useEffect, useState } from 'react';
 import { db } from '../firebase';
-import { doc, getDoc, setDoc, updateDoc } from 'firebase/firestore';
+import { doc, getDoc, setDoc } from 'firebase/firestore';
 import { DndProvider, useDrag, useDrop } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
 import './MealPlanner.css';
@@ -58,7 +58,6 @@ const DropZone = ({ jour, type, meals, onDropMeal, onRemoveMeal }) => {
 
 export default function MealPlanner() {
   const [meals, setMeals] = useState({});
-  const [favoriteMeals, setFavoriteMeals] = useState([]);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -74,17 +73,11 @@ export default function MealPlanner() {
           };
         }
         setMeals(normalized);
-      }
-
-      const statsRef = doc(db, 'repas', 'stats');
-      const statsSnap = await getDoc(statsRef);
-      if (statsSnap.exists()) {
-        const statsData = statsSnap.data();
-        const sorted = Object.entries(statsData)
-          .sort((a, b) => b[1] - a[1])
-          .slice(0, 5)
-          .map(([name]) => name);
-        setFavoriteMeals(sorted);
+      } else {
+        const defaultMeals = {};
+        jours.forEach(j => defaultMeals[j] = { lunch: [], souper: [] });
+        setMeals(defaultMeals);
+        await setDoc(ref, defaultMeals);
       }
     };
     fetchData();
@@ -96,18 +89,6 @@ export default function MealPlanner() {
       newMeals[jour][type.toLowerCase()].push(name);
       setMeals(newMeals);
       await setDoc(doc(db, 'repas', 'semaine'), newMeals);
-
-      const statsRef = doc(db, 'repas', 'stats');
-      const statsSnap = await getDoc(statsRef);
-      const statsData = statsSnap.exists() ? statsSnap.data() : {};
-      statsData[name] = (statsData[name] || 0) + 1;
-      await setDoc(statsRef, statsData);
-
-      const sorted = Object.entries(statsData)
-        .sort((a, b) => b[1] - a[1])
-        .slice(0, 5)
-        .map(([n]) => n);
-      setFavoriteMeals(sorted);
     }
   };
 
@@ -138,15 +119,6 @@ export default function MealPlanner() {
     <DndProvider backend={HTML5Backend}>
       <div className="meal-planner-full">
         <div className="meal-suggestions">
-          {favoriteMeals.length > 0 && (
-            <>
-              <h4>⭐ Favoris</h4>
-              {favoriteMeals.map((name, i) => (
-                <DraggableSuggestion key={i} name={name} type="Mixed" getUsedDays={getUsedDays} />
-              ))}
-            </>
-          )}
-
           <h4>🍱 Lunchs</h4>
           {suggestionsLunch.map((name, i) => (
             <DraggableSuggestion key={i} name={name} type="Lunch" getUsedDays={getUsedDays} />
