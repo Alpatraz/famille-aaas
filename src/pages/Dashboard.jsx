@@ -71,32 +71,34 @@ export default function Dashboard({ user }) {
   }
 
   return (
-    <div>
-      <h1>Tableau de bord familial</h1>
+    <div className="dashboard">
+      <div className="dashboard-header">
+        <h1>Tableau de bord familial</h1>
+        <div className="nav-buttons">
+          {isParent && (
+            <>
+              <button className="nav-button" onClick={() => setAddEventOpen(true)}>
+                ➕ Ajouter un événement
+              </button>
+            </>
+          )}
+        </div>
+      </div>
 
       <div className="dashboard-grid">
-        {/* Bloc Calendrier */}
         <div className="dashboard-section full-width calendar-priority">
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <h2>📅 Calendrier familial</h2>
-            <button onClick={() => {
-              setEditingEvent(null)
-              setAddEventOpen(true)
-            }}>➕ Ajouter un événement</button>
-          </div>
           <Calendar
             users={users}
             onEventClick={(e) => setPopupEvent(e)}
           />
         </div>
 
-        {/* Bloc Tâches & Récompenses */}
         <div className="dashboard-section full-width">
           <h2>✅ Tâches & Récompenses</h2>
           {isParent ? (
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1rem' }}>
+            <div className="dashboard-row">
               {enfants.map((child) => (
-                <div key={child.name} className="dashboard-section" style={{ background: '#fffef8' }}>
+                <div key={child.name} className="dashboard-section child-task-card">
                   <h3>{child.avatar} {child.name}</h3>
                   <TasksRewards user={{ uid: child.uid, displayName: child.name, avatar: child.avatar }} />
                 </div>
@@ -110,42 +112,38 @@ export default function Dashboard({ user }) {
           )}
         </div>
 
-        {/* Ligne 3 */}
-        <div className="dashboard-section equal-block dashboard-clickable" onClick={() => setOpen('meals')}>
+        <div className="dashboard-section" onClick={() => setOpen('meals')}>
           <h2>🍽️ Repas de la semaine</h2>
-          <div style={{ display: 'flex', gap: '1rem' }}>
-            <div style={{ flex: 1 }}>
-              <p><strong>Aujourd’hui</strong><br />
-                Lunch : {repasJour?.lunch?.join(', ') || '—'}<br />
-                Souper : {repasJour?.souper?.join(', ') || '—'}
-              </p>
+          <div className="meals-preview">
+            <div className="meal-day">
+              <h4>Aujourd'hui</h4>
+              <p>Lunch : {repasJour?.lunch?.join(', ') || '—'}</p>
+              <p>Souper : {repasJour?.souper?.join(', ') || '—'}</p>
             </div>
-            <div style={{ flex: 1 }}>
-              <p><strong>Demain</strong><br />
-                Lunch : {repasDemain?.lunch?.join(', ') || '—'}<br />
-                Souper : {repasDemain?.souper?.join(', ') || '—'}
-              </p>
+            <div className="meal-day">
+              <h4>Demain</h4>
+              <p>Lunch : {repasDemain?.lunch?.join(', ') || '—'}</p>
+              <p>Souper : {repasDemain?.souper?.join(', ') || '—'}</p>
             </div>
           </div>
         </div>
 
-        <div className="dashboard-section equal-block">
+        <div className="dashboard-section">
           <h2>🛒 Liste de courses</h2>
           <p>Ajouts favoris, historique familial</p>
         </div>
 
-        <div className="dashboard-section equal-block">
+        <div className="dashboard-section">
           <h2>🥋 Karaté</h2>
           <p>Suivi des cours, compétitions, passages de ceinture</p>
         </div>
 
         <div className="dashboard-section full-width">
           <h2>💬 Mur de messages</h2>
-          <p>Zone d’échange entre membres de la famille</p>
+          <p>Zone d'échange entre membres de la famille</p>
         </div>
       </div>
 
-      {/* Modales */}
       {open === 'meals' && (
         <Modal title="🍽️ Repas de la semaine" onClose={() => setOpen(null)}>
           <MealPlanner />
