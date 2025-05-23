@@ -14,18 +14,21 @@ export default function EventPopup({ event, users, onClose, onDelete, onEdit }) 
         
         <div className="event-details">
           <div className="event-detail">
-            <strong>📅 Date :</strong> {event.date}
+            <strong>📅 Date</strong>
+            {event.date}
           </div>
           <div className="event-detail">
-            <strong>⏰ Heure :</strong> {event.startTime}
+            <strong>⏰ Heure</strong>
+            {event.startTime}
           </div>
           <div className="event-detail">
-            <strong>⌛ Durée :</strong> {event.duration} minutes
+            <strong>⌛ Durée</strong>
+            {event.duration} minutes
           </div>
         </div>
 
         <div className="event-participants">
-          <strong>👥 Participants :</strong>
+          <strong>👥 Participants</strong>
           <div className="participant-list">
             {participants.map((u, i) => (
               <div key={i} className="participant-item">
@@ -38,25 +41,16 @@ export default function EventPopup({ event, users, onClose, onDelete, onEdit }) 
 
         <div className="event-actions">
           {onEdit && (
-            <button
-              className="edit-button"
-              onClick={() => onEdit(event)}
-            >
+            <button className="edit-button" onClick={() => onEdit(event)}>
               ✏️ Modifier
             </button>
           )}
           {onDelete && (
-            <button
-              className="delete-button"
-              onClick={() => onDelete(event.id)}
-            >
+            <button className="delete-button" onClick={() => onDelete(event.id)}>
               🗑️ Supprimer
             </button>
           )}
-          <button 
-            className="close-button"
-            onClick={onClose}
-          >
+          <button className="close-button" onClick={onClose}>
             ❌ Fermer
           </button>
         </div>
