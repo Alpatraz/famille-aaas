@@ -19,41 +19,56 @@ export default function ChildTasks({ name, userId }) {
 
   const today = format(new Date(), 'yyyy-MM-dd');
 
+  // Return early if userId is not provided
+  if (!userId) {
+    return <p>Chargement des données utilisateur...</p>;
+  }
+
   useEffect(() => {
     const fetchData = async () => {
-      // Fetch tasks assigned to this user
-      const taskSnap = await getDocs(query(
-        collection(db, 'tasks'),
-        where('assignedTo', 'array-contains', userId)
-      ));
-      setTasks(taskSnap.docs.map(doc => ({
-        id: doc.id,
-        label: doc.data().label || 'Tâche sans nom',
-        value: doc.data().value || 0,
-        done: false
-      })));
+      try {
+        // Only proceed with queries if userId is valid
+        if (userId) {
+          // Fetch tasks assigned to this user
+          const taskSnap = await getDocs(query(
+            collection(db, 'tasks'),
+            where('assignedTo', 'array-contains', userId)
+          ));
+          setTasks(taskSnap.docs.map(doc => ({
+            id: doc.id,
+            label: doc.data().label || 'Tâche sans nom',
+            value: doc.data().value || 0,
+            done: false
+          })));
 
-      // Fetch rewards assigned to this user
-      const rewardSnap = await getDocs(query(
-        collection(db, 'rewards'),
-        where('assignedTo', 'array-contains', userId)
-      ));
-      setRewards(rewardSnap.docs.map(doc => ({
-        id: doc.id,
-        label: doc.data().label || 'Récompense sans nom',
-        cost: doc.data().cost || 0
-      })));
+          // Fetch rewards assigned to this user
+          const rewardSnap = await getDocs(query(
+            collection(db, 'rewards'),
+            where('assignedTo', 'array-contains', userId)
+          ));
+          setRewards(rewardSnap.docs.map(doc => ({
+            id: doc.id,
+            label: doc.data().label || 'Récompense sans nom',
+            cost: doc.data().cost || 0
+          })));
 
-      // Fetch consequences assigned to this user
-      const consequenceSnap = await getDocs(query(
-        collection(db, 'consequences'),
-        where('assignedTo', 'array-contains', userId)
-      ));
-      setConsequences(consequenceSnap.docs.map(doc => ({
-        id: doc.id,
-        label: doc.data().label || 'Conséquence sans nom',
-        cost: doc.data().cost || 0
-      })));
+          // Fetch consequences assigned to this user
+          const consequenceSnap = await getDocs(query(
+            collection(db, 'consequences'),
+            where('assignedTo', 'array-contains', userId)
+          ));
+          setConsequences(consequenceSnap.docs.map(doc => ({
+            id: doc.id,
+            label: doc.data().label || 'Conséquence sans nom',
+            cost: doc.data().cost || 0
+          })));
+        }
+      } catch (error) {
+        console.error('Error fetching data:', error);
+        setTasks([]);
+        setRewards([]);
+        setConsequences([]);
+      }
     };
 
     fetchData();
