@@ -12,7 +12,7 @@ const jours = ['dimanche','lundi','mardi','mercredi','jeudi','vendredi','samedi'
 
 export default function Dashboard({ user }) {
   const isParent = user.role === 'parent'
-  const [open, setOpen] = useState(null)
+  const [showMealPlanner, setShowMealPlanner] = useState(false)
   const [addEventOpen, setAddEventOpen] = useState(false)
   const [editingEvent, setEditingEvent] = useState(null)
   const [popupEvent, setPopupEvent] = useState(null)
@@ -138,7 +138,7 @@ export default function Dashboard({ user }) {
           )}
         </div>
 
-        <div className="dashboard-section" onClick={() => setOpen('meals')}>
+        <div className="dashboard-section" onClick={() => setShowMealPlanner(true)}>
           <h2>🍽️ Repas de la semaine</h2>
           <div className="meals-preview">
             <div className="meal-day">
@@ -170,8 +170,8 @@ export default function Dashboard({ user }) {
         </div>
       </div>
 
-      {open === 'meals' && (
-        <Modal title="🍽️ Repas de la semaine" onClose={() => setOpen(null)}>
+      {showMealPlanner && (
+        <Modal title="🍽️ Repas de la semaine" onClose={() => setShowMealPlanner(false)}>
           <MealPlanner />
         </Modal>
       )}
