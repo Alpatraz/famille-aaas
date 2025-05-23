@@ -1,3 +1,8 @@
+/* Base styles */
+:root {
+  font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
+}
+
 .dashboard {
   padding: 1rem;
   background-color: #f9fafb;
@@ -50,6 +55,7 @@
   font-weight: 500;
   font-size: 0.95rem;
   white-space: nowrap;
+  font-family: inherit;
 }
 
 .nav-button:hover {
