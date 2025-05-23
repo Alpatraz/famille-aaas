@@ -12,8 +12,8 @@
   gap: 0.3rem;
   max-height: 300px;
   overflow-y: auto;
-  padding-right: 0.25rem;
-  width: 100%;
+  padding: 0 0.25rem;
+  width: calc(100% - 0.5rem);
 }
 
 .item-row {
@@ -26,8 +26,8 @@
   cursor: pointer;
   transition: all 0.2s ease;
   border: 1px solid #e2e8f0;
-  font-size: 0.7rem;
-  min-height: 24px;
+  font-size: 0.65rem;
+  min-height: 20px;
   width: 100%;
 }
 
@@ -45,7 +45,7 @@
 
 .item-label {
   font-weight: 500;
-  font-size: 0.7rem;
+  font-size: 0.65rem;
   color: #1e293b;
   margin-right: 0.4rem;
   white-space: nowrap;
@@ -57,19 +57,14 @@
 .points-tag {
   padding: 0.15rem 0.3rem;
   border-radius: 6px;
-  font-size: 0.65rem;
+  font-size: 0.6rem;
   font-weight: 500;
   background: #dbeafe;
   color: #1e40af;
-  min-width: 40px;
+  min-width: 35px;
   text-align: center;
   flex-shrink: 0;
   white-space: nowrap;
-}
-
-.points-tag::before {
-  content: "+";
-  margin-right: 0.2rem;
 }
 
 .points-tag.cost {
@@ -80,10 +75,6 @@
 .points-tag.negative {
   background: #fee2e2;
   color: #991b1b;
-}
-
-.points-tag.negative::before {
-  content: "-";
 }
 
 .child-tasks-container {
@@ -143,7 +134,7 @@
   border: none;
   border-radius: 4px;
   cursor: pointer;
-  font-size: 0.7rem;
+  font-size: 0.65rem;
   transition: all 0.2s;
   background: #f1f5f9;
   color: #64748b;

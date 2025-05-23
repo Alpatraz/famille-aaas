@@ -165,7 +165,7 @@ export default function ChildTasks({ name }) {
               className={`tab ${view === 'consequences' ? 'active' : ''}`}
               onClick={() => setView('consequences')}
             >
-              ⚠️ Conséquences
+              ⚠️ Conséq.
             </button>
           </div>
 
