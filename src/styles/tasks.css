@@ -26,7 +26,7 @@
   cursor: pointer;
   transition: all 0.2s ease;
   border: 1px solid #e2e8f0;
-  font-size: 0.9rem;
+  font-size: 0.5rem;
   min-height: 18px;
   width: 100%;
 }
@@ -45,7 +45,7 @@
 
 .item-label {
   font-weight: 500;
-  font-size: 0.9rem;
+  font-size: 0.6rem;
   color: #1e293b;
   margin-right: 0.4rem;
   white-space: nowrap;
@@ -134,7 +134,7 @@
   border: none;
   border-radius: 4px;
   cursor: pointer;
-  font-size: 0.9rem;
+  font-size: 0.6rem;
   transition: all 0.2s;
   background: #f1f5f9;
   color: #64748b;
