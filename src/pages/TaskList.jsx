@@ -91,97 +91,111 @@ export default function TaskList() {
   }
 
   return (
-    <div className="dashboard-section">
-      <h2>📋 Tâches disponibles</h2>
-      <ul>
-        {tasks.map(task => (
-          <li key={task.id}>
-            {editingTaskId === task.id ? (
-              <>
-                <input
-                  type="text"
-                  value={editingTask.label}
-                  onChange={e => setEditingTask({ ...editingTask, label: e.target.value })}
-                />
-                <input
-                  type="number"
-                  value={editingTask.value}
-                  onChange={e => setEditingTask({ ...editingTask, value: e.target.value })}
-                  style={{ width: 60 }}
-                />
-                <button onClick={confirmEditTask}>✅</button>
-              </>
-            ) : (
-              <>
-                ✅ {task.label} — <strong>{task.value} pts</strong>{' '}
-                <button onClick={() => startEditTask(task)}>✏️</button>{' '}
-                <button onClick={() => handleDeleteTask(task.id)}>🗑️</button>
-              </>
-            )}
-          </li>
-        ))}
-      </ul>
+    <div className="tasks-container">
+      <div className="tasks-section">
+        <h2>✅ Tâches disponibles</h2>
+        <div className="tasks-list">
+          {tasks.map(task => (
+            <div key={task.id} className="task-item">
+              {editingTaskId === task.id ? (
+                <div className="edit-form">
+                  <input
+                    type="text"
+                    value={editingTask.label}
+                    onChange={e => setEditingTask({ ...editingTask, label: e.target.value })}
+                    placeholder="Nom de la tâche"
+                  />
+                  <input
+                    type="number"
+                    value={editingTask.value}
+                    onChange={e => setEditingTask({ ...editingTask, value: e.target.value })}
+                    min="0"
+                  />
+                  <button onClick={confirmEditTask} className="confirm-button">✅</button>
+                </div>
+              ) : (
+                <div className="task-content">
+                  <span className="task-label">{task.label}</span>
+                  <div className="task-actions">
+                    <span className="points-badge">+{task.value} pts</span>
+                    <button onClick={() => startEditTask(task)} className="edit-button">✏️</button>
+                    <button onClick={() => handleDeleteTask(task.id)} className="delete-button">🗑️</button>
+                  </div>
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
 
-      <div style={{ marginTop: '1rem' }}>
-        <input
-          type="text"
-          placeholder="Nouvelle tâche"
-          value={newTask}
-          onChange={e => setNewTask(e.target.value)}
-        />
-        <input
-          type="number"
-          value={newTaskValue}
-          onChange={e => setNewTaskValue(e.target.value)}
-          style={{ width: 80, marginLeft: 8 }}
-        />
-        <button onClick={handleAddTask}>➕ Ajouter tâche</button>
+        <div className="add-form">
+          <input
+            type="text"
+            placeholder="Nouvelle tâche"
+            value={newTask}
+            onChange={e => setNewTask(e.target.value)}
+          />
+          <input
+            type="number"
+            value={newTaskValue}
+            onChange={e => setNewTaskValue(e.target.value)}
+            min="0"
+            placeholder="Points"
+          />
+          <button onClick={handleAddTask} className="add-button">Ajouter</button>
+        </div>
       </div>
 
-      <h2 style={{ marginTop: '2rem' }}>🎁 Récompenses disponibles</h2>
-      <ul>
-        {rewards.map(reward => (
-          <li key={reward.id}>
-            {editingRewardId === reward.id ? (
-              <>
-                <input
-                  type="text"
-                  value={editingReward.label}
-                  onChange={e => setEditingReward({ ...editingReward, label: e.target.value })}
-                />
-                <input
-                  type="number"
-                  value={editingReward.cost}
-                  onChange={e => setEditingReward({ ...editingReward, cost: e.target.value })}
-                  style={{ width: 60 }}
-                />
-                <button onClick={confirmEditReward}>✅</button>
-              </>
-            ) : (
-              <>
-                🎁 {reward.label} — <strong>{reward.cost} pts</strong>{' '}
-                <button onClick={() => startEditReward(reward)}>✏️</button>{' '}
-                <button onClick={() => handleDeleteReward(reward.id)}>🗑️</button>
-              </>
-            )}
-          </li>
-        ))}
-      </ul>
+      <div className="rewards-section">
+        <h2>🎁 Récompenses disponibles</h2>
+        <div className="rewards-list">
+          {rewards.map(reward => (
+            <div key={reward.id} className="reward-item">
+              {editingRewardId === reward.id ? (
+                <div className="edit-form">
+                  <input
+                    type="text"
+                    value={editingReward.label}
+                    onChange={e => setEditingReward({ ...editingReward, label: e.target.value })}
+                    placeholder="Nom de la récompense"
+                  />
+                  <input
+                    type="number"
+                    value={editingReward.cost}
+                    onChange={e => setEditingReward({ ...editingReward, cost: e.target.value })}
+                    min="0"
+                  />
+                  <button onClick={confirmEditReward} className="confirm-button">✅</button>
+                </div>
+              ) : (
+                <div className="reward-content">
+                  <span className="reward-label">{reward.label}</span>
+                  <div className="reward-actions">
+                    <span className="points-badge cost">{reward.cost} pts</span>
+                    <button onClick={() => startEditReward(reward)} className="edit-button">✏️</button>
+                    <button onClick={() => handleDeleteReward(reward.id)} className="delete-button">🗑️</button>
+                  </div>
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
 
-      <div style={{ marginTop: '1rem' }}>
-        <input
-          type="text"
-          placeholder="Nouvelle récompense"
-          value={newReward}
-          onChange={e => setNewReward(e.target.value)}
-        />
-        <input
-          type="number"
-          value={newRewardCost}
-          onChange={e => setNewRewardCost(e.target.value)}
-          style={{ width: 80, marginLeft: 8 }}
-        />
-        <button onClick={handleAddReward}>➕ Ajouter récompense</button>
+        <div className="add-form">
+          <input
+            type="text"
+            placeholder="Nouvelle récompense"
+            value={newReward}
+            onChange={e => setNewReward(e.target.value)}
+          />
+          <input
+            type="number"
+            value={newRewardCost}
+            onChange={e => setNewRewardCost(e.target.value)}
+            min="0"
+            placeholder="Coût"
+          />
+          <button onClick={handleAddReward} className="add-button">Ajouter</button>
+        </div>
       </div>
     </div>
   )
