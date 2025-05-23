@@ -12,8 +12,8 @@
   gap: 0.3rem;
   max-height: 300px;
   overflow-y: auto;
-  padding-right: 0.5rem;
   width: 100%;
+  box-sizing: border-box;
 }
 
 .child-tasks-container .item-row {
@@ -29,7 +29,7 @@
   font-size: 0.7rem !important;
   min-height: 18px;
   width: 100%;
-  margin: 0;
+  box-sizing: border-box;
 }
 
 .child-tasks-container .item-row:hover {
