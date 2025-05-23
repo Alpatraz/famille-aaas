@@ -1,12 +1,14 @@
 import { useState, useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
 import TasksRewards from '../components/TasksRewards'
 import Calendar from '../components/Calendar'
 import AddEventModal from '../components/AddEventModal'
 import EventPopup from '../components/EventPopup'
 import Modal from '../components/Modal'
 import MealPlanner from '../components/MealPlanner'
-import { db } from '../firebase'
+import { db, auth } from '../firebase'
 import { collection, getDocs, doc, getDoc, addDoc, deleteDoc, updateDoc } from 'firebase/firestore'
+import { signOut } from 'firebase/auth'
 
 const enfants = [
   { name: 'Antoine', uid: 'uid-Antoine', avatar: '🧒', color: '#FFE0E0' },
@@ -17,6 +19,7 @@ const enfants = [
 const jours = ['dimanche','lundi','mardi','mercredi','jeudi','vendredi','samedi']
 
 export default function Dashboard({ user }) {
+  const navigate = useNavigate()
   const isParent = user.role === 'parent'
   const [open, setOpen] = useState(null)
   const [addEventOpen, setAddEventOpen] = useState(false)
@@ -26,6 +29,15 @@ export default function Dashboard({ user }) {
   const [repasDemain, setRepasDemain] = useState({})
   const [users, setUsers] = useState([])
   const [events, setEvents] = useState([])
+
+  const handleLogout = async () => {
+    try {
+      await signOut(auth)
+      navigate('/')
+    } catch (error) {
+      console.error('Error signing out:', error)
+    }
+  }
 
   useEffect(() => {
     const fetchEvents = async () => {
