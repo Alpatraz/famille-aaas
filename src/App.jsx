@@ -93,4 +93,4 @@ export default function App() {
         {user.role === 'parent' && <Route path="/taches" element={<TaskList />} />}
       </Routes>
     </div>
-  )
+  )}
