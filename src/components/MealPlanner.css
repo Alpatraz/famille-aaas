@@ -192,6 +192,98 @@
   color: #1e293b;
 }
 
+.add-meal-form {
+  background: white;
+  border-radius: 12px;
+  padding: 1.25rem;
+  margin-bottom: 1rem;
+}
+
+.add-meal-form input {
+  width: 100%;
+  padding: 0.75rem;
+  border: 2px solid #e2e8f0;
+  border-radius: 10px;
+  margin-bottom: 1rem;
+  font-size: 0.95rem;
+  color: #1e293b;
+  transition: all 0.2s ease;
+}
+
+.add-meal-form input:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.meal-types {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.meal-types label {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem;
+  border: 2px solid #e2e8f0;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 0.95rem;
+  color: #64748b;
+}
+
+.meal-types label:has(input:checked) {
+  background: #eff6ff;
+  border-color: #3b82f6;
+  color: #1e40af;
+}
+
+.meal-types input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  margin: 0;
+}
+
+.form-actions {
+  display: flex;
+  gap: 1rem;
+  margin-top: 1.5rem;
+}
+
+.save-button,
+.cancel-button {
+  flex: 1;
+  padding: 0.75rem;
+  border: none;
+  border-radius: 10px;
+  font-size: 0.95rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.save-button {
+  background: #3b82f6;
+  color: white;
+}
+
+.save-button:hover {
+  background: #2563eb;
+}
+
+.cancel-button {
+  background: #e2e8f0;
+  color: #64748b;
+}
+
+.cancel-button:hover {
+  background: #cbd5e1;
+}
+
 .meals-categories {
   display: flex;
   flex-direction: column;
@@ -284,68 +376,6 @@
   color: #ef4444;
 }
 
-.edit-meal-form {
-  background: white;
-  padding: 1rem;
-  border-radius: 10px;
-  margin-bottom: 1rem;
-}
-
-.edit-meal-form input {
-  width: 100%;
-  padding: 0.75rem;
-  border: 2px solid #e2e8f0;
-  border-radius: 8px;
-  margin-bottom: 0.75rem;
-}
-
-.edit-meal-form .type-toggles {
-  display: flex;
-  gap: 0.5rem;
-  margin-bottom: 1rem;
-}
-
-.type-toggle {
-  flex: 1;
-  padding: 0.5rem;
-  border: 2px solid #e2e8f0;
-  border-radius: 6px;
-  cursor: pointer;
-  text-align: center;
-  transition: all 0.2s ease;
-}
-
-.type-toggle.active {
-  background: #eff6ff;
-  border-color: #3b82f6;
-  color: #1e40af;
-}
-
-.edit-meal-actions {
-  display: flex;
-  gap: 0.5rem;
-}
-
-.edit-meal-actions button {
-  flex: 1;
-  padding: 0.5rem;
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
-  font-weight: 500;
-  transition: all 0.2s ease;
-}
-
-.save-button {
-  background: #3b82f6;
-  color: white;
-}
-
-.cancel-button {
-  background: #e2e8f0;
-  color: #64748b;
-}
-
 @media (max-width: 768px) {
   .meal-selector {
     position: fixed;
@@ -365,5 +395,13 @@
 
   .meal-action-button {
     opacity: 1;
+  }
+
+  .meal-types {
+    flex-direction: column;
+  }
+
+  .form-actions {
+    flex-direction: column;
   }
 }
