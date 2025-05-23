@@ -28,8 +28,8 @@
   border: 1px solid #e2e8f0;
   font-size: 0.7rem !important;
   min-height: 18px;
-  width: calc(100% - 4px);
-  margin: 0 2px;
+  width: 100%;
+  margin: 0;
 }
 
 .child-tasks-container .item-row:hover {
