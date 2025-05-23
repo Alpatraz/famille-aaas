@@ -14,7 +14,7 @@ export default function ChildTasks({ name }) {
   const [tasks, setTasks] = useState([]);
   const [rewards, setRewards] = useState([]);
   const [consequences, setConsequences] = useState([]);
-  const [expanded, setExpanded] = useState(false);
+  const [expanded, setExpanded] = useState(true);
   const [view, setView] = useState('tasks');
 
   const today = format(new Date(), 'yyyy-MM-dd');
@@ -140,83 +140,75 @@ export default function ChildTasks({ name }) {
           <span>💰 Total</span>
           <strong>{pointsTotal}</strong>
         </div>
-        <button 
-          className="expand-button" 
-          onClick={() => setExpanded(!expanded)}
-        >
-          {expanded ? '▼' : '▲'}
-        </button>
       </div>
 
-      {expanded && (
-        <div className="tasks-content">
-          <div className="view-tabs">
-            <button 
-              className={`tab ${view === 'tasks' ? 'active' : ''}`}
-              onClick={() => setView('tasks')}
-            >
-              ✅ Tâches
-            </button>
-            <button 
-              className={`tab ${view === 'rewards' ? 'active' : ''}`}
-              onClick={() => setView('rewards')}
-            >
-              🎁 Récomp.
-            </button>
-            <button 
-              className={`tab ${view === 'consequences' ? 'active' : ''}`}
-              onClick={() => setView('consequences')}
-            >
-              ⚠️ Conséq.
-            </button>
-          </div>
-
-          {view === 'tasks' && (
-            <ul className="items-list tasks-list">
-              {tasks.map(task => (
-                <li 
-                  key={task.id} 
-                  className={`item-row ${task.done ? 'done' : ''}`}
-                  onClick={() => handleTaskClick(task)}
-                >
-                  <span className="item-label">{task.label}</span>
-                  <span className="points-tag">+{task.value}</span>
-                </li>
-              ))}
-            </ul>
-          )}
-
-          {view === 'rewards' && (
-            <ul className="items-list rewards-list">
-              {rewards.map(reward => (
-                <li 
-                  key={reward.id} 
-                  className="item-row"
-                  onClick={() => handleRewardClick(reward)}
-                >
-                  <span className="item-label">{reward.label}</span>
-                  <span className="points-tag cost">{reward.cost}</span>
-                </li>
-              ))}
-            </ul>
-          )}
-
-          {view === 'consequences' && (
-            <ul className="items-list consequences-list">
-              {consequences.map(consequence => (
-                <li 
-                  key={consequence.id} 
-                  className="item-row"
-                  onClick={() => handleConsequenceClick(consequence)}
-                >
-                  <span className="item-label">{consequence.label}</span>
-                  <span className="points-tag negative">-{consequence.cost}</span>
-                </li>
-              ))}
-            </ul>
-          )}
+      <div className="tasks-content">
+        <div className="view-tabs">
+          <button 
+            className={`tab ${view === 'tasks' ? 'active' : ''}`}
+            onClick={() => setView('tasks')}
+          >
+            ✅ Tâches
+          </button>
+          <button 
+            className={`tab ${view === 'rewards' ? 'active' : ''}`}
+            onClick={() => setView('rewards')}
+          >
+            🎁 Réc.
+          </button>
+          <button 
+            className={`tab ${view === 'consequences' ? 'active' : ''}`}
+            onClick={() => setView('consequences')}
+          >
+            ⚠️ Cons.
+          </button>
         </div>
-      )}
+
+        {view === 'tasks' && (
+          <ul className="items-list tasks-list">
+            {tasks.map(task => (
+              <li 
+                key={task.id} 
+                className={`item-row ${task.done ? 'done' : ''}`}
+                onClick={() => handleTaskClick(task)}
+              >
+                <span className="item-label">{task.label}</span>
+                <span className="points-tag">+{task.value}</span>
+              </li>
+            ))}
+          </ul>
+        )}
+
+        {view === 'rewards' && (
+          <ul className="items-list rewards-list">
+            {rewards.map(reward => (
+              <li 
+                key={reward.id} 
+                className="item-row"
+                onClick={() => handleRewardClick(reward)}
+              >
+                <span className="item-label">{reward.label}</span>
+                <span className="points-tag cost">{reward.cost}</span>
+              </li>
+            ))}
+          </ul>
+        )}
+
+        {view === 'consequences' && (
+          <ul className="items-list consequences-list">
+            {consequences.map(consequence => (
+              <li 
+                key={consequence.id} 
+                className="item-row"
+                onClick={() => handleConsequenceClick(consequence)}
+              >
+                <span className="item-label">{consequence.label}</span>
+                <span className="points-tag negative">-{consequence.cost}</span>
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
     </div>
   );
 }
