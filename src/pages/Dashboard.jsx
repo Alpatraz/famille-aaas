@@ -105,14 +105,6 @@ export default function Dashboard({ user }) {
 
   return (
     <div className="dashboard">
-      <div className="welcome-banner">
-        <div>
-          <h1>Tableau de bord familial</h1>
-          <span className="user-name">{user.displayName || user.email}</span>
-          <span className="role-tag">{user.role}</span>
-        </div>
-      </div>
-
       <div className="dashboard-grid">
         <div className="dashboard-section full-width calendar-priority">
           <Calendar
