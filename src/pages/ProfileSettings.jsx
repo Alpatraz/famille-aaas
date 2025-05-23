@@ -5,6 +5,15 @@ import {
 } from 'firebase/firestore'
 import "../styles/profile.css"
 
+const AVAILABLE_BLOCKS = {
+  calendar: { name: 'Calendrier', icon: '📅' },
+  tasks: { name: 'Tâches', icon: '✅' },
+  homework: { name: 'Devoirs', icon: '📚' },
+  meals: { name: 'Repas', icon: '🍽️' },
+  karate: { name: 'Karaté', icon: '🥋' },
+  messages: { name: 'Messages', icon: '💬' }
+};
+
 export default function ProfileSettings({ currentUser }) {
   const [users, setUsers] = useState([])
   const [editing, setEditing] = useState({})
@@ -12,7 +21,8 @@ export default function ProfileSettings({ currentUser }) {
     displayName: '',
     role: 'enfant',
     avatar: '🙂',
-    color: '#cccccc'
+    color: '#cccccc',
+    blocks: []
   })
 
   const loadUsers = async () => {
@@ -20,7 +30,8 @@ export default function ProfileSettings({ currentUser }) {
     const allUsers = snap.docs.map(doc => ({
       id: doc.id,
       uid: doc.id,
-      ...doc.data()
+      ...doc.data(),
+      blocks: doc.data().blocks || []
     }))
     setUsers(allUsers)
   }
@@ -36,6 +47,31 @@ export default function ProfileSettings({ currentUser }) {
         ...prev[uid],
         [field]: value
       }
+    }))
+  }
+
+  const toggleBlock = (uid, block) => {
+    setEditing(prev => {
+      const current = prev[uid] || { blocks: users.find(u => u.uid === uid)?.blocks || [] }
+      const blocks = current.blocks || []
+      return {
+        ...prev,
+        [uid]: {
+          ...current,
+          blocks: blocks.includes(block)
+            ? blocks.filter(b => b !== block)
+            : [...blocks, block]
+        }
+      }
+    })
+  }
+
+  const toggleNewBlock = (block) => {
+    setNewMember(prev => ({
+      ...prev,
+      blocks: prev.blocks.includes(block)
+        ? prev.blocks.filter(b => b !== block)
+        : [...prev.blocks, block]
     }))
   }
 
@@ -76,7 +112,8 @@ export default function ProfileSettings({ currentUser }) {
         displayName: '',
         role: 'enfant',
         avatar: '🙂',
-        color: '#cccccc'
+        color: '#cccccc',
+        blocks: []
       })
       loadUsers()
       alert('✅ Nouveau membre ajouté avec succès')
@@ -151,6 +188,22 @@ export default function ProfileSettings({ currentUser }) {
               value={newMember.color}
               onChange={e => setNewMember({ ...newMember, color: e.target.value })}
             />
+            {newMember.role === 'enfant' && (
+              <div className="blocks-selector">
+                <label>🔒 Accès aux fonctionnalités :</label>
+                <div className="blocks-grid">
+                  {Object.entries(AVAILABLE_BLOCKS).map(([key, block]) => (
+                    <div
+                      key={key}
+                      className={`block-option ${newMember.blocks.includes(key) ? 'selected' : ''}`}
+                      onClick={() => toggleNewBlock(key)}
+                    >
+                      {block.icon} {block.name}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
             <button onClick={handleCreateUser} className="create-button">
               Créer le profil
             </button>
@@ -211,6 +264,23 @@ export default function ProfileSettings({ currentUser }) {
                       )}
                     </select>
                   </label>
+                )}
+
+                {(user.role === 'enfant' || editing[user.uid]?.role === 'enfant') && (
+                  <div className="blocks-selector">
+                    <label>🔒 Accès aux fonctionnalités :</label>
+                    <div className="blocks-grid">
+                      {Object.entries(AVAILABLE_BLOCKS).map(([key, block]) => (
+                        <div
+                          key={key}
+                          className={`block-option ${(editing[user.uid]?.blocks || user.blocks || []).includes(key) ? 'selected' : ''}`}
+                          onClick={() => toggleBlock(user.uid, key)}
+                        >
+                          {block.icon} {block.name}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
                 )}
 
                 <div className="profile-actions">
