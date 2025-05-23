@@ -1,88 +1,159 @@
 // AddEventModal.jsx
-import { useState, useEffect } from "react";
+import { useEffect, useState } from 'react'
+import { db } from '../firebase'
+import {
+  collection,
+  addDoc,
+  updateDoc,
+  doc,
+  getDocs,
+} from 'firebase/firestore'
+import './AddEventModal.css'
 
-export default function AddEventModal({ onClose, onSave, users, initialData = null }) {
-  const [title, setTitle] = useState("");
-  const [date, setDate] = useState("");
-  const [startTime, setStartTime] = useState("08:00");
-  const [duration, setDuration] = useState(60);
-  const [selectedUsers, setSelectedUsers] = useState([]);
+export default function AddEventModal({ onClose, initialData }) {
+  const isEdit = initialData && initialData.id
 
-  // Sécurité : attend que users soit bien défini
-  if (!users || !Array.isArray(users)) return null;
+  const [formData, setFormData] = useState({
+    title: initialData?.title || '',
+    date: initialData?.date
+      ? new Date(initialData.date).toISOString().slice(0, 16)
+      : '',
+    duration: initialData?.duration || 60,
+    participants: initialData?.participants || [],
+    type: initialData?.type || 'autre',
+  })
+
+  const [users, setUsers] = useState([])
 
   useEffect(() => {
-    if (initialData) {
-      setTitle(initialData.title || "");
-      setDate(initialData.date || "");
-      setStartTime(initialData.startTime || "08:00");
-      setDuration(initialData.duration || 60);
-      setSelectedUsers(initialData.participants || []);
+    const fetchUsers = async () => {
+      const snap = await getDocs(collection(db, 'users'))
+      const userList = snap.docs.map((doc) => ({
+        uid: doc.id,
+        ...doc.data(),
+      }))
+      setUsers(userList)
     }
-  }, [initialData]);
+    fetchUsers()
+  }, [])
 
-  const toggleUser = (uid) => {
-    setSelectedUsers((prev) =>
-      prev.includes(uid) ? prev.filter((u) => u !== uid) : [...prev, uid]
-    );
-  };
+  const handleChange = (e) => {
+    const { name, value } = e.target
+    setFormData((prev) => ({ ...prev, [name]: value }))
+  }
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    const eventData = {
-      title,
-      date,
-      startTime,
-      duration: parseInt(duration),
-      participants: selectedUsers,
-      ...(initialData?.id && { id: initialData.id }) // inclut l'id en cas de modification
-    };
-    onSave(eventData);
-  };
+  const handleCheckboxChange = (e) => {
+    const { value, checked } = e.target
+    setFormData((prev) => ({
+      ...prev,
+      participants: checked
+        ? [...prev.participants, value]
+        : prev.participants.filter((uid) => uid !== value),
+    }))
+  }
+
+  const handleSubmit = async (e) => {
+    e.preventDefault()
+
+    const payload = {
+      title: formData.title,
+      date: new Date(formData.date),
+      duration: Number(formData.duration),
+      participants: formData.participants,
+      type: formData.type,
+    }
+
+    try {
+      if (isEdit) {
+        await updateDoc(doc(db, 'events', initialData.id), payload)
+        alert('✅ Événement modifié avec succès.')
+      } else {
+        await addDoc(collection(db, 'events'), payload)
+        alert('✅ Événement ajouté avec succès.')
+      }
+      onClose()
+    } catch (error) {
+      console.error('❌ Erreur lors de la sauvegarde :', error)
+      alert('Erreur lors de la sauvegarde.')
+    }
+  }
 
   return (
-    <div className="event-modal">
-      <form className="event-form" onSubmit={handleSubmit}>
-        <h3>{initialData ? "✏️ Modifier" : "➕ Nouvel"} événement</h3>
+    <div className="modal-backdrop">
+      <div className="modal-content">
+        <h3>{isEdit ? '✏️ Modifier' : '➕ Ajouter'} un événement</h3>
+        <form onSubmit={handleSubmit}>
+          <label>
+            Titre :
+            <input
+              type="text"
+              name="title"
+              value={formData.title}
+              onChange={handleChange}
+              required
+            />
+          </label>
 
-        <label>Titre</label>
-        <input type="text" value={title} onChange={(e) => setTitle(e.target.value)} required />
+          <label>
+            Date et heure :
+            <input
+              type="datetime-local"
+              name="date"
+              value={formData.date}
+              onChange={handleChange}
+              required
+            />
+          </label>
 
-        <label>Date</label>
-        <input type="date" value={date} onChange={(e) => setDate(e.target.value)} required />
+          <label>
+            Durée (minutes) :
+            <input
+              type="number"
+              name="duration"
+              value={formData.duration}
+              onChange={handleChange}
+              required
+            />
+          </label>
 
-        <label>Heure de début</label>
-        <input type="time" value={startTime} onChange={(e) => setStartTime(e.target.value)} required />
-
-        <label>Durée (minutes)</label>
-        <input type="number" value={duration} onChange={(e) => setDuration(e.target.value)} required />
-
-        <label>Participants</label>
-        <div className="participants">
-          {users.map((u) => (
-            <label
-              key={u.id}
-              style={{
-                backgroundColor: selectedUsers.includes(u.id) ? "#def" : "transparent",
-                borderRadius: "4px",
-                padding: "4px"
-              }}
+          <label>
+            Type :
+            <select
+              name="type"
+              value={formData.type}
+              onChange={handleChange}
             >
-              <input
-                type="checkbox"
-                checked={selectedUsers.includes(u.id)}
-                onChange={() => toggleUser(u.id)}
-              />
-              {u.avatar || "👤"} {u.displayName}
-            </label>
-          ))}
-        </div>
+              <option value="activite">Activité</option>
+              <option value="rdv">Rendez-vous</option>
+              <option value="repas">Repas</option>
+              <option value="sport">Sport</option>
+              <option value="autre">Autre</option>
+            </select>
+          </label>
 
-        <div style={{ display: "flex", justifyContent: "flex-end", gap: "1rem" }}>
-          <button type="submit">{initialData ? "Modifier" : "Enregistrer"}</button>
-          <button type="button" onClick={onClose}>Annuler</button>
-        </div>
-      </form>
+          <label>Participants :</label>
+          <div className="participants-list">
+            {users.map((user) => (
+              <label key={user.uid} className="participant-checkbox">
+                <input
+                  type="checkbox"
+                  value={user.uid}
+                  checked={formData.participants.includes(user.uid)}
+                  onChange={handleCheckboxChange}
+                />
+                {user.avatar || '🙂'} {user.displayName}
+              </label>
+            ))}
+          </div>
+
+          <div className="modal-buttons">
+            <button type="submit">{isEdit ? 'Modifier' : 'Ajouter'}</button>
+            <button type="button" onClick={onClose}>
+              Annuler
+            </button>
+          </div>
+        </form>
+      </div>
     </div>
-  );
+  )
 }

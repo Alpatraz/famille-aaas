@@ -84,14 +84,13 @@ export default function ProfileSettings() {
         // Réinitialise les points
         await setDoc(doc(db, 'points', u.uid), { value: 0 }, { merge: true })
 
-        // Supprime l’historique : toutes les sous-collections de taskHistory/{uid}/{day}
-        const historyRoot = collection(db, 'taskHistory', u.uid)
-        const daysSnap = await getDocs(historyRoot)
-        for (const dayDoc of daysSnap.docs) {
-          const day = dayDoc.id
-          const subCol = collection(db, 'taskHistory', u.uid, day)
-          const subSnap = await getDocs(subCol)
-          for (const d of subSnap.docs) {
+        // Supprime toutes les sous-collections de /taskHistory/{uid}/{date}
+        const userHistoryDoc = doc(db, 'taskHistory', u.uid)
+        const daysCollections = await db._delegate.listCollections(userHistoryDoc)
+
+        for (const dayCol of daysCollections) {
+          const entriesSnap = await getDocs(dayCol)
+          for (const d of entriesSnap.docs) {
             await deleteDoc(d.ref)
           }
         }
