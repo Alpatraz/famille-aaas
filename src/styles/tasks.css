@@ -51,6 +51,11 @@
   color: #1e40af;
 }
 
+.points-tag::before {
+  content: "+";
+  margin-right: 0.4rem;
+}
+
 .points-tag.cost {
   background: #fff7ed;
   color: #9a3412;
@@ -59,6 +64,10 @@
 .points-tag.negative {
   background: #fee2e2;
   color: #991b1b;
+}
+
+.points-tag.negative::before {
+  content: "-";
 }
 
 .child-tasks-container {
