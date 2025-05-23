@@ -17,8 +17,11 @@ export default function Historique() {
   useEffect(() => {
     const loadChildren = async () => {
       const usersSnap = await getDocs(collectionGroup(db, "users"));
-      const names = usersSnap.docs.map(doc => doc.data().displayName || doc.id);
-      setChildren(names);
+      const data = usersSnap.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      }));
+      setChildren(data.filter(user => user.role === 'enfant'));
     };
     loadChildren();
   }, []);
@@ -28,6 +31,7 @@ export default function Historique() {
       const all = await getDocs(collectionGroup(db, "taskHistory"));
       const now = new Date();
       let limit = new Date();
+      
       if (period === "3days") limit.setDate(now.getDate() - 3);
       else if (period === "7days") limit.setDate(now.getDate() - 7);
       else if (period === "30days") limit.setDate(now.getDate() - 30);
@@ -68,40 +72,68 @@ export default function Historique() {
     }
   };
 
+  const getTypeEmoji = (type) => {
+    switch (type) {
+      case 'task': return '✅';
+      case 'reward': return '🎁';
+      case 'consequence': return '⚠️';
+      default: return '📝';
+    }
+  };
+
   return (
     <div className="dashboard-section">
-      <h2>📜 Historique</h2>
+      <h2>📜 Historique des activités</h2>
 
       <div className="filters">
         <select value={child} onChange={e => setChild(e.target.value)}>
-          <option value="">Tous les enfants</option>
+          <option value="">👥 Tous les enfants</option>
           {children.map(c => (
-            <option key={c} value={c}>{c}</option>
+            <option key={c.id} value={c.displayName}>
+              {c.avatar} {c.displayName}
+            </option>
           ))}
         </select>
 
         <select value={period} onChange={e => setPeriod(e.target.value)}>
-          <option value="today">Aujourd’hui</option>
+          <option value="today">📅 Aujourd'hui</option>
           <option value="3days">3 derniers jours</option>
           <option value="7days">7 derniers jours</option>
           <option value="30days">30 derniers jours</option>
         </select>
       </div>
 
-      <ul className="history-list">
-        {entries.length === 0 && <li>Aucune activité trouvée.</li>}
-        {entries.map((e, i) => (
-          <li key={e.id || i} className="history-item">
-            <span className="badge">{e.userId}</span>
-            {e.type === "task" && `✅ ${e.label} (+${e.value} pts)`}
-            {e.type === "reward" && `🎁 ${e.label} (-${e.value} pts)`}
-            {e.type === "consequence" && `⚠️ ${e.label} (-${e.value} pts)`}
-            {" — "}
-            {e.date ? format(e.date, "dd/MM/yyyy HH:mm") : "Date inconnue"}
-            <button className="delete-btn" onClick={() => handleDelete(e)}>❌</button>
-          </li>
-        ))}
-      </ul>
+      <div className="history-list">
+        {entries.length === 0 ? (
+          <div className="empty-message">
+            Aucune activité trouvée pour cette période.
+          </div>
+        ) : (
+          entries.map((entry) => (
+            <div key={entry.id} className="history-item">
+              <div className="badge">
+                {children.find(c => c.displayName === entry.userId)?.avatar || '👤'} {entry.userId}
+              </div>
+              <div className="history-content">
+                {getTypeEmoji(entry.type)} {entry.label}
+                {entry.type === 'task' && ` (+${entry.value} pts)`}
+                {entry.type === 'reward' && ` (-${entry.value} pts)`}
+                {entry.type === 'consequence' && ` (-${entry.value} pts)`}
+              </div>
+              <div className="history-date">
+                {format(entry.date, "dd/MM/yyyy HH:mm")}
+              </div>
+              <button 
+                className="delete-btn"
+                onClick={() => handleDelete(entry)}
+                title="Supprimer"
+              >
+                🗑️
+              </button>
+            </div>
+          ))
+        )}
+      </div>
     </div>
   );
 }
