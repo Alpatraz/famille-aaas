@@ -131,18 +131,21 @@ export default function ChildTasks({ name }) {
 
   return (
     <div className="child-tasks-container">
-      <div className="points-summary">
-        <div className="points-today">
-          <span>🎯 Points du jour</span>
-          <strong>{pointsToday}</strong>
-        </div>
-        <div className="points-total">
-          <span>💰 Total</span>
-          <strong>{pointsTotal}</strong>
+      <div className="points-header">
+        <div className="points-badges">
+          <div className="points-badge today">
+            <div className="points-value">{pointsToday}</div>
+            <div className="points-label">Points du jour</div>
+          </div>
+          <div className="points-badge total">
+            <div className="points-value">{pointsTotal}</div>
+            <div className="points-label">Total</div>
+          </div>
         </div>
         <button 
           className="expand-button"
           onClick={() => setExpanded(!expanded)}
+          title={expanded ? "Réduire" : "Développer"}
         >
           {expanded ? '➖' : '➕'}
         </button>
