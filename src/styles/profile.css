@@ -136,6 +136,11 @@
   color: #1e40af;
 }
 
+.profile-actions {
+  display: flex;
+  gap: 0.75rem;
+}
+
 .save-button {
   background: #3b82f6;
   color: white;
@@ -146,12 +151,29 @@
   font-weight: 500;
   cursor: pointer;
   transition: all 0.2s ease;
-  width: 100%;
-  margin-top: 0.5rem;
+  flex: 1;
 }
 
 .save-button:hover {
   background: #2563eb;
+  transform: translateY(-1px);
+}
+
+.delete-button {
+  background: #fee2e2;
+  color: #991b1b;
+  border: none;
+  padding: 0.75rem;
+  border-radius: 12px;
+  font-size: 0.95rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  flex: 1;
+}
+
+.delete-button:hover {
+  background: #fecaca;
   transform: translateY(-1px);
 }
 
@@ -207,5 +229,9 @@
 
   .blocks-grid {
     grid-template-columns: 1fr;
+  }
+
+  .profile-actions {
+    flex-direction: column;
   }
 }

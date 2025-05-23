@@ -20,11 +20,9 @@ const ROLES = {
   enfant: { name: 'Enfant', icon: '👶' }
 };
 
-export default function ProfileSettings() {
+export default function ProfileSettings({ currentUser }) {
   const [users, setUsers] = useState([])
   const [editing, setEditing] = useState({})
-  const [currentUser, setCurrentUser] = useState(null)
-
   const [newName, setNewName] = useState('')
   const [newRole, setNewRole] = useState('enfant')
   const [newAvatar, setNewAvatar] = useState('🙂')
@@ -44,11 +42,6 @@ export default function ProfileSettings() {
 
   useEffect(() => {
     loadUsers()
-    const stored = localStorage.getItem('user')
-    if (stored) {
-      const parsed = JSON.parse(stored)
-      setCurrentUser(parsed)
-    }
   }, [])
 
   const handleChange = (uid, field, value) => {
@@ -89,6 +82,20 @@ export default function ProfileSettings() {
       })
       loadUsers()
       alert('✅ Modifications enregistrées')
+    }
+  }
+
+  const handleDelete = async (user) => {
+    if (window.confirm(`Êtes-vous sûr de vouloir supprimer le profil de ${user.displayName} ? Cette action est irréversible.`)) {
+      try {
+        await deleteDoc(doc(db, 'users', user.id))
+        await deleteDoc(doc(db, 'points', user.id))
+        loadUsers()
+        alert('✅ Profil supprimé avec succès')
+      } catch (error) {
+        console.error('Erreur lors de la suppression:', error)
+        alert('❌ Erreur lors de la suppression du profil')
+      }
     }
   }
 
@@ -207,9 +214,16 @@ export default function ProfileSettings() {
                   </div>
                 </div>
 
-                <button className="save-button" onClick={() => handleSave(user.uid)}>
-                  ✅ Valider
-                </button>
+                <div className="profile-actions">
+                  <button className="save-button" onClick={() => handleSave(user.uid)}>
+                    ✅ Valider
+                  </button>
+                  {currentUser?.role === 'admin' && (
+                    <button className="delete-button" onClick={() => handleDelete(user)}>
+                      🗑️ Supprimer
+                    </button>
+                  )}
+                </div>
               </>
             )}
           </div>
