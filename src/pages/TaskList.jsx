@@ -3,6 +3,7 @@ import { db } from '../firebase'
 import {
   collection, getDocs, addDoc, deleteDoc, doc, updateDoc
 } from 'firebase/firestore'
+import '../styles/tasks.css'
 
 export default function TaskList() {
   const [tasks, setTasks] = useState([])
@@ -11,19 +12,15 @@ export default function TaskList() {
 
   const [newTask, setNewTask] = useState('')
   const [newTaskValue, setNewTaskValue] = useState(5)
-
   const [newReward, setNewReward] = useState('')
   const [newRewardCost, setNewRewardCost] = useState(20)
-
   const [newConsequence, setNewConsequence] = useState('')
   const [newConsequenceCost, setNewConsequenceCost] = useState(10)
 
   const [editingTaskId, setEditingTaskId] = useState(null)
   const [editingTask, setEditingTask] = useState({ label: '', value: 0 })
-
   const [editingRewardId, setEditingRewardId] = useState(null)
   const [editingReward, setEditingReward] = useState({ label: '', cost: 0 })
-
   const [editingConsequenceId, setEditingConsequenceId] = useState(null)
   const [editingConsequence, setEditingConsequence] = useState({ label: '', cost: 0 })
 
