@@ -1,3 +1,7 @@
+:root {
+  font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
+}
+
 .event-modal-overlay {
   position: fixed;
   top: 0;
