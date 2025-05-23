@@ -6,7 +6,7 @@ import EventPopup from '../components/EventPopup'
 import Modal from '../components/Modal'
 import MealPlanner from '../components/MealPlanner'
 import { db } from '../firebase'
-import { collection, getDocs, doc, getDoc } from 'firebase/firestore'
+import { collection, getDocs, doc, getDoc, addDoc, deleteDoc, updateDoc } from 'firebase/firestore'
 
 const enfants = [
   { name: 'Antoine', uid: 'uid-Antoine', avatar: '🧒' },
@@ -50,18 +50,42 @@ export default function Dashboard({ user }) {
   }, [])
 
   const handleSaveEvent = async (eventData) => {
-    if (eventData.id) {
-      console.log("Modifier :", eventData)
-    } else {
-      console.log("Ajouter :", eventData)
+    try {
+      if (eventData.id) {
+        // Mise à jour d'un événement existant
+        await updateDoc(doc(db, 'calendarEvents', eventData.id), {
+          title: eventData.title,
+          date: eventData.date,
+          duration: eventData.duration,
+          participants: eventData.participants,
+          type: eventData.type
+        })
+      } else {
+        // Création d'un nouvel événement
+        await addDoc(collection(db, 'calendarEvents'), {
+          title: eventData.title,
+          date: eventData.date,
+          duration: eventData.duration,
+          participants: eventData.participants,
+          type: eventData.type
+        })
+      }
+      setAddEventOpen(false)
+      setEditingEvent(null)
+    } catch (error) {
+      console.error('Erreur lors de la sauvegarde :', error)
+      alert('Une erreur est survenue lors de la sauvegarde de l\'événement.')
     }
-    setAddEventOpen(false)
-    setEditingEvent(null)
   }
 
   const handleDeleteEvent = async (id) => {
-    console.log("Supprimer :", id)
-    setPopupEvent(null)
+    try {
+      await deleteDoc(doc(db, 'calendarEvents', id))
+      setPopupEvent(null)
+    } catch (error) {
+      console.error('Erreur lors de la suppression :', error)
+      alert('Une erreur est survenue lors de la suppression de l\'événement.')
+    }
   }
 
   const handleEditEvent = (event) => {
