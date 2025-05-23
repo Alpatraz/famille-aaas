@@ -65,34 +65,31 @@ export default function ChildTasks({ name }) {
     fetchPoints();
   }, [name]);
 
-  const handleTaskToggle = async (id) => {
-    const task = tasks.find(t => t.id === id);
+  const handleTaskClick = async (task) => {
+    if (task.done) return;
+
     const updated = tasks.map(t =>
-      t.id === id ? { ...t, done: !t.done } : t
+      t.id === task.id ? { ...t, done: true } : t
     );
     setTasks(updated);
 
-    const taskDone = !task.done;
-    const delta = taskDone ? task.value : -task.value;
-    const newTotal = pointsTotal + delta;
+    const newTotal = pointsTotal + task.value;
     setPointsTotal(newTotal);
-    setPointsToday(prev => prev + (taskDone ? task.value : -task.value));
+    setPointsToday(prev => prev + task.value);
     await setDoc(doc(db, 'points', name), { value: newTotal }, { merge: true });
 
-    if (taskDone) {
-      await addDoc(collection(db, 'taskHistory', name, today), {
-        label: task.label,
-        value: task.value,
-        type: 'task',
-        date: new Date().toISOString()
-      });
+    await addDoc(collection(db, 'taskHistory', name, today), {
+      label: task.label,
+      value: task.value,
+      type: 'task',
+      date: new Date().toISOString()
+    });
 
-      setTimeout(() => {
-        setTasks(prev =>
-          prev.map(t => t.id === id ? { ...t, done: false } : t)
-        );
-      }, 3000);
-    }
+    setTimeout(() => {
+      setTasks(prev =>
+        prev.map(t => t.id === task.id ? { ...t, done: false } : t)
+      );
+    }, 3000);
   };
 
   const handleRewardClick = async (cost, label) => {
@@ -178,7 +175,7 @@ export default function ChildTasks({ name }) {
                 <li 
                   key={task.id} 
                   className={`item-row ${task.done ? 'done' : ''}`}
-                  onClick={() => handleTaskToggle(task.id)}
+                  onClick={() => handleTaskClick(task)}
                 >
                   <span className="item-label">{task.label}</span>
                   <span className="points-tag">+{task.value} pts</span>
