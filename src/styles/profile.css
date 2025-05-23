@@ -43,6 +43,22 @@
 
 .profile-name {
   flex: 1;
+  padding: 0.5rem;
+  border: 2px solid transparent;
+  border-radius: 8px;
+  font-size: 1rem;
+  transition: all 0.2s ease;
+}
+
+.profile-name:not(:disabled):hover {
+  border-color: #e2e8f0;
+}
+
+.profile-name:disabled {
+  background: none;
+  border: none;
+  color: inherit;
+  cursor: not-allowed;
 }
 
 .profile-card input[type="text"],
@@ -83,6 +99,43 @@
   color: #475569;
 }
 
+.blocks-selector {
+  background: #f8fafc;
+  border-radius: 12px;
+  padding: 1rem;
+}
+
+.blocks-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+.block-option {
+  padding: 0.5rem;
+  border-radius: 8px;
+  background: white;
+  border: 2px solid #e2e8f0;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 0.9rem;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.block-option:hover {
+  border-color: #cbd5e1;
+  transform: translateY(-1px);
+}
+
+.block-option.selected {
+  background: #eff6ff;
+  border-color: #3b82f6;
+  color: #1e40af;
+}
+
 .save-button {
   background: #3b82f6;
   color: white;
@@ -102,19 +155,17 @@
   transform: translateY(-1px);
 }
 
-.add-profile-section {
-  margin-top: 2rem;
-  padding-top: 2rem;
-  border-top: 2px solid #e2e8f0;
-}
-
-.add-profile-section h3 {
+.section-title {
   font-size: 1.1rem;
   color: #1e293b;
-  margin: 0 0 1rem;
+  margin: 2rem 0 1rem;
   display: flex;
   align-items: center;
   gap: 0.5rem;
+}
+
+.new-profile {
+  background: #f8fafc;
 }
 
 .reset-button {
@@ -152,5 +203,9 @@
     width: 40px;
     height: 40px;
     font-size: 1.5rem;
+  }
+
+  .blocks-grid {
+    grid-template-columns: 1fr;
   }
 }
