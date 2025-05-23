@@ -141,7 +141,18 @@ export default function ProfileSettings({ currentUser }) {
     }
   }
 
-  const canManageUsers = currentUser?.role === 'admin' || currentUser?.role === 'parent'
+  const canManageUsers = currentUser?.role === 'admin'
+  const canEditUsers = currentUser?.role === 'admin' || currentUser?.role === 'parent'
+
+  const getAvailableRoles = (userRole) => {
+    if (currentUser?.role === 'admin') {
+      return Object.entries(ROLES)
+    }
+    if (currentUser?.role === 'parent') {
+      return Object.entries(ROLES).filter(([key]) => key === 'enfant')
+    }
+    return []
+  }
 
   return (
     <div className="dashboard-section">
@@ -158,7 +169,7 @@ export default function ProfileSettings({ currentUser }) {
                 className="profile-name"
                 value={editing[user.uid]?.displayName ?? user.displayName}
                 onChange={e => handleChange(user.uid, 'displayName', e.target.value)}
-                disabled={!canManageUsers}
+                disabled={!canEditUsers}
               />
             </div>
 
@@ -166,7 +177,7 @@ export default function ProfileSettings({ currentUser }) {
               {ROLES[user.role]?.icon} {ROLES[user.role]?.name}
             </div>
 
-            {canManageUsers && (
+            {canEditUsers && (
               <>
                 <label>
                   🎨 Couleur
@@ -185,19 +196,21 @@ export default function ProfileSettings({ currentUser }) {
                   />
                 </label>
 
-                <label>
-                  🎭 Rôle
-                  <select
-                    value={editing[user.uid]?.role || user.role}
-                    onChange={e => handleChange(user.uid, 'role', e.target.value)}
-                  >
-                    {Object.entries(ROLES).map(([key, role]) => (
-                      <option key={key} value={key}>
-                        {role.icon} {role.name}
-                      </option>
-                    ))}
-                  </select>
-                </label>
+                {canManageUsers && (
+                  <label>
+                    🎭 Rôle
+                    <select
+                      value={editing[user.uid]?.role || user.role}
+                      onChange={e => handleChange(user.uid, 'role', e.target.value)}
+                    >
+                      {getAvailableRoles(user.role).map(([key, role]) => (
+                        <option key={key} value={key}>
+                          {role.icon} {role.name}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                )}
 
                 <div className="blocks-selector">
                   <label>📱 Blocs visibles</label>
@@ -218,7 +231,7 @@ export default function ProfileSettings({ currentUser }) {
                   <button className="save-button" onClick={() => handleSave(user.uid)}>
                     ✅ Valider
                   </button>
-                  {currentUser?.role === 'admin' && (
+                  {canManageUsers && (
                     <button className="delete-button" onClick={() => handleDelete(user)}>
                       🗑️ Supprimer
                     </button>
@@ -240,7 +253,7 @@ export default function ProfileSettings({ currentUser }) {
               onChange={e => setNewName(e.target.value)}
             />
             <select value={newRole} onChange={e => setNewRole(e.target.value)}>
-              {Object.entries(ROLES).map(([key, role]) => (
+              {getAvailableRoles().map(([key, role]) => (
                 <option key={key} value={key}>
                   {role.icon} {role.name}
                 </option>
