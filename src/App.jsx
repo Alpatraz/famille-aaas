@@ -71,17 +71,18 @@ export default function App() {
 
   return (
     <div className="dashboard">
-      <div className="dashboard-section" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <div>
-          <h2>Bienvenue {user.displayName || user.email}</h2>
-          <span className="tag">Rôle : {user.role}</span>
-        </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+      <div className="dashboard-header">
+        <h1>Bienvenue {user.displayName || user.email}</h1>
+        <div className="nav-buttons">
           <Link to="/" className="nav-button">🏠 Accueil</Link>
-          {user.role === 'parent' && <Link to="/profil" className="nav-button">⚙️ Profils</Link>}
-          {user.role === 'parent' && <Link to="/historique" className="nav-button">📊 Historique</Link>}
-          {user.role === 'parent' && <Link to="/taches" className="nav-button">📋 Tâches</Link>}
-          <button onClick={handleLogout} className="nav-button">Déconnexion</button>
+          {user.role === 'parent' && (
+            <>
+              <Link to="/profil" className="nav-button">⚙️ Profils</Link>
+              <Link to="/historique" className="nav-button">📊 Historique</Link>
+              <Link to="/taches" className="nav-button">📋 Tâches</Link>
+            </>
+          )}
+          <button onClick={handleLogout} className="nav-button">👋 Déconnexion</button>
         </div>
       </div>
 
@@ -93,4 +94,3 @@ export default function App() {
       </Routes>
     </div>
   )
-}
