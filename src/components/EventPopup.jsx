@@ -1,4 +1,4 @@
-import './EventPopup.css';
+import './eventPopup.css';
 
 export default function EventPopup({ event, users, onClose, onDelete, onEdit }) {
   if (!event || !users) return null;
