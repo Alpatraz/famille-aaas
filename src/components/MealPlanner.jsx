@@ -170,14 +170,37 @@ export default function MealPlanner() {
   };
 
   const resetWeek = async () => {
-    if (window.confirm('Êtes-vous sûr de vouloir réinitialiser la planification de la semaine ?')) {
-      const emptyWeek = {};
-      jours.forEach(jour => {
-        emptyWeek[jour] = { lunch: [], souper: [] };
-      });
+    const emptyWeek = {};
+    jours.forEach(jour => {
+      emptyWeek[jour] = { lunch: [], souper: [] };
+    });
+
+    const confirmModal = document.createElement('div');
+    confirmModal.className = 'reset-confirm-modal';
+    confirmModal.innerHTML = `
+      <div class="reset-confirm-content">
+        <h3>⚠️ Réinitialiser la semaine</h3>
+        <p>Êtes-vous sûr de vouloir effacer tous les repas de la semaine ?</p>
+        <div class="reset-confirm-buttons">
+          <button class="reset-confirm-yes">Oui, réinitialiser</button>
+          <button class="reset-confirm-no">Non, annuler</button>
+        </div>
+      </div>
+    `;
+    document.body.appendChild(confirmModal);
+
+    const handleConfirm = async () => {
       setMeals(emptyWeek);
       await setDoc(doc(db, 'repas', 'semaine'), emptyWeek);
-    }
+      confirmModal.remove();
+    };
+
+    const handleCancel = () => {
+      confirmModal.remove();
+    };
+
+    confirmModal.querySelector('.reset-confirm-yes').addEventListener('click', handleConfirm);
+    confirmModal.querySelector('.reset-confirm-no').addEventListener('click', handleCancel);
   };
 
   return (
