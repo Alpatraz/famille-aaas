@@ -1,126 +1,4 @@
 /* === STRUCTURE GÉNÉRALE === */
-:root {
-  font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
-}
-
-.dashboard {
-  padding: 0.75rem;
-  background-color: #f8fafc;
-  min-height: 100vh;
-}
-
-.welcome-banner {
-  background: white;
-  padding: 1rem 1.5rem;
-  border-radius: 12px;
-  margin-bottom: 1.25rem;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.04);
-  text-align: center;
-}
-
-.welcome-banner h1 {
-  font-size: 1.75rem;
-  color: #2d3748;
-  margin: 0;
-  font-weight: 700;
-  letter-spacing: -0.02em;
-}
-
-.user-info {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  margin-top: 0.75rem;
-  padding-top: 0.75rem;
-  border-top: 1px solid #e2e8f0;
-  justify-content: center;
-}
-
-.user-name {
-  color: #64748b;
-  font-size: 0.95rem;
-}
-
-.role-tag {
-  background: #f1f5f9;
-  color: #64748b;
-  padding: 0.35rem 0.75rem;
-  border-radius: 20px;
-  font-size: 0.85rem;
-}
-
-.logout-button {
-  background: #fee2e2;
-  border: none;
-  padding: 0.5rem 1rem;
-  border-radius: 12px;
-  color: #991b1b;
-  font-size: 0.95rem;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.logout-button:hover {
-  background: #fecaca;
-  transform: translateY(-1px);
-}
-
-.dashboard-grid {
-  display: grid;
-  gap: 1.25rem;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-  margin: 0 auto;
-  max-width: 1400px;
-}
-
-.dashboard-section {
-  background: white;
-  border-radius: 16px;
-  padding: 1.5rem;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.04);
-}
-
-.calendar-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 1rem;
-  text-align: center;
-}
-
-.add-event-button {
-  background: #3b82f6;
-  color: white;
-  border: none;
-  padding: 0.6rem 1rem;
-  border-radius: 12px;
-  font-size: 0.95rem;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.add-event-button:hover {
-  background: #2563eb;
-  transform: translateY(-1px);
-}
-
-.dashboard-section h2 {
-  font-size: 1.4rem;
-  margin: 0 0 1.25rem;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  color: #2d3748;
-  font-weight: 600;
-  letter-spacing: -0.01em;
-  justify-content: center;
-}
-
-.dashboard-section.full-width {
-  grid-column: 1 / -1;
-}
-
-/* Tasks Grid */
 .tasks-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -132,11 +10,13 @@
 .child-task-card {
   background: #fefefe;
   border-radius: 14px;
-  padding: 1rem;
+  padding: 0.75rem;
   transition: all 0.2s ease;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
   min-width: 0;
   height: fit-content;
+  max-height: 400px;
+  overflow: hidden;
 }
 
 .child-task-card:hover {
@@ -145,8 +25,8 @@
 }
 
 .child-task-card h3 {
-  font-size: 1.1rem;
-  margin: 0 0 0.75rem;
+  font-size: 1rem;
+  margin: 0 0 0.5rem;
   color: #2d3748;
   display: flex;
   align-items: center;
@@ -154,35 +34,6 @@
   font-weight: 600;
   letter-spacing: -0.01em;
   justify-content: center;
-}
-
-/* Cards spécifiques */
-.meals-preview {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 1.25rem;
-}
-
-.meal-day {
-  background: #f8fafc;
-  padding: 1rem;
-  border-radius: 12px;
-}
-
-.meal-day h4 {
-  margin: 0 0 0.75rem;
-  color: #4a5568;
-  font-size: 1.1rem;
-  font-weight: 600;
-  text-align: center;
-}
-
-.meal-day p {
-  margin: 0.35rem 0;
-  font-size: 0.95rem;
-  color: #64748b;
-  line-height: 1.5;
-  text-align: center;
 }
 
 /* Responsive */
@@ -193,71 +44,13 @@
 }
 
 @media (max-width: 768px) {
-  .dashboard {
-    padding: 0.5rem;
-  }
-
-  .welcome-banner {
-    padding: 1rem;
-  }
-
-  .welcome-banner h1 {
-    font-size: 1.5rem;
-  }
-
-  .user-info {
-    flex-direction: column;
-    align-items: center;
-    gap: 0.75rem;
-  }
-
-  .logout-button {
-    width: 100%;
-    text-align: center;
-  }
-
-  .dashboard-grid {
-    grid-template-columns: 1fr;
-    gap: 1rem;
-  }
-
-  .dashboard-section {
-    padding: 1.25rem;
-  }
-
-  .calendar-header {
-    flex-direction: column;
-    gap: 0.75rem;
-    align-items: center;
-  }
-
-  .add-event-button {
-    width: 100%;
-  }
-
-  .dashboard-section h2 {
-    font-size: 1.25rem;
-    margin: 0 0 1rem;
-    justify-content: center;
-  }
-
   .tasks-grid {
     grid-template-columns: 1fr;
     gap: 1rem;
   }
 
   .child-task-card {
-    padding: 1rem;
-  }
-
-  .child-task-card h3 {
-    font-size: 1.15rem;
-    justify-content: center;
-  }
-}
-
-@media (max-width: 480px) {
-  .meals-preview {
-    grid-template-columns: 1fr;
+    padding: 0.75rem;
+    max-height: none;
   }
 }

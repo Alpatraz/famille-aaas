@@ -27,13 +27,13 @@
 
 .points-today span,
 .points-total span {
-  font-size: 0.85rem;
+  font-size: 0.75rem;
   color: #4a5568;
 }
 
 .points-today strong,
 .points-total strong {
-  font-size: 1.1rem;
+  font-size: 1rem;
   color: #2d3748;
 }
 
@@ -54,23 +54,23 @@
 }
 
 .tasks-content {
-  padding: 0.75rem;
+  padding: 0.5rem;
   flex: 1;
   overflow: hidden;
 }
 
 .view-tabs {
   display: flex;
-  gap: 0.4rem;
-  margin-bottom: 0.75rem;
+  gap: 0.25rem;
+  margin-bottom: 0.5rem;
 }
 
 .tab {
   flex: 1;
-  padding: 0.5rem;
+  padding: 0.4rem;
   border: none;
   border-radius: 8px;
-  font-size: 0.85rem;
+  font-size: 0.8rem;
   cursor: pointer;
   transition: all 0.2s ease;
   background: #f1f5f9;
@@ -94,8 +94,8 @@
   margin: 0;
   display: flex;
   flex-direction: column;
-  gap: 0.4rem;
-  max-height: 300px;
+  gap: 0.35rem;
+  max-height: 200px;
   overflow-y: auto;
 }
 
@@ -103,12 +103,13 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0.75rem;
+  padding: 0.5rem;
   background: #f8fafc;
   border-radius: 8px;
   transition: all 0.2s ease;
   cursor: pointer;
   border: 2px solid transparent;
+  min-height: 20px;
 }
 
 .item-row:hover {
@@ -137,7 +138,7 @@
 }
 
 .item-label {
-  font-size: 0.9rem;
+  font-size: 0.8rem;
   color: #2d3748;
   font-weight: 500;
   margin-right: 0.5rem;
@@ -148,9 +149,9 @@
 }
 
 .points-tag {
-  padding: 0.35rem 0.75rem;
+  padding: 0.25rem 0.5rem;
   border-radius: 20px;
-  font-size: 0.85rem;
+  font-size: 0.75rem;
   font-weight: 500;
   background: #e0f2fe;
   color: #0369a1;
@@ -183,20 +184,20 @@
   }
 
   .tab {
-    font-size: 0.8rem;
-    padding: 0.4rem;
+    font-size: 0.75rem;
+    padding: 0.35rem;
   }
 
   .item-row {
-    padding: 0.6rem;
+    padding: 0.4rem;
   }
 
   .item-label {
-    font-size: 0.85rem;
+    font-size: 0.75rem;
   }
 
   .points-tag {
-    font-size: 0.8rem;
-    padding: 0.25rem 0.5rem;
+    font-size: 0.7rem;
+    padding: 0.2rem 0.4rem;
   }
 }
