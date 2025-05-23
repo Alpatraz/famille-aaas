@@ -1,9 +1,12 @@
 /* === STRUCTURE GÉNÉRALE === */
+:root {
+  font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
+}
+
 .dashboard {
   padding: 0.75rem;
   background-color: #f8fafc;
   min-height: 100vh;
-  font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
 }
 
 .welcome-banner {
