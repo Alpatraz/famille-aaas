@@ -26,8 +26,8 @@
   cursor: pointer;
   transition: all 0.2s ease;
   border: 1px solid #e2e8f0;
-  font-size: 0.65rem;
-  min-height: 20px;
+  font-size: 0.55rem;
+  min-height: 18px;
   width: 100%;
 }
 
@@ -45,7 +45,7 @@
 
 .item-label {
   font-weight: 500;
-  font-size: 0.65rem;
+  font-size: 0.55rem;
   color: #1e293b;
   margin-right: 0.4rem;
   white-space: nowrap;
@@ -57,11 +57,11 @@
 .points-tag {
   padding: 0.15rem 0.3rem;
   border-radius: 6px;
-  font-size: 0.6rem;
+  font-size: 0.5rem;
   font-weight: 500;
   background: #dbeafe;
   color: #1e40af;
-  min-width: 35px;
+  min-width: 30px;
   text-align: center;
   flex-shrink: 0;
   white-space: nowrap;
