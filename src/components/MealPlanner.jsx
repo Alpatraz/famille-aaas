@@ -139,6 +139,7 @@ export default function MealPlanner() {
   return (
     <div className="meal-planner">
       <div className="meal-header">
+        <h2>🍽️ Planification des repas</h2>
         <div className="meal-actions">
           <button className="add-meal-button" onClick={() => setShowMealDialog(true)}>
             ➕ Ajouter un plat
@@ -191,9 +192,30 @@ export default function MealPlanner() {
 
         {(selectedDay || showMealDialog || showMealList) && (
           <div className="meal-selector">
+            <div className="meal-selector-header">
+              {showMealDialog ? (
+                <>
+                  <h3>Ajouter un nouveau plat</h3>
+                  <button className="close-selector" onClick={() => setShowMealDialog(false)}>×</button>
+                </>
+              ) : showMealList ? (
+                <>
+                  <h3>Liste des plats</h3>
+                  <button className="close-selector" onClick={() => setShowMealList(false)}>×</button>
+                </>
+              ) : (
+                <>
+                  <h3>Choisir un plat pour {selectedDay} ({selectedType})</h3>
+                  <button className="close-selector" onClick={() => {
+                    setSelectedDay(null);
+                    setSelectedType(null);
+                  }}>×</button>
+                </>
+              )}
+            </div>
+
             {showMealDialog ? (
               <div className="add-meal-form">
-                <h3>Ajouter un nouveau plat</h3>
                 <input
                   type="text"
                   value={newMeal.name}
@@ -228,58 +250,54 @@ export default function MealPlanner() {
                 </div>
               </div>
             ) : showMealList ? (
-              <div className="meals-list">
-                <h3>Liste des plats</h3>
-                <div className="meals-categories">
-                  <div className="meals-category">
-                    <h4>⭐ Favoris</h4>
-                    {mealsList
-                      .filter(m => m.isFavorite)
-                      .map((meal) => (
-                        <div key={meal.name} className="meal-list-item">
-                          <span className="meal-name">{meal.name}</span>
-                          <div className="meal-tags">
-                            {meal.types.includes('lunch') && <span className="meal-tag lunch">Lunch</span>}
-                            {meal.types.includes('souper') && <span className="meal-tag dinner">Souper</span>}
-                          </div>
-                          <div className="meal-actions">
-                            <button onClick={() => toggleFavorite(meal)} className="favorite-button active">
-                              ⭐
-                            </button>
-                            <button onClick={() => deleteMeal(meal)} className="delete-button">
-                              🗑️
-                            </button>
-                          </div>
+              <div className="meals-categories">
+                <div className="meals-category">
+                  <h4>⭐ Favoris</h4>
+                  {mealsList
+                    .filter(m => m.isFavorite)
+                    .map((meal) => (
+                      <div key={meal.name} className="meal-list-item">
+                        <span className="meal-name">{meal.name}</span>
+                        <div className="meal-tags">
+                          {meal.types.includes('lunch') && <span className="meal-tag lunch">Lunch</span>}
+                          {meal.types.includes('souper') && <span className="meal-tag dinner">Souper</span>}
                         </div>
-                      ))}
-                  </div>
-                  <div className="meals-category">
-                    <h4>📋 Tous les plats</h4>
-                    {mealsList
-                      .filter(m => !m.isFavorite)
-                      .map((meal) => (
-                        <div key={meal.name} className="meal-list-item">
-                          <span className="meal-name">{meal.name}</span>
-                          <div className="meal-tags">
-                            {meal.types.includes('lunch') && <span className="meal-tag lunch">Lunch</span>}
-                            {meal.types.includes('souper') && <span className="meal-tag dinner">Souper</span>}
-                          </div>
-                          <div className="meal-actions">
-                            <button onClick={() => toggleFavorite(meal)} className="favorite-button">
-                              ☆
-                            </button>
-                            <button onClick={() => deleteMeal(meal)} className="delete-button">
-                              🗑️
-                            </button>
-                          </div>
+                        <div className="meal-actions">
+                          <button onClick={() => toggleFavorite(meal)} className="favorite-button active">
+                            ⭐
+                          </button>
+                          <button onClick={() => deleteMeal(meal)} className="delete-button">
+                            🗑️
+                          </button>
                         </div>
-                      ))}
-                  </div>
+                      </div>
+                    ))}
+                </div>
+                <div className="meals-category">
+                  <h4>📋 Tous les plats</h4>
+                  {mealsList
+                    .filter(m => !m.isFavorite)
+                    .map((meal) => (
+                      <div key={meal.name} className="meal-list-item">
+                        <span className="meal-name">{meal.name}</span>
+                        <div className="meal-tags">
+                          {meal.types.includes('lunch') && <span className="meal-tag lunch">Lunch</span>}
+                          {meal.types.includes('souper') && <span className="meal-tag dinner">Souper</span>}
+                        </div>
+                        <div className="meal-actions">
+                          <button onClick={() => toggleFavorite(meal)} className="favorite-button">
+                            ☆
+                          </button>
+                          <button onClick={() => deleteMeal(meal)} className="delete-button">
+                            🗑️
+                          </button>
+                        </div>
+                      </div>
+                    ))}
                 </div>
               </div>
             ) : (
               <div className="meal-list">
-                <h3>Choisir un plat pour {selectedDay} ({selectedType})</h3>
                 {mealsList
                   .filter(meal => meal.types.includes(selectedType))
                   .map((meal) => (
