@@ -3,6 +3,7 @@ import { db } from '../firebase'
 import {
   collection, getDocs, setDoc, doc, addDoc, deleteDoc, query, where
 } from 'firebase/firestore'
+import Modal from '../components/Modal'
 import "../styles/profile.css"
 
 const DASHBOARD_BLOCKS = {
@@ -23,11 +24,14 @@ const ROLES = {
 export default function ProfileSettings({ currentUser }) {
   const [users, setUsers] = useState([])
   const [editing, setEditing] = useState({})
-  const [newName, setNewName] = useState('')
-  const [newRole, setNewRole] = useState('enfant')
-  const [newAvatar, setNewAvatar] = useState('🙂')
-  const [newColor, setNewColor] = useState('#cccccc')
-  const [newBlocks, setNewBlocks] = useState([])
+  const [showAddModal, setShowAddModal] = useState(false)
+  const [newMember, setNewMember] = useState({
+    displayName: '',
+    role: 'enfant',
+    avatar: '🙂',
+    color: '#cccccc',
+    blocks: []
+  })
 
   const loadUsers = async () => {
     const snap = await getDocs(collection(db, 'users'))
@@ -71,6 +75,15 @@ export default function ProfileSettings({ currentUser }) {
     })
   }
 
+  const toggleNewMemberBlock = (block) => {
+    setNewMember(prev => ({
+      ...prev,
+      blocks: prev.blocks.includes(block)
+        ? prev.blocks.filter(b => b !== block)
+        : [...prev.blocks, block]
+    }))
+  }
+
   const handleSave = async (uid) => {
     const updated = editing[uid]
     if (updated) {
@@ -100,20 +113,24 @@ export default function ProfileSettings({ currentUser }) {
   }
 
   const handleCreateUser = async () => {
-    if (!newName.trim()) return
-    await addDoc(collection(db, 'users'), {
-      displayName: newName.trim(),
-      role: newRole,
-      color: newColor,
-      avatar: newAvatar,
-      blocks: newBlocks
-    })
-    setNewName('')
-    setNewRole('enfant')
-    setNewColor('#cccccc')
-    setNewAvatar('🙂')
-    setNewBlocks([])
-    loadUsers()
+    if (!newMember.displayName.trim()) return
+    
+    try {
+      await addDoc(collection(db, 'users'), newMember)
+      setNewMember({
+        displayName: '',
+        role: 'enfant',
+        avatar: '🙂',
+        color: '#cccccc',
+        blocks: []
+      })
+      setShowAddModal(false)
+      loadUsers()
+      alert('✅ Nouveau membre ajouté avec succès')
+    } catch (error) {
+      console.error('Erreur lors de la création:', error)
+      alert('❌ Erreur lors de la création du profil')
+    }
   }
 
   const handleResetScores = async () => {
@@ -144,7 +161,7 @@ export default function ProfileSettings({ currentUser }) {
   const canManageUsers = currentUser?.role === 'admin'
   const canEditUsers = currentUser?.role === 'admin' || currentUser?.role === 'parent'
 
-  const getAvailableRoles = (userRole) => {
+  const getAvailableRoles = () => {
     if (currentUser?.role === 'admin') {
       return Object.entries(ROLES)
     }
@@ -156,7 +173,14 @@ export default function ProfileSettings({ currentUser }) {
 
   return (
     <div className="dashboard-section">
-      <h2>👥 Gestion des profils</h2>
+      <div className="profile-header">
+        <h2>👥 Gestion des profils</h2>
+        {canManageUsers && (
+          <button className="add-profile-button" onClick={() => setShowAddModal(true)}>
+            ➕ Ajouter un membre
+          </button>
+        )}
+      </div>
 
       <div className="profile-grid">
         {users.map(user => (
@@ -203,7 +227,7 @@ export default function ProfileSettings({ currentUser }) {
                       value={editing[user.uid]?.role || user.role}
                       onChange={e => handleChange(user.uid, 'role', e.target.value)}
                     >
-                      {getAvailableRoles(user.role).map(([key, role]) => (
+                      {getAvailableRoles().map(([key, role]) => (
                         <option key={key} value={key}>
                           {role.icon} {role.name}
                         </option>
@@ -243,62 +267,98 @@ export default function ProfileSettings({ currentUser }) {
         ))}
       </div>
 
-      {canManageUsers && (
-        <>
-          <h3 className="section-title">➕ Ajouter un membre</h3>
-          <div className="profile-card new-profile">
-            <input
-              placeholder="Prénom"
-              value={newName}
-              onChange={e => setNewName(e.target.value)}
-            />
-            <select value={newRole} onChange={e => setNewRole(e.target.value)}>
-              {getAvailableRoles().map(([key, role]) => (
-                <option key={key} value={key}>
-                  {role.icon} {role.name}
-                </option>
-              ))}
-            </select>
-            <input
-              placeholder="Emoji avatar"
-              value={newAvatar}
-              onChange={e => setNewAvatar(e.target.value)}
-            />
-            <input
-              type="color"
-              value={newColor}
-              onChange={e => setNewColor(e.target.value)}
-            />
-            <div className="blocks-selector">
+      {showAddModal && (
+        <Modal
+          title="➕ Ajouter un nouveau membre"
+          onClose={() => {
+            setShowAddModal(false)
+            setNewMember({
+              displayName: '',
+              role: 'enfant',
+              avatar: '🙂',
+              color: '#cccccc',
+              blocks: []
+            })
+          }}
+        >
+          <div className="new-member-form">
+            <div className="form-group">
+              <label>👤 Prénom</label>
+              <input
+                type="text"
+                value={newMember.displayName}
+                onChange={e => setNewMember({ ...newMember, displayName: e.target.value })}
+                placeholder="Entrez le prénom"
+              />
+            </div>
+
+            <div className="form-group">
+              <label>🎭 Rôle</label>
+              <select
+                value={newMember.role}
+                onChange={e => setNewMember({ ...newMember, role: e.target.value })}
+              >
+                {getAvailableRoles().map(([key, role]) => (
+                  <option key={key} value={key}>
+                    {role.icon} {role.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div className="form-group">
+              <label>🧸 Avatar</label>
+              <input
+                type="text"
+                value={newMember.avatar}
+                onChange={e => setNewMember({ ...newMember, avatar: e.target.value })}
+                placeholder="Emoji ou URL d'avatar"
+              />
+            </div>
+
+            <div className="form-group">
+              <label>🎨 Couleur</label>
+              <input
+                type="color"
+                value={newMember.color}
+                onChange={e => setNewMember({ ...newMember, color: e.target.value })}
+              />
+            </div>
+
+            <div className="form-group">
               <label>📱 Blocs visibles</label>
               <div className="blocks-grid">
                 {Object.entries(DASHBOARD_BLOCKS).map(([key, block]) => (
                   <div
                     key={key}
-                    className={`block-option ${newBlocks.includes(key) ? 'selected' : ''}`}
-                    onClick={() => setNewBlocks(prev => 
-                      prev.includes(key) ? prev.filter(b => b !== key) : [...prev, key]
-                    )}
+                    className={`block-option ${newMember.blocks.includes(key) ? 'selected' : ''}`}
+                    onClick={() => toggleNewMemberBlock(key)}
                   >
                     {block.icon} {block.name}
                   </div>
                 ))}
               </div>
             </div>
-            <button className="save-button" onClick={handleCreateUser}>
-              ➕ Créer
-            </button>
-          </div>
 
-          {currentUser?.role === 'admin' && (
-            <button
-              onClick={handleResetScores}
-              className="reset-button"
-            >
-              🔄 Réinitialiser tous les scores et historiques
-            </button>
-          )}
-        </>
+            <div className="modal-actions">
+              <button className="cancel-button" onClick={() => setShowAddModal(false)}>
+                Annuler
+              </button>
+              <button className="create-button" onClick={handleCreateUser}>
+                Créer le profil
+              </button>
+            </div>
+          </div>
+        </Modal>
+      )}
+
+      {currentUser?.role === 'admin' && (
+        <button
+          onClick={handleResetScores}
+          className="reset-button"
+        >
+          🔄 Réinitialiser tous les scores et historiques
+        </button>
       )}
     </div>
   )
