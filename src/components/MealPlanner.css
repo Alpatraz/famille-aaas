@@ -145,7 +145,7 @@
   position: fixed;
   right: 1rem;
   bottom: 1rem;
-  width: 300px;
+  width: 320px;
   max-height: calc(100vh - 200px);
   background: #f8fafc;
   border-radius: 12px;
@@ -160,6 +160,8 @@
   justify-content: space-between;
   align-items: center;
   margin-bottom: 1rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 2px solid #e2e8f0;
 }
 
 .meal-selector-header h3 {
@@ -177,6 +179,11 @@
   padding: 0.25rem;
   border-radius: 50%;
   transition: all 0.2s ease;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .close-selector:hover {
@@ -187,29 +194,39 @@
 .meals-categories {
   display: flex;
   flex-direction: column;
-  gap: 1.5rem;
+  gap: 1rem;
 }
 
 .meals-category h4 {
-  margin: 0 0 1rem;
+  margin: 0 0 0.75rem;
   color: #64748b;
-  font-size: 1rem;
+  font-size: 0.95rem;
   font-weight: 500;
+  padding-left: 0.5rem;
 }
 
 .meal-list-item {
   background: white;
   border-radius: 10px;
   padding: 0.75rem;
-  margin-bottom: 0.75rem;
+  margin-bottom: 0.5rem;
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
+  transition: all 0.2s ease;
+  border: 1px solid #e2e8f0;
+}
+
+.meal-list-item:hover {
+  transform: translateY(-1px);
+  border-color: #94a3b8;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
 }
 
 .meal-name {
   font-weight: 500;
   color: #1e293b;
+  font-size: 0.95rem;
 }
 
 .meal-tags {
@@ -248,6 +265,7 @@
   padding: 0.25rem 0.5rem;
   border-radius: 6px;
   transition: all 0.2s ease;
+  font-size: 1rem;
 }
 
 .favorite-button {
