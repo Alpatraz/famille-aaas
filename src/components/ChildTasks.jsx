@@ -7,7 +7,7 @@ import {
 import { format } from 'date-fns';
 import '../styles/tasks.css';
 
-export default function ChildTasks({ name }) {
+export default function ChildTasks({ user }) {
   const [pointsTotal, setPointsTotal] = useState(0);
   const [pointsToday, setPointsToday] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -49,10 +49,10 @@ export default function ChildTasks({ name }) {
 
   useEffect(() => {
     const fetchPoints = async () => {
-      const totalSnap = await getDoc(doc(db, 'points', name));
+      const totalSnap = await getDoc(doc(db, 'points', user.displayName));
       setPointsTotal(totalSnap.exists() ? totalSnap.data().value : 0);
 
-      const col = collection(db, 'taskHistory', name, today);
+      const col = collection(db, 'taskHistory', user.displayName, today);
       const snap = await getDocs(col);
       const todaySum = snap.docs
         .filter(doc => doc.data().type === 'task')
@@ -63,7 +63,7 @@ export default function ChildTasks({ name }) {
     };
 
     fetchPoints();
-  }, [name]);
+  }, [user.displayName]);
 
   const handleTaskClick = async (task) => {
     const taskDone = !task.done;
@@ -75,10 +75,10 @@ export default function ChildTasks({ name }) {
     const newTotal = pointsTotal + delta;
     setPointsTotal(newTotal);
     setPointsToday(prev => prev + (taskDone ? task.value : -task.value));
-    await setDoc(doc(db, 'points', name), { value: newTotal }, { merge: true });
+    await setDoc(doc(db, 'points', user.displayName), { value: newTotal }, { merge: true });
 
     if (taskDone) {
-      await addDoc(collection(db, 'taskHistory', name, today), {
+      await addDoc(collection(db, 'taskHistory', user.displayName, today), {
         label: task.label,
         value: task.value,
         type: 'task',
@@ -97,16 +97,16 @@ export default function ChildTasks({ name }) {
     if (pointsTotal >= reward.cost) {
       const newTotal = pointsTotal - reward.cost;
       setPointsTotal(newTotal);
-      await setDoc(doc(db, 'points', name), { value: newTotal }, { merge: true });
+      await setDoc(doc(db, 'points', user.displayName), { value: newTotal }, { merge: true });
 
-      await addDoc(collection(db, 'taskHistory', name, today), {
+      await addDoc(collection(db, 'taskHistory', user.displayName, today), {
         label: reward.label,
         value: reward.cost,
         type: 'reward',
         date: new Date().toISOString()
       });
 
-      alert(`🎁 ${name} a utilisé une récompense !`);
+      alert(`🎁 ${user.displayName} a utilisé une récompense !`);
     } else {
       alert(`⛔ Pas assez de points.`);
     }
@@ -115,22 +115,24 @@ export default function ChildTasks({ name }) {
   const handleConsequenceClick = async (consequence) => {
     const newTotal = pointsTotal - consequence.cost;
     setPointsTotal(newTotal);
-    await setDoc(doc(db, 'points', name), { value: newTotal }, { merge: true });
+    await setDoc(doc(db, 'points', user.displayName), { value: newTotal }, { merge: true });
 
-    await addDoc(collection(db, 'taskHistory', name, today), {
+    await addDoc(collection(db, 'taskHistory', user.displayName, today), {
       label: consequence.label,
       value: consequence.cost,
       type: 'consequence',
       date: new Date().toISOString()
     });
 
-    alert(`⚠️ ${name} a reçu une conséquence.`);
+    alert(`⚠️ ${user.displayName} a reçu une conséquence.`);
   };
 
   if (loading) return <p>Chargement...</p>;
 
+  const backgroundColor = user.color ? `${user.color}33` : '#f8fafc';
+
   return (
-    <div className="child-tasks-container">
+    <div className="child-tasks-container" style={{ background: backgroundColor }}>
       <div className="points-header">
         <div className="points-badges">
           <div className="points-badge today">
