@@ -1,4 +1,4 @@
-import './Modal.css'
+import './modal.css'
 
 export default function Modal({ title, onClose, children }) {
   return (
