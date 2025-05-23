@@ -16,6 +16,7 @@ export default function MealPlanner() {
   const [selectedDay, setSelectedDay] = useState(null);
   const [selectedType, setSelectedType] = useState(null);
   const [showMealDialog, setShowMealDialog] = useState(false);
+  const [showMealList, setShowMealList] = useState(false);
   const [newMeal, setNewMeal] = useState({ name: '', types: [] });
 
   useEffect(() => {
@@ -115,12 +116,40 @@ export default function MealPlanner() {
     setSelectedType(type);
   };
 
+  const deleteMeal = async (mealToDelete) => {
+    if (window.confirm(`Supprimer le plat "${mealToDelete.name}" ?`)) {
+      const updatedMeals = mealsList.filter(m => m.name !== mealToDelete.name);
+      const newFavorites = favorites.filter(f => f !== mealToDelete.name);
+      
+      setMealsList(updatedMeals);
+      setFavorites(newFavorites);
+      await persistData(updatedMeals, newFavorites);
+
+      // Supprimer le plat de tous les jours où il est utilisé
+      const updated = { ...meals };
+      Object.keys(updated).forEach(jour => {
+        updated[jour].lunch = updated[jour].lunch.filter(m => m !== mealToDelete.name);
+        updated[jour].souper = updated[jour].souper.filter(m => m !== mealToDelete.name);
+      });
+      setMeals(updated);
+      await setDoc(doc(db, 'repas', 'semaine'), updated);
+    }
+  };
+
   return (
     <div className="meal-planner">
       <div className="meal-header">
-        <button className="add-meal-button" onClick={() => setShowMealDialog(true)}>
-          ➕ Ajouter un plat
-        </button>
+        <div className="meal-actions">
+          <button className="add-meal-button" onClick={() => setShowMealDialog(true)}>
+            ➕ Ajouter un plat
+          </button>
+          <button 
+            className={`list-meal-button ${showMealList ? 'active' : ''}`}
+            onClick={() => setShowMealList(!showMealList)}
+          >
+            📋 Liste des plats
+          </button>
+        </div>
       </div>
 
       <div className="meal-content">
@@ -160,7 +189,7 @@ export default function MealPlanner() {
           ))}
         </div>
 
-        {(selectedDay || showMealDialog) && (
+        {(selectedDay || showMealDialog || showMealList) && (
           <div className="meal-selector">
             {showMealDialog ? (
               <div className="add-meal-form">
@@ -196,6 +225,56 @@ export default function MealPlanner() {
                   <button onClick={() => setShowMealDialog(false)} className="cancel-button">
                     Annuler
                   </button>
+                </div>
+              </div>
+            ) : showMealList ? (
+              <div className="meals-list">
+                <h3>Liste des plats</h3>
+                <div className="meals-categories">
+                  <div className="meals-category">
+                    <h4>⭐ Favoris</h4>
+                    {mealsList
+                      .filter(m => m.isFavorite)
+                      .map((meal) => (
+                        <div key={meal.name} className="meal-list-item">
+                          <span className="meal-name">{meal.name}</span>
+                          <div className="meal-tags">
+                            {meal.types.includes('lunch') && <span className="meal-tag lunch">Lunch</span>}
+                            {meal.types.includes('souper') && <span className="meal-tag dinner">Souper</span>}
+                          </div>
+                          <div className="meal-actions">
+                            <button onClick={() => toggleFavorite(meal)} className="favorite-button active">
+                              ⭐
+                            </button>
+                            <button onClick={() => deleteMeal(meal)} className="delete-button">
+                              🗑️
+                            </button>
+                          </div>
+                        </div>
+                      ))}
+                  </div>
+                  <div className="meals-category">
+                    <h4>📋 Tous les plats</h4>
+                    {mealsList
+                      .filter(m => !m.isFavorite)
+                      .map((meal) => (
+                        <div key={meal.name} className="meal-list-item">
+                          <span className="meal-name">{meal.name}</span>
+                          <div className="meal-tags">
+                            {meal.types.includes('lunch') && <span className="meal-tag lunch">Lunch</span>}
+                            {meal.types.includes('souper') && <span className="meal-tag dinner">Souper</span>}
+                          </div>
+                          <div className="meal-actions">
+                            <button onClick={() => toggleFavorite(meal)} className="favorite-button">
+                              ☆
+                            </button>
+                            <button onClick={() => deleteMeal(meal)} className="delete-button">
+                              🗑️
+                            </button>
+                          </div>
+                        </div>
+                      ))}
+                  </div>
                 </div>
               </div>
             ) : (

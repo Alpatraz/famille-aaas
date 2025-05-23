@@ -10,19 +10,44 @@
   border-bottom: 2px solid #e2e8f0;
 }
 
-.add-meal-button {
-  background: #3b82f6;
-  color: white;
-  border: none;
+.meal-actions {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.add-meal-button,
+.list-meal-button {
   padding: 0.75rem 1rem;
   border-radius: 10px;
   font-weight: 500;
   cursor: pointer;
   transition: all 0.2s ease;
+  border: none;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
 }
 
-.add-meal-button:hover {
-  background: #2563eb;
+.add-meal-button {
+  background: #3b82f6;
+  color: white;
+}
+
+.list-meal-button {
+  background: #f8fafc;
+  color: #64748b;
+  border: 2px solid #e2e8f0;
+}
+
+.list-meal-button.active {
+  background: #f1f5f9;
+  color: #1e293b;
+  border-color: #94a3b8;
+}
+
+.add-meal-button:hover,
+.list-meal-button:hover {
   transform: translateY(-1px);
 }
 
@@ -120,6 +145,89 @@
   font-size: 1.1rem;
 }
 
+.meals-categories {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.meals-category h4 {
+  margin: 0 0 1rem;
+  color: #64748b;
+  font-size: 1rem;
+  font-weight: 500;
+}
+
+.meal-list-item {
+  background: white;
+  border-radius: 10px;
+  padding: 0.75rem;
+  margin-bottom: 0.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.meal-name {
+  font-weight: 500;
+  color: #1e293b;
+}
+
+.meal-tags {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.meal-tag {
+  padding: 0.25rem 0.5rem;
+  border-radius: 6px;
+  font-size: 0.8rem;
+  font-weight: 500;
+}
+
+.meal-tag.lunch {
+  background: #e0f2fe;
+  color: #0369a1;
+}
+
+.meal-tag.dinner {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.meal-actions {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.25rem;
+}
+
+.favorite-button,
+.delete-button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0.25rem 0.5rem;
+  border-radius: 6px;
+  transition: all 0.2s ease;
+}
+
+.favorite-button {
+  color: #64748b;
+}
+
+.favorite-button.active {
+  color: #eab308;
+}
+
+.delete-button {
+  color: #ef4444;
+}
+
+.favorite-button:hover,
+.delete-button:hover {
+  background: #f1f5f9;
+}
+
 .meal-option {
   display: flex;
   gap: 0.5rem;
@@ -139,16 +247,6 @@
   background: white;
   color: #1e293b;
   text-align: left;
-}
-
-.favorite-button {
-  background: #f8fafc;
-  color: #64748b;
-  font-size: 1.2rem;
-}
-
-.favorite-button.active {
-  color: #eab308;
 }
 
 .add-meal-form {
@@ -219,5 +317,15 @@
 
   .meal-item button {
     opacity: 1;
+  }
+
+  .meal-actions {
+    width: 100%;
+  }
+
+  .add-meal-button,
+  .list-meal-button {
+    flex: 1;
+    justify-content: center;
   }
 }
