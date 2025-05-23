@@ -226,6 +226,49 @@
   background: #16a34a;
 }
 
+.user-selector {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin: 0.5rem 0;
+  background: #f8fafc;
+  padding: 0.5rem;
+  border-radius: 6px;
+}
+
+.user-checkbox {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.3rem 0.5rem;
+  background: white;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.85rem;
+  transition: all 0.2s ease;
+}
+
+.user-checkbox:hover {
+  background: #f1f5f9;
+}
+
+.user-checkbox input {
+  margin: 0;
+}
+
+.assigned-users {
+  display: flex;
+  gap: 0.3rem;
+  margin: 0.5rem 0;
+}
+
+.assigned-user {
+  font-size: 1rem;
+  background: #f8fafc;
+  padding: 0.2rem;
+  border-radius: 4px;
+}
+
 @media (max-width: 768px) {
   .task-manager {
     padding: 1rem;
