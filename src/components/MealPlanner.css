@@ -212,7 +212,6 @@
   margin-bottom: 0.25rem;
   display: flex;
   align-items: center;
-  justify-content: space-between;
   gap: 0.5rem;
   transition: all 0.2s ease;
   border: 1px solid #e2e8f0;
@@ -229,6 +228,29 @@
   color: #1e293b;
   font-size: 0.95rem;
   flex: 1;
+}
+
+.meal-tags {
+  display: flex;
+  gap: 0.25rem;
+  margin-right: 0.5rem;
+}
+
+.meal-tag {
+  padding: 0.2rem 0.4rem;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+.meal-tag.lunch {
+  background: #e0f2fe;
+  color: #0369a1;
+}
+
+.meal-tag.dinner {
+  background: #fef3c7;
+  color: #92400e;
 }
 
 .meal-actions {
