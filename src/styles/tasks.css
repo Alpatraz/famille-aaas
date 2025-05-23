@@ -1,177 +1,205 @@
-/* --- Listes --- */
-.task-list,
-.reward-list {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-  border: 1px solid #ddd;
-  border-radius: 8px;
-  overflow: hidden;
-}
-
-/* --- Rangées individuelles --- */
-.task-row,
-.reward-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 10px 12px;
-  border-bottom: 1px solid #eee;
-  background-color: #fff;
-  font-size: 0.95rem;
-}
-
-.task-row:last-child,
-.reward-row:last-child {
-  border-bottom: none;
-}
-
-/* --- Nom de tâche ou récompense --- */
-.task-label,
-.reward-label {
-  flex: 1;
-  font-weight: 500;
-}
-
-/* --- Pastille de points --- */
-.tag {
-  background-color: #eef2f7;
-  padding: 4px 10px;
-  border-radius: 6px;
-  font-size: 0.8rem;
-  color: #333;
-  margin: 0 1rem;
-  white-space: nowrap;
-}
-
-/* --- Bouton récompense --- */
-.reward-button {
-  background-color: #fff7e6;
-  border: 1px solid #f0c36d;
-  padding: 4px 10px;
-  border-radius: 6px;
-  cursor: pointer;
-  font-size: 0.85rem;
-  transition: background-color 0.2s ease;
-}
-
-.reward-button:hover {
-  background-color: #ffebc0;
-}
-
-/* --- Case à cocher alignée --- */
-input[type='checkbox'] {
-  transform: scale(1.2);
-  margin-left: 0.5rem;
-}
-
-.accordion-section {
-  margin-bottom: 1rem;
-  border: 1px solid #ddd;
-  border-radius: 8px;
-  overflow: hidden;
-  background-color: #fff;
-}
-
-.accordion-header {
-  padding: 10px 12px;
-  background-color: #f7f7f7;
-  font-weight: 600;
-  font-size: 1rem;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  cursor: pointer;
-  border-bottom: 1px solid #ddd;
-}
-
-.accordion-content {
-  padding: 10px 12px;
-}
-
-/* Liste des tâches */
-.task-list,
-.reward-list {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-}
-
-.task-row,
-.reward-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0.4rem 0;
-  border-bottom: 1px solid #eee;
-}
-
-.task-label,
-.reward-label {
-  flex: 1;
-  font-weight: 500;
-}
-
-/* Étiquette points */
-.tag {
-  background: #e0f7fa;
-  color: #007d8c;
+.child-tasks-container {
+  background: white;
   border-radius: 12px;
-  padding: 0.2rem 0.6rem;
-  font-size: 0.85rem;
-  margin: 0 0.5rem;
-  white-space: nowrap;
+  overflow: hidden;
+  font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
 }
 
-/* Bouton récompense */
-.reward-button {
-  background-color: #e3f8dc;
-  border: 1px solid #a3dca6;
-  color: #2e7d32;
-  border-radius: 6px;
-  padding: 0.3rem 0.6rem;
-  font-size: 0.85rem;
+.points-summary {
+  display: flex;
+  align-items: center;
+  padding: 1rem;
+  gap: 1.25rem;
+  background: rgba(255, 255, 255, 0.7);
+  border-radius: 12px;
+}
+
+.points-today,
+.points-total {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.points-today span,
+.points-total span {
+  font-size: 0.9rem;
+  color: #4a5568;
+}
+
+.points-today strong,
+.points-total strong {
+  font-size: 1.25rem;
+  color: #2d3748;
+}
+
+.expand-button {
+  margin-left: auto;
+  background: none;
+  border: none;
+  font-size: 1.25rem;
+  color: #4a5568;
   cursor: pointer;
-  transition: background 0.2s ease;
+  padding: 0.5rem;
+  border-radius: 8px;
+  transition: all 0.2s ease;
 }
 
-.reward-button:hover {
-  background-color: #d0f2c2;
+.expand-button:hover {
+  background: rgba(0, 0, 0, 0.05);
 }
 
-@media (max-width: 600px) {
-  .task-row,
-  .reward-row {
+.tasks-content {
+  padding: 1rem;
+}
+
+.view-tabs {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.tab {
+  flex: 1;
+  padding: 0.75rem;
+  border: none;
+  border-radius: 10px;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  background: #f1f5f9;
+  color: #64748b;
+  font-weight: 500;
+}
+
+.tab:hover {
+  background: #e2e8f0;
+}
+
+.tab.active {
+  background: #3b82f6;
+  color: white;
+}
+
+.items-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.item-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.75rem;
+  background: #f8fafc;
+  border-radius: 10px;
+  transition: all 0.2s ease;
+}
+
+.item-row:hover {
+  background: #f1f5f9;
+}
+
+.item-row.done {
+  background: #f0fdf4;
+}
+
+.item-label {
+  font-size: 0.95rem;
+  color: #2d3748;
+  font-weight: 500;
+}
+
+.item-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.points-tag {
+  padding: 0.35rem 0.75rem;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  background: #e0f2fe;
+  color: #0369a1;
+}
+
+.points-tag.cost {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.points-tag.negative {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.use-button {
+  border: none;
+  padding: 0.5rem 0.75rem;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-weight: 500;
+}
+
+.use-button.reward {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.use-button.consequence {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.use-button:hover {
+  transform: translateY(-1px);
+  filter: brightness(95%);
+}
+
+input[type="checkbox"] {
+  width: 1.2rem;
+  height: 1.2rem;
+  border-radius: 4px;
+  cursor: pointer;
+  accent-color: #22c55e;
+}
+
+@media (max-width: 480px) {
+  .points-summary {
     flex-direction: column;
-    align-items: flex-start;
-    gap: 0.4rem;
-    padding: 0.6rem 0;
-  }
-
-  .task-label,
-  .reward-label {
-    font-size: 1rem;
-    font-weight: 500;
-  }
-
-  .tag {
-    margin: 0;
-    background: #f0f0f0;
-    font-size: 0.8rem;
-  }
-
-  .reward-button {
-    width: 100%;
+    gap: 0.75rem;
     text-align: center;
-    font-size: 0.9rem;
   }
 
-  .task-list,
-  .reward-list {
-    padding: 0.2rem;
+  .expand-button {
+    margin: 0;
   }
 
-  .dashboard-section {
-    padding: 1rem 0.8rem;
+  .view-tabs {
+    flex-direction: column;
+  }
+
+  .item-row {
+    flex-direction: column;
+    gap: 0.5rem;
+    text-align: center;
+  }
+
+  .item-actions {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .use-button {
+    width: 100%;
   }
 }
