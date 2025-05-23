@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
-import { db } from '../firebase';
+import { db, storage } from '../firebase';
 import { collection, addDoc, getDocs, deleteDoc, doc, query, where, updateDoc } from 'firebase/firestore';
+import { ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
 import Modal from './Modal';
 import './Homework.css';
 
@@ -20,6 +21,8 @@ export default function Homework() {
   const [selectedUser, setSelectedUser] = useState(null);
   const [selectedSubject, setSelectedSubject] = useState(null);
   const [editingHomework, setEditingHomework] = useState(null);
+  const [selectedFile, setSelectedFile] = useState(null);
+  const [uploadProgress, setUploadProgress] = useState(0);
   const [newHomework, setNewHomework] = useState({
     title: '',
     subject: '',
@@ -52,20 +55,48 @@ export default function Homework() {
     setHomeworks(data);
   };
 
+  const handleFileChange = (e) => {
+    if (e.target.files[0]) {
+      setSelectedFile(e.target.files[0]);
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+    let fileUrl = '';
+    let filePath = '';
+
+    if (selectedFile) {
+      const timestamp = Date.now();
+      const fileName = `${timestamp}_${selectedFile.name}`;
+      filePath = `homeworks/${newHomework.assignedTo}/${fileName}`;
+      const fileRef = ref(storage, filePath);
+      
+      await uploadBytes(fileRef, selectedFile);
+      fileUrl = await getDownloadURL(fileRef);
+    }
+
+    const homeworkData = {
+      ...newHomework,
+      fileUrl,
+      filePath,
+      updatedAt: new Date().toISOString()
+    };
+
     if (editingHomework) {
-      await updateDoc(doc(db, 'homeworks', editingHomework.id), {
-        ...newHomework,
-        updatedAt: new Date().toISOString()
-      });
+      if (editingHomework.filePath && fileUrl) {
+        const oldFileRef = ref(storage, editingHomework.filePath);
+        await deleteObject(oldFileRef);
+      }
+      await updateDoc(doc(db, 'homeworks', editingHomework.id), homeworkData);
     } else {
       await addDoc(collection(db, 'homeworks'), {
-        ...newHomework,
+        ...homeworkData,
         createdAt: new Date().toISOString(),
         completed: false
       });
     }
+
     setNewHomework({
       title: '',
       subject: '',
@@ -74,14 +105,19 @@ export default function Homework() {
       description: '',
       assignedTo: ''
     });
+    setSelectedFile(null);
     setShowAddForm(false);
     setEditingHomework(null);
     loadHomeworks();
   };
 
-  const handleDelete = async (id) => {
+  const handleDelete = async (homework) => {
     if (confirm('Êtes-vous sûr de vouloir supprimer ce devoir ?')) {
-      await deleteDoc(doc(db, 'homeworks', id));
+      if (homework.filePath) {
+        const fileRef = ref(storage, homework.filePath);
+        await deleteObject(fileRef);
+      }
+      await deleteDoc(doc(db, 'homeworks', homework.id));
       loadHomeworks();
     }
   };
@@ -109,6 +145,54 @@ export default function Homework() {
     acc[homework.assignedTo][homework.subject].push(homework);
     return acc;
   }, {});
+
+  const renderHomeworkFile = (homework) => (
+    <div key={homework.id} className="homework-file">
+      <div className="file-content">
+        <h5>{homework.title}</h5>
+        <p>{homework.description}</p>
+        <div className="file-links">
+          {homework.link && (
+            <a
+              href={homework.link}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="file-link"
+            >
+              🔗 Lien externe
+            </a>
+          )}
+          {homework.fileUrl && (
+            <a
+              href={homework.fileUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="file-link document"
+            >
+              📎 Télécharger le document
+            </a>
+          )}
+        </div>
+        <div className="file-date">
+          Pour le {new Date(homework.dueDate).toLocaleDateString()}
+        </div>
+      </div>
+      <div className="file-actions">
+        <button
+          className="edit-button"
+          onClick={() => handleEdit(homework)}
+        >
+          ✏️
+        </button>
+        <button
+          className="delete-button"
+          onClick={() => handleDelete(homework)}
+        >
+          🗑️
+        </button>
+      </div>
+    </div>
+  );
 
   return (
     <div className="homework-container">
@@ -168,41 +252,9 @@ export default function Homework() {
                 <h4>{SUBJECTS[selectedSubject].icon} {SUBJECTS[selectedSubject].name}</h4>
               </div>
               <div className="homework-files">
-                {groupedHomeworks[selectedUser.displayName]?.[selectedSubject]?.map(homework => (
-                  <div key={homework.id} className="homework-file">
-                    <div className="file-content">
-                      <h5>{homework.title}</h5>
-                      <p>{homework.description}</p>
-                      {homework.link && (
-                        <a
-                          href={homework.link}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="file-link"
-                        >
-                          📎 Voir le document
-                        </a>
-                      )}
-                      <div className="file-date">
-                        Pour le {new Date(homework.dueDate).toLocaleDateString()}
-                      </div>
-                    </div>
-                    <div className="file-actions">
-                      <button
-                        className="edit-button"
-                        onClick={() => handleEdit(homework)}
-                      >
-                        ✏️
-                      </button>
-                      <button
-                        className="delete-button"
-                        onClick={() => handleDelete(homework.id)}
-                      >
-                        🗑️
-                      </button>
-                    </div>
-                  </div>
-                ))}
+                {groupedHomeworks[selectedUser.displayName]?.[selectedSubject]?.map(homework => 
+                  renderHomeworkFile(homework)
+                )}
                 {(!groupedHomeworks[selectedUser.displayName]?.[selectedSubject] ||
                   groupedHomeworks[selectedUser.displayName][selectedSubject].length === 0) && (
                   <p className="no-homework">Aucun devoir dans cette matière</p>
@@ -279,6 +331,18 @@ export default function Homework() {
               onChange={e => setNewHomework({...newHomework, description: e.target.value})}
               rows="3"
             />
+            <div className="file-upload">
+              <input
+                type="file"
+                onChange={handleFileChange}
+                className="file-input"
+              />
+              {selectedFile && (
+                <div className="selected-file">
+                  📎 {selectedFile.name}
+                </div>
+              )}
+            </div>
             <div className="form-actions">
               <button type="submit" className="submit-button">
                 {editingHomework ? 'Modifier' : 'Ajouter'}

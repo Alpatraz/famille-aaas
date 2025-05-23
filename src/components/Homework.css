@@ -201,11 +201,24 @@
   color: #3b82f6;
   text-decoration: none;
   font-size: 0.9rem;
-  margin-bottom: 0.5rem;
+  padding: 0.4rem 0.8rem;
+  background: #eff6ff;
+  border-radius: 6px;
+  transition: all 0.2s ease;
 }
 
 .file-link:hover {
-  text-decoration: underline;
+  background: #dbeafe;
+  transform: translateY(-1px);
+}
+
+.file-link.document {
+  color: #059669;
+  background: #ecfdf5;
+}
+
+.file-link.document:hover {
+  background: #d1fae5;
 }
 
 .file-date {
@@ -306,6 +319,41 @@
   color: #64748b;
   font-size: 0.95rem;
   padding: 2rem;
+}
+
+.file-upload {
+  background: #f8fafc;
+  border: 2px dashed #e2e8f0;
+  border-radius: 8px;
+  padding: 1rem;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.file-upload:hover {
+  background: #f1f5f9;
+  border-color: #cbd5e1;
+}
+
+.file-input {
+  width: 100%;
+  cursor: pointer;
+}
+
+.selected-file {
+  margin-top: 0.5rem;
+  font-size: 0.9rem;
+  color: #475569;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.file-links {
+  display: flex;
+  gap: 1rem;
+  margin: 0.75rem 0;
 }
 
 @media (max-width: 768px) {
