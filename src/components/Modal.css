@@ -29,6 +29,7 @@
   will-change: transform;
   transform: translateZ(0);
   backface-visibility: hidden;
+  perspective: 1000px;
 }
 
 .modal-header {
@@ -80,6 +81,7 @@
   padding: 1.5rem;
   -webkit-overflow-scrolling: touch;
   overscroll-behavior: contain;
+  transform: translateZ(0);
 }
 
 @keyframes fadeIn {
