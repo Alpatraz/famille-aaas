@@ -37,27 +37,7 @@ export default function ProfileSettings({ currentUser }) {
       blocks: [],
       ...doc.data()
     }))
-
-    // Si Guillaume existe et n'est pas admin, mettre à jour son rôle
-    const guillaume = allUsers.find(u => u.displayName === 'Guillaume')
-    if (guillaume && guillaume.role !== 'admin') {
-      await setDoc(doc(db, 'users', guillaume.id), {
-        ...guillaume,
-        role: 'admin'
-      }, { merge: true })
-      
-      // Recharger les utilisateurs après la mise à jour
-      const updatedSnap = await getDocs(collection(db, 'users'))
-      const updatedUsers = updatedSnap.docs.map(doc => ({
-        id: doc.id,
-        uid: doc.id,
-        blocks: [],
-        ...doc.data()
-      }))
-      setUsers(updatedUsers)
-    } else {
-      setUsers(allUsers)
-    }
+    setUsers(allUsers)
   }
 
   useEffect(() => {
