@@ -7,6 +7,7 @@ import {
 export default function TaskList() {
   const [tasks, setTasks] = useState([])
   const [rewards, setRewards] = useState([])
+  const [consequences, setConsequences] = useState([])
 
   const [newTask, setNewTask] = useState('')
   const [newTaskValue, setNewTaskValue] = useState(5)
@@ -14,11 +15,17 @@ export default function TaskList() {
   const [newReward, setNewReward] = useState('')
   const [newRewardCost, setNewRewardCost] = useState(20)
 
+  const [newConsequence, setNewConsequence] = useState('')
+  const [newConsequenceCost, setNewConsequenceCost] = useState(10)
+
   const [editingTaskId, setEditingTaskId] = useState(null)
   const [editingTask, setEditingTask] = useState({ label: '', value: 0 })
 
   const [editingRewardId, setEditingRewardId] = useState(null)
   const [editingReward, setEditingReward] = useState({ label: '', cost: 0 })
+
+  const [editingConsequenceId, setEditingConsequenceId] = useState(null)
+  const [editingConsequence, setEditingConsequence] = useState({ label: '', cost: 0 })
 
   const loadData = async () => {
     const taskSnap = await getDocs(collection(db, 'tasks'))
@@ -26,6 +33,9 @@ export default function TaskList() {
 
     const rewardSnap = await getDocs(collection(db, 'rewards'))
     setRewards(rewardSnap.docs.map(doc => ({ id: doc.id, ...doc.data() })))
+
+    const consequenceSnap = await getDocs(collection(db, 'consequences'))
+    setConsequences(consequenceSnap.docs.map(doc => ({ id: doc.id, ...doc.data() })))
   }
 
   useEffect(() => {
@@ -48,6 +58,14 @@ export default function TaskList() {
     loadData()
   }
 
+  const handleAddConsequence = async () => {
+    if (!newConsequence.trim()) return
+    await addDoc(collection(db, 'consequences'), { label: newConsequence.trim(), cost: Number(newConsequenceCost) })
+    setNewConsequence('')
+    setNewConsequenceCost(10)
+    loadData()
+  }
+
   const handleDeleteTask = async (id) => {
     await deleteDoc(doc(db, 'tasks', id))
     loadData()
@@ -55,6 +73,11 @@ export default function TaskList() {
 
   const handleDeleteReward = async (id) => {
     await deleteDoc(doc(db, 'rewards', id))
+    loadData()
+  }
+
+  const handleDeleteConsequence = async (id) => {
+    await deleteDoc(doc(db, 'consequences', id))
     loadData()
   }
 
@@ -87,6 +110,22 @@ export default function TaskList() {
     })
     setEditingRewardId(null)
     setEditingReward({ label: '', cost: 0 })
+    loadData()
+  }
+
+  const startEditConsequence = (consequence) => {
+    setEditingConsequenceId(consequence.id)
+    setEditingConsequence({ label: consequence.label, cost: consequence.cost })
+  }
+
+  const confirmEditConsequence = async () => {
+    if (!editingConsequence.label.trim()) return
+    await updateDoc(doc(db, 'consequences', editingConsequenceId), {
+      label: editingConsequence.label.trim(),
+      cost: Number(editingConsequence.cost)
+    })
+    setEditingConsequenceId(null)
+    setEditingConsequence({ label: '', cost: 0 })
     loadData()
   }
 
@@ -182,6 +221,52 @@ export default function TaskList() {
           style={{ width: 80, marginLeft: 8 }}
         />
         <button onClick={handleAddReward}>➕ Ajouter récompense</button>
+      </div>
+
+      <h2 style={{ marginTop: '2rem' }}>⚠️ Conséquences disponibles</h2>
+      <ul>
+        {consequences.map(consequence => (
+          <li key={consequence.id}>
+            {editingConsequenceId === consequence.id ? (
+              <>
+                <input
+                  type="text"
+                  value={editingConsequence.label}
+                  onChange={e => setEditingConsequence({ ...editingConsequence, label: e.target.value })}
+                />
+                <input
+                  type="number"
+                  value={editingConsequence.cost}
+                  onChange={e => setEditingConsequence({ ...editingConsequence, cost: e.target.value })}
+                  style={{ width: 60 }}
+                />
+                <button onClick={confirmEditConsequence}>✅</button>
+              </>
+            ) : (
+              <>
+                ⚠️ {consequence.label} — <strong>-{consequence.cost} pts</strong>{' '}
+                <button onClick={() => startEditConsequence(consequence)}>✏️</button>{' '}
+                <button onClick={() => handleDeleteConsequence(consequence.id)}>🗑️</button>
+              </>
+            )}
+          </li>
+        ))}
+      </ul>
+
+      <div style={{ marginTop: '1rem' }}>
+        <input
+          type="text"
+          placeholder="Nouvelle conséquence"
+          value={newConsequence}
+          onChange={e => setNewConsequence(e.target.value)}
+        />
+        <input
+          type="number"
+          value={newConsequenceCost}
+          onChange={e => setNewConsequenceCost(e.target.value)}
+          style={{ width: 80, marginLeft: 8 }}
+        />
+        <button onClick={handleAddConsequence}>➕ Ajouter conséquence</button>
       </div>
     </div>
   )
