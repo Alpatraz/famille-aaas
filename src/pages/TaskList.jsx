@@ -1,89 +1,122 @@
-import { useEffect, useState } from 'react'
-import { db } from '../firebase'
+import { useEffect, useState } from 'react';
+import { db } from '../firebase';
 import {
   collection, getDocs, addDoc, deleteDoc, doc, updateDoc
-} from 'firebase/firestore'
-import '../styles/taskPage.css'
+} from 'firebase/firestore';
+import '../styles/taskPage.css';
 
 export default function TaskList() {
-  const [activeTab, setActiveTab] = useState('tasks')
-  const [tasks, setTasks] = useState([])
-  const [rewards, setRewards] = useState([])
-  const [consequences, setConsequences] = useState([])
+  const [activeTab, setActiveTab] = useState('tasks');
+  const [tasks, setTasks] = useState([]);
+  const [rewards, setRewards] = useState([]);
+  const [consequences, setConsequences] = useState([]);
+  const [users, setUsers] = useState([]);
 
-  const [newItem, setNewItem] = useState('')
-  const [newValue, setNewValue] = useState(5)
-  const [editingId, setEditingId] = useState(null)
-  const [editingItem, setEditingItem] = useState({ label: '', value: 0 })
+  const [newItem, setNewItem] = useState('');
+  const [newValue, setNewValue] = useState(5);
+  const [selectedUsers, setSelectedUsers] = useState([]);
+  const [editingId, setEditingId] = useState(null);
+  const [editingItem, setEditingItem] = useState({ label: '', value: 0, assignedTo: [] });
 
   const loadData = async () => {
-    const taskSnap = await getDocs(collection(db, 'tasks'))
-    setTasks(taskSnap.docs.map(doc => ({ id: doc.id, ...doc.data() })))
+    const taskSnap = await getDocs(collection(db, 'tasks'));
+    setTasks(taskSnap.docs.map(doc => ({ id: doc.id, ...doc.data() })));
 
-    const rewardSnap = await getDocs(collection(db, 'rewards'))
-    setRewards(rewardSnap.docs.map(doc => ({ id: doc.id, ...doc.data() })))
+    const rewardSnap = await getDocs(collection(db, 'rewards'));
+    setRewards(rewardSnap.docs.map(doc => ({ id: doc.id, ...doc.data() })));
 
-    const consequenceSnap = await getDocs(collection(db, 'consequences'))
-    setConsequences(consequenceSnap.docs.map(doc => ({ id: doc.id, ...doc.data() })))
-  }
+    const consequenceSnap = await getDocs(collection(db, 'consequences'));
+    setConsequences(consequenceSnap.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+
+    const usersSnap = await getDocs(collection(db, 'users'));
+    setUsers(usersSnap.docs
+      .map(doc => ({ id: doc.id, ...doc.data() }))
+      .filter(user => user.role === 'enfant')
+    );
+  };
 
   useEffect(() => {
-    loadData()
-  }, [])
+    loadData();
+  }, []);
 
   const handleAdd = async () => {
-    if (!newItem.trim()) return
+    if (!newItem.trim() || selectedUsers.length === 0) return;
+    
     const collection_name = activeTab === 'tasks' ? 'tasks' : 
-                          activeTab === 'rewards' ? 'rewards' : 'consequences'
+                          activeTab === 'rewards' ? 'rewards' : 'consequences';
     
     await addDoc(collection(db, collection_name), { 
       label: newItem.trim(), 
-      [activeTab === 'tasks' ? 'value' : 'cost']: Number(newValue)
-    })
-    setNewItem('')
-    setNewValue(5)
-    loadData()
-  }
+      [activeTab === 'tasks' ? 'value' : 'cost']: Number(newValue),
+      assignedTo: selectedUsers
+    });
+    
+    setNewItem('');
+    setNewValue(5);
+    setSelectedUsers([]);
+    loadData();
+  };
 
   const handleDelete = async (id) => {
     if (window.confirm('Êtes-vous sûr de vouloir supprimer cet élément ?')) {
       const collection_name = activeTab === 'tasks' ? 'tasks' : 
-                            activeTab === 'rewards' ? 'rewards' : 'consequences'
-      await deleteDoc(doc(db, collection_name, id))
-      loadData()
+                            activeTab === 'rewards' ? 'rewards' : 'consequences';
+      await deleteDoc(doc(db, collection_name, id));
+      loadData();
     }
-  }
+  };
 
   const startEdit = (item) => {
-    setEditingId(item.id)
+    setEditingId(item.id);
     setEditingItem({ 
       label: item.label, 
-      value: item.value || item.cost || 0 
-    })
-  }
+      value: item.value || item.cost || 0,
+      assignedTo: item.assignedTo || []
+    });
+  };
 
   const confirmEdit = async () => {
-    if (!editingItem.label.trim()) return
+    if (!editingItem.label.trim() || editingItem.assignedTo.length === 0) return;
+    
     const collection_name = activeTab === 'tasks' ? 'tasks' : 
-                          activeTab === 'rewards' ? 'rewards' : 'consequences'
+                          activeTab === 'rewards' ? 'rewards' : 'consequences';
     
     await updateDoc(doc(db, collection_name, editingId), {
       label: editingItem.label.trim(),
-      [activeTab === 'tasks' ? 'value' : 'cost']: Number(editingItem.value)
-    })
-    setEditingId(null)
-    setEditingItem({ label: '', value: 0 })
-    loadData()
-  }
+      [activeTab === 'tasks' ? 'value' : 'cost']: Number(editingItem.value),
+      assignedTo: editingItem.assignedTo
+    });
+    
+    setEditingId(null);
+    setEditingItem({ label: '', value: 0, assignedTo: [] });
+    loadData();
+  };
 
   const getItems = () => {
     switch (activeTab) {
-      case 'tasks': return tasks
-      case 'rewards': return rewards
-      case 'consequences': return consequences
-      default: return []
+      case 'tasks': return tasks;
+      case 'rewards': return rewards;
+      case 'consequences': return consequences;
+      default: return [];
     }
-  }
+  };
+
+  const toggleUser = (userId, isEditing = false) => {
+    if (isEditing) {
+      setEditingItem(prev => ({
+        ...prev,
+        assignedTo: prev.assignedTo.includes(userId)
+          ? prev.assignedTo.filter(id => id !== userId)
+          : [...prev.assignedTo, userId]
+      }));
+    } else {
+      setSelectedUsers(prev =>
+        prev.includes(userId)
+          ? prev.filter(id => id !== userId)
+          : [...prev, userId]
+      );
+    }
+  };
 
   return (
     <div className="task-manager">
@@ -104,7 +137,7 @@ export default function TaskList() {
           className={`tab-button ${activeTab === 'consequences' ? 'active' : ''}`}
           onClick={() => setActiveTab('consequences')}
         >
-          ⚠️ Conséquences
+          ⚠️ Conséq.
         </button>
       </div>
 
@@ -132,6 +165,18 @@ export default function TaskList() {
               min="0"
               placeholder={activeTab === 'tasks' ? 'Points' : 'Coût'}
             />
+            <div className="user-selector">
+              {users.map(user => (
+                <label key={user.id} className="user-checkbox">
+                  <input
+                    type="checkbox"
+                    checked={selectedUsers.includes(user.id)}
+                    onChange={() => toggleUser(user.id)}
+                  />
+                  <span>{user.avatar} {user.displayName}</span>
+                </label>
+              ))}
+            </div>
             <button onClick={handleAdd} className="add-button">
               Ajouter
             </button>
@@ -155,6 +200,18 @@ export default function TaskList() {
                     onChange={e => setEditingItem({ ...editingItem, value: e.target.value })}
                     min="0"
                   />
+                  <div className="user-selector">
+                    {users.map(user => (
+                      <label key={user.id} className="user-checkbox">
+                        <input
+                          type="checkbox"
+                          checked={editingItem.assignedTo.includes(user.id)}
+                          onChange={() => toggleUser(user.id, true)}
+                        />
+                        <span>{user.avatar} {user.displayName}</span>
+                      </label>
+                    ))}
+                  </div>
                   <button onClick={confirmEdit} className="confirm-button">
                     Valider
                   </button>
@@ -164,8 +221,18 @@ export default function TaskList() {
                   <div className="item-content">
                     <span className="item-label">{item.label}</span>
                     <span className={`points-badge ${activeTab !== 'tasks' ? 'cost' : ''} ${activeTab === 'consequences' ? 'negative' : ''}`}>
-                      {activeTab === 'tasks' ? '+' : ''}{item.value || item.cost} pts
+                      {item.value || item.cost} pts
                     </span>
+                  </div>
+                  <div className="assigned-users">
+                    {(item.assignedTo || []).map(userId => {
+                      const user = users.find(u => u.id === userId);
+                      return user ? (
+                        <span key={userId} className="assigned-user">
+                          {user.avatar}
+                        </span>
+                      ) : null;
+                    })}
                   </div>
                   <div className="item-actions">
                     <button onClick={() => startEdit(item)} className="action-button edit">
@@ -182,5 +249,5 @@ export default function TaskList() {
         </div>
       </div>
     </div>
-  )
+  );
 }
