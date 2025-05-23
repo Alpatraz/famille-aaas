@@ -67,18 +67,24 @@ export default function TaskList() {
   }
 
   const handleDeleteTask = async (id) => {
-    await deleteDoc(doc(db, 'tasks', id))
-    loadData()
+    if (window.confirm('Êtes-vous sûr de vouloir supprimer cette tâche ?')) {
+      await deleteDoc(doc(db, 'tasks', id))
+      loadData()
+    }
   }
 
   const handleDeleteReward = async (id) => {
-    await deleteDoc(doc(db, 'rewards', id))
-    loadData()
+    if (window.confirm('Êtes-vous sûr de vouloir supprimer cette récompense ?')) {
+      await deleteDoc(doc(db, 'rewards', id))
+      loadData()
+    }
   }
 
   const handleDeleteConsequence = async (id) => {
-    await deleteDoc(doc(db, 'consequences', id))
-    loadData()
+    if (window.confirm('Êtes-vous sûr de vouloir supprimer cette conséquence ?')) {
+      await deleteDoc(doc(db, 'consequences', id))
+      loadData()
+    }
   }
 
   const startEditTask = (task) => {
@@ -130,143 +136,179 @@ export default function TaskList() {
   }
 
   return (
-    <div className="dashboard-section">
-      <h2>📋 Tâches disponibles</h2>
-      <ul>
-        {tasks.map(task => (
-          <li key={task.id}>
-            {editingTaskId === task.id ? (
-              <>
-                <input
-                  type="text"
-                  value={editingTask.label}
-                  onChange={e => setEditingTask({ ...editingTask, label: e.target.value })}
-                />
-                <input
-                  type="number"
-                  value={editingTask.value}
-                  onChange={e => setEditingTask({ ...editingTask, value: e.target.value })}
-                  style={{ width: 60 }}
-                />
-                <button onClick={confirmEditTask}>✅</button>
-              </>
-            ) : (
-              <>
-                ✅ {task.label} — <strong>{task.value} pts</strong>{' '}
-                <button onClick={() => startEditTask(task)}>✏️</button>{' '}
-                <button onClick={() => handleDeleteTask(task.id)}>🗑️</button>
-              </>
-            )}
-          </li>
-        ))}
-      </ul>
+    <div className="tasks-manager">
+      <div className="tasks-section">
+        <div className="section-header">
+          <h2>✅ Tâches disponibles</h2>
+          <div className="add-form">
+            <input
+              type="text"
+              placeholder="Nouvelle tâche"
+              value={newTask}
+              onChange={e => setNewTask(e.target.value)}
+            />
+            <input
+              type="number"
+              value={newTaskValue}
+              onChange={e => setNewTaskValue(e.target.value)}
+              min="0"
+              max="100"
+            />
+            <button onClick={handleAddTask} className="add-button">Ajouter</button>
+          </div>
+        </div>
 
-      <div style={{ marginTop: '1rem' }}>
-        <input
-          type="text"
-          placeholder="Nouvelle tâche"
-          value={newTask}
-          onChange={e => setNewTask(e.target.value)}
-        />
-        <input
-          type="number"
-          value={newTaskValue}
-          onChange={e => setNewTaskValue(e.target.value)}
-          style={{ width: 80, marginLeft: 8 }}
-        />
-        <button onClick={handleAddTask}>➕ Ajouter tâche</button>
+        <div className="items-grid">
+          {tasks.map(task => (
+            <div key={task.id} className="item-card">
+              {editingTaskId === task.id ? (
+                <div className="edit-form">
+                  <input
+                    type="text"
+                    value={editingTask.label}
+                    onChange={e => setEditingTask({ ...editingTask, label: e.target.value })}
+                    placeholder="Nom de la tâche"
+                  />
+                  <input
+                    type="number"
+                    value={editingTask.value}
+                    onChange={e => setEditingTask({ ...editingTask, value: e.target.value })}
+                    min="0"
+                    max="100"
+                  />
+                  <button onClick={confirmEditTask} className="confirm-button">✓</button>
+                </div>
+              ) : (
+                <>
+                  <div className="item-content">
+                    <span className="item-label">{task.label}</span>
+                    <span className="points-badge positive">+{task.value}</span>
+                  </div>
+                  <div className="item-actions">
+                    <button onClick={() => startEditTask(task)} className="edit-button">✎</button>
+                    <button onClick={() => handleDeleteTask(task.id)} className="delete-button">×</button>
+                  </div>
+                </>
+              )}
+            </div>
+          ))}
+        </div>
       </div>
 
-      <h2 style={{ marginTop: '2rem' }}>🎁 Récompenses disponibles</h2>
-      <ul>
-        {rewards.map(reward => (
-          <li key={reward.id}>
-            {editingRewardId === reward.id ? (
-              <>
-                <input
-                  type="text"
-                  value={editingReward.label}
-                  onChange={e => setEditingReward({ ...editingReward, label: e.target.value })}
-                />
-                <input
-                  type="number"
-                  value={editingReward.cost}
-                  onChange={e => setEditingReward({ ...editingReward, cost: e.target.value })}
-                  style={{ width: 60 }}
-                />
-                <button onClick={confirmEditReward}>✅</button>
-              </>
-            ) : (
-              <>
-                🎁 {reward.label} — <strong>{reward.cost} pts</strong>{' '}
-                <button onClick={() => startEditReward(reward)}>✏️</button>{' '}
-                <button onClick={() => handleDeleteReward(reward.id)}>🗑️</button>
-              </>
-            )}
-          </li>
-        ))}
-      </ul>
+      <div className="tasks-section">
+        <div className="section-header">
+          <h2>🎁 Récompenses disponibles</h2>
+          <div className="add-form">
+            <input
+              type="text"
+              placeholder="Nouvelle récompense"
+              value={newReward}
+              onChange={e => setNewReward(e.target.value)}
+            />
+            <input
+              type="number"
+              value={newRewardCost}
+              onChange={e => setNewRewardCost(e.target.value)}
+              min="0"
+              max="100"
+            />
+            <button onClick={handleAddReward} className="add-button">Ajouter</button>
+          </div>
+        </div>
 
-      <div style={{ marginTop: '1rem' }}>
-        <input
-          type="text"
-          placeholder="Nouvelle récompense"
-          value={newReward}
-          onChange={e => setNewReward(e.target.value)}
-        />
-        <input
-          type="number"
-          value={newRewardCost}
-          onChange={e => setNewRewardCost(e.target.value)}
-          style={{ width: 80, marginLeft: 8 }}
-        />
-        <button onClick={handleAddReward}>➕ Ajouter récompense</button>
+        <div className="items-grid">
+          {rewards.map(reward => (
+            <div key={reward.id} className="item-card">
+              {editingRewardId === reward.id ? (
+                <div className="edit-form">
+                  <input
+                    type="text"
+                    value={editingReward.label}
+                    onChange={e => setEditingReward({ ...editingReward, label: e.target.value })}
+                    placeholder="Nom de la récompense"
+                  />
+                  <input
+                    type="number"
+                    value={editingReward.cost}
+                    onChange={e => setEditingReward({ ...editingReward, cost: e.target.value })}
+                    min="0"
+                    max="100"
+                  />
+                  <button onClick={confirmEditReward} className="confirm-button">✓</button>
+                </div>
+              ) : (
+                <>
+                  <div className="item-content">
+                    <span className="item-label">{reward.label}</span>
+                    <span className="points-badge cost">{reward.cost}</span>
+                  </div>
+                  <div className="item-actions">
+                    <button onClick={() => startEditReward(reward)} className="edit-button">✎</button>
+                    <button onClick={() => handleDeleteReward(reward.id)} className="delete-button">×</button>
+                  </div>
+                </>
+              )}
+            </div>
+          ))}
+        </div>
       </div>
 
-      <h2 style={{ marginTop: '2rem' }}>⚠️ Conséquences disponibles</h2>
-      <ul>
-        {consequences.map(consequence => (
-          <li key={consequence.id}>
-            {editingConsequenceId === consequence.id ? (
-              <>
-                <input
-                  type="text"
-                  value={editingConsequence.label}
-                  onChange={e => setEditingConsequence({ ...editingConsequence, label: e.target.value })}
-                />
-                <input
-                  type="number"
-                  value={editingConsequence.cost}
-                  onChange={e => setEditingConsequence({ ...editingConsequence, cost: e.target.value })}
-                  style={{ width: 60 }}
-                />
-                <button onClick={confirmEditConsequence}>✅</button>
-              </>
-            ) : (
-              <>
-                ⚠️ {consequence.label} — <strong>-{consequence.cost} pts</strong>{' '}
-                <button onClick={() => startEditConsequence(consequence)}>✏️</button>{' '}
-                <button onClick={() => handleDeleteConsequence(consequence.id)}>🗑️</button>
-              </>
-            )}
-          </li>
-        ))}
-      </ul>
+      <div className="tasks-section">
+        <div className="section-header">
+          <h2>⚠️ Conséquences disponibles</h2>
+          <div className="add-form">
+            <input
+              type="text"
+              placeholder="Nouvelle conséquence"
+              value={newConsequence}
+              onChange={e => setNewConsequence(e.target.value)}
+            />
+            <input
+              type="number"
+              value={newConsequenceCost}
+              onChange={e => setNewConsequenceCost(e.target.value)}
+              min="0"
+              max="100"
+            />
+            <button onClick={handleAddConsequence} className="add-button">Ajouter</button>
+          </div>
+        </div>
 
-      <div style={{ marginTop: '1rem' }}>
-        <input
-          type="text"
-          placeholder="Nouvelle conséquence"
-          value={newConsequence}
-          onChange={e => setNewConsequence(e.target.value)}
-        />
-        <input
-          type="number"
-          value={newConsequenceCost}
-          onChange={e => setNewConsequenceCost(e.target.value)}
-          style={{ width: 80, marginLeft: 8 }}
-        />
-        <button onClick={handleAddConsequence}>➕ Ajouter conséquence</button>
+        <div className="items-grid">
+          {consequences.map(consequence => (
+            <div key={consequence.id} className="item-card">
+              {editingConsequenceId === consequence.id ? (
+                <div className="edit-form">
+                  <input
+                    type="text"
+                    value={editingConsequence.label}
+                    onChange={e => setEditingConsequence({ ...editingConsequence, label: e.target.value })}
+                    placeholder="Nom de la conséquence"
+                  />
+                  <input
+                    type="number"
+                    value={editingConsequence.cost}
+                    onChange={e => setEditingConsequence({ ...editingConsequence, cost: e.target.value })}
+                    min="0"
+                    max="100"
+                  />
+                  <button onClick={confirmEditConsequence} className="confirm-button">✓</button>
+                </div>
+              ) : (
+                <>
+                  <div className="item-content">
+                    <span className="item-label">{consequence.label}</span>
+                    <span className="points-badge negative">-{consequence.cost}</span>
+                  </div>
+                  <div className="item-actions">
+                    <button onClick={() => startEditConsequence(consequence)} className="edit-button">✎</button>
+                    <button onClick={() => handleDeleteConsequence(consequence.id)} className="delete-button">×</button>
+                  </div>
+                </>
+              )}
+            </div>
+          ))}
+        </div>
       </div>
     </div>
   )
