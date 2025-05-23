@@ -1,4 +1,3 @@
-// AddEventModal.jsx
 import { useEffect, useState } from 'react'
 import { db } from '../firebase'
 import {
@@ -10,14 +9,14 @@ import {
 } from 'firebase/firestore'
 import './AddEventModal.css'
 
-export default function AddEventModal({ onClose, initialData }) {
+export default function AddEventModal({ onClose, initialData, onSave }) {
   const isEdit = initialData && initialData.id
 
   const [formData, setFormData] = useState({
     title: initialData?.title || '',
     date: initialData?.date
       ? new Date(initialData.date).toISOString().slice(0, 16)
-      : '',
+      : new Date().toISOString().slice(0, 16),
     duration: initialData?.duration || 60,
     participants: initialData?.participants || [],
     type: initialData?.type || 'autre',
@@ -54,23 +53,21 @@ export default function AddEventModal({ onClose, initialData }) {
 
   const handleSubmit = async (e) => {
     e.preventDefault()
-
+    
     const payload = {
       title: formData.title,
-      date: new Date(formData.date),
+      date: formData.date.split('T')[0],
       duration: Number(formData.duration),
       participants: formData.participants,
       type: formData.type,
     }
 
+    if (isEdit) {
+      payload.id = initialData.id
+    }
+
     try {
-      if (isEdit) {
-        await updateDoc(doc(db, 'events', initialData.id), payload)
-        alert('✅ Événement modifié avec succès.')
-      } else {
-        await addDoc(collection(db, 'events'), payload)
-        alert('✅ Événement ajouté avec succès.')
-      }
+      await onSave(payload)
       onClose()
     } catch (error) {
       console.error('❌ Erreur lors de la sauvegarde :', error)
@@ -79,76 +76,88 @@ export default function AddEventModal({ onClose, initialData }) {
   }
 
   return (
-    <div className="modal-backdrop">
+    <div className="modal-overlay">
       <div className="modal-content">
         <h3>{isEdit ? '✏️ Modifier' : '➕ Ajouter'} un événement</h3>
         <form onSubmit={handleSubmit}>
-          <label>
-            Titre :
-            <input
-              type="text"
-              name="title"
-              value={formData.title}
-              onChange={handleChange}
-              required
-            />
-          </label>
+          <div className="form-group">
+            <label>
+              Titre :
+              <input
+                type="text"
+                name="title"
+                value={formData.title}
+                onChange={handleChange}
+                required
+              />
+            </label>
+          </div>
 
-          <label>
-            Date et heure :
-            <input
-              type="datetime-local"
-              name="date"
-              value={formData.date}
-              onChange={handleChange}
-              required
-            />
-          </label>
+          <div className="form-group">
+            <label>
+              Date et heure :
+              <input
+                type="datetime-local"
+                name="date"
+                value={formData.date}
+                onChange={handleChange}
+                required
+              />
+            </label>
+          </div>
 
-          <label>
-            Durée (minutes) :
-            <input
-              type="number"
-              name="duration"
-              value={formData.duration}
-              onChange={handleChange}
-              required
-            />
-          </label>
+          <div className="form-group">
+            <label>
+              Durée (minutes) :
+              <input
+                type="number"
+                name="duration"
+                value={formData.duration}
+                onChange={handleChange}
+                required
+              />
+            </label>
+          </div>
 
-          <label>
-            Type :
-            <select
-              name="type"
-              value={formData.type}
-              onChange={handleChange}
-            >
-              <option value="activite">Activité</option>
-              <option value="rdv">Rendez-vous</option>
-              <option value="repas">Repas</option>
-              <option value="sport">Sport</option>
-              <option value="autre">Autre</option>
-            </select>
-          </label>
+          <div className="form-group">
+            <label>
+              Type :
+              <select
+                name="type"
+                value={formData.type}
+                onChange={handleChange}
+              >
+                <option value="activite">Activité</option>
+                <option value="rdv">Rendez-vous</option>
+                <option value="repas">Repas</option>
+                <option value="sport">Sport</option>
+                <option value="autre">Autre</option>
+              </select>
+            </label>
+          </div>
 
-          <label>Participants :</label>
-          <div className="participants-list">
-            {users.map((user) => (
-              <label key={user.uid} className="participant-checkbox">
-                <input
-                  type="checkbox"
-                  value={user.uid}
-                  checked={formData.participants.includes(user.uid)}
-                  onChange={handleCheckboxChange}
-                />
-                {user.avatar || '🙂'} {user.displayName}
-              </label>
-            ))}
+          <div className="form-group">
+            <label>Participants :</label>
+            <div className="participants-list">
+              {users.map((user) => (
+                <label key={user.uid} className="participant-checkbox">
+                  <input
+                    type="checkbox"
+                    value={user.uid}
+                    checked={formData.participants.includes(user.uid)}
+                    onChange={handleCheckboxChange}
+                  />
+                  {user.avatar || '🙂'} {user.displayName}
+                </label>
+              ))}
+            </div>
           </div>
 
           <div className="modal-buttons">
-            <button type="submit">{isEdit ? 'Modifier' : 'Ajouter'}</button>
-            <button type="button" onClick={onClose}>
+            <button type="submit" className="submit-button">
+              {isEdit ? 'Modifier' : 'Ajouter'}
+            </button>
+            <button type="button" onClick={onClose} className="cancel-button">
               Annuler
             </button>
           </div>
