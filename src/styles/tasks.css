@@ -80,6 +80,15 @@
   color: #991b1b;
 }
 
+/* Ajout des signes + et - */
+.child-tasks-container .points-tag::before {
+  content: "+";
+}
+
+.child-tasks-container .points-tag.negative::before {
+  content: "-";
+}
+
 .child-tasks-container {
   background: #fff;
   border-radius: 8px;
