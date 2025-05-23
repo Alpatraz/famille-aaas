@@ -18,6 +18,7 @@ export default function MealPlanner() {
   const [showMealDialog, setShowMealDialog] = useState(false);
   const [showMealList, setShowMealList] = useState(false);
   const [newMeal, setNewMeal] = useState({ name: '', types: [] });
+  const [editingMeal, setEditingMeal] = useState(null);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -69,8 +70,40 @@ export default function MealPlanner() {
     setShowMealDialog(false);
   };
 
+  const handleEditMeal = async (meal) => {
+    if (!editingMeal || !editingMeal.name.trim()) return;
+    
+    const updatedMeals = mealsList.map(m => 
+      m.name === meal.name ? {
+        ...m,
+        name: editingMeal.name.trim(),
+        types: editingMeal.types
+      } : m
+    );
+    
+    // Mettre à jour les repas planifiés
+    const updatedWeek = { ...meals };
+    Object.keys(updatedWeek).forEach(jour => {
+      updatedWeek[jour].lunch = updatedWeek[jour].lunch.map(m => 
+        m === meal.name ? editingMeal.name : m
+      );
+      updatedWeek[jour].souper = updatedWeek[jour].souper.map(m => 
+        m === meal.name ? editingMeal.name : m
+      );
+    });
+    
+    setMealsList(updatedMeals);
+    setMeals(updatedWeek);
+    await persistData(updatedMeals, favorites);
+    await setDoc(doc(db, 'repas', 'semaine'), updatedWeek);
+    setEditingMeal(null);
+  };
+
   const toggleMealType = (type) => {
-    setNewMeal(prev => ({
+    const target = editingMeal || newMeal;
+    const setter = editingMeal ? setEditingMeal : setNewMeal;
+    
+    setter(prev => ({
       ...prev,
       types: prev.types.includes(type)
         ? prev.types.filter(t => t !== type)
@@ -136,6 +169,17 @@ export default function MealPlanner() {
     }
   };
 
+  const resetWeek = async () => {
+    if (window.confirm('Êtes-vous sûr de vouloir réinitialiser la planification de la semaine ?')) {
+      const emptyWeek = {};
+      jours.forEach(jour => {
+        emptyWeek[jour] = { lunch: [], souper: [] };
+      });
+      setMeals(emptyWeek);
+      await setDoc(doc(db, 'repas', 'semaine'), emptyWeek);
+    }
+  };
+
   return (
     <div className="meal-planner">
       <div className="meal-header">
@@ -149,6 +193,9 @@ export default function MealPlanner() {
             onClick={() => setShowMealList(!showMealList)}
           >
             📋 Liste des plats
+          </button>
+          <button className="reset-week-button" onClick={resetWeek}>
+            🔄 Réinitialiser la semaine
           </button>
         </div>
       </div>
@@ -195,8 +242,11 @@ export default function MealPlanner() {
             <div className="meal-selector-header">
               {showMealDialog ? (
                 <>
-                  <h3>Ajouter un nouveau plat</h3>
-                  <button className="close-selector" onClick={() => setShowMealDialog(false)}>×</button>
+                  <h3>{editingMeal ? 'Modifier un plat' : 'Ajouter un nouveau plat'}</h3>
+                  <button className="close-selector" onClick={() => {
+                    setShowMealDialog(false);
+                    setEditingMeal(null);
+                  }}>×</button>
                 </>
               ) : showMealList ? (
                 <>
@@ -218,33 +268,45 @@ export default function MealPlanner() {
               <div className="add-meal-form">
                 <input
                   type="text"
-                  value={newMeal.name}
-                  onChange={(e) => setNewMeal(prev => ({ ...prev, name: e.target.value }))}
+                  value={editingMeal ? editingMeal.name : newMeal.name}
+                  onChange={(e) => editingMeal 
+                    ? setEditingMeal(prev => ({ ...prev, name: e.target.value }))
+                    : setNewMeal(prev => ({ ...prev, name: e.target.value }))
+                  }
                   placeholder="Nom du plat"
                 />
                 <div className="meal-types">
                   <label>
                     <input
                       type="checkbox"
-                      checked={newMeal.types.includes('lunch')}
+                      checked={(editingMeal || newMeal).types.includes('lunch')}
                       onChange={() => toggleMealType('lunch')}
                     />
-                    🍱 Lunch
+                    <span className="meal-tag lunch">🍱 Lunch</span>
                   </label>
                   <label>
                     <input
                       type="checkbox"
-                      checked={newMeal.types.includes('souper')}
+                      checked={(editingMeal || newMeal).types.includes('souper')}
                       onChange={() => toggleMealType('souper')}
                     />
-                    🍽️ Souper
+                    <span className="meal-tag dinner">🍽️ Souper</span>
                   </label>
                 </div>
                 <div className="form-actions">
-                  <button onClick={handleAddMeal} className="save-button">
-                    Ajouter
+                  <button 
+                    onClick={editingMeal ? () => handleEditMeal(editingMeal) : handleAddMeal} 
+                    className="save-button"
+                  >
+                    {editingMeal ? 'Modifier' : 'Ajouter'}
                   </button>
-                  <button onClick={() => setShowMealDialog(false)} className="cancel-button">
+                  <button 
+                    onClick={() => {
+                      setShowMealDialog(false);
+                      setEditingMeal(null);
+                    }} 
+                    className="cancel-button"
+                  >
                     Annuler
                   </button>
                 </div>
@@ -263,10 +325,25 @@ export default function MealPlanner() {
                           {meal.types.includes('souper') && <span className="meal-tag dinner">Souper</span>}
                         </div>
                         <div className="meal-actions">
-                          <button onClick={() => toggleFavorite(meal)} className="favorite-button active">
+                          <button 
+                            onClick={() => {
+                              setEditingMeal(meal);
+                              setShowMealDialog(true);
+                            }} 
+                            className="meal-action-button edit"
+                          >
+                            ✏️
+                          </button>
+                          <button 
+                            onClick={() => toggleFavorite(meal)} 
+                            className="meal-action-button favorite"
+                          >
                             ⭐
                           </button>
-                          <button onClick={() => deleteMeal(meal)} className="delete-button">
+                          <button 
+                            onClick={() => deleteMeal(meal)} 
+                            className="meal-action-button delete"
+                          >
                             🗑️
                           </button>
                         </div>
@@ -285,10 +362,25 @@ export default function MealPlanner() {
                           {meal.types.includes('souper') && <span className="meal-tag dinner">Souper</span>}
                         </div>
                         <div className="meal-actions">
-                          <button onClick={() => toggleFavorite(meal)} className="favorite-button">
+                          <button 
+                            onClick={() => {
+                              setEditingMeal(meal);
+                              setShowMealDialog(true);
+                            }} 
+                            className="meal-action-button edit"
+                          >
+                            ✏️
+                          </button>
+                          <button 
+                            onClick={() => toggleFavorite(meal)} 
+                            className="meal-action-button favorite"
+                          >
                             ☆
                           </button>
-                          <button onClick={() => deleteMeal(meal)} className="delete-button">
+                          <button 
+                            onClick={() => deleteMeal(meal)} 
+                            className="meal-action-button delete"
+                          >
                             🗑️
                           </button>
                         </div>
