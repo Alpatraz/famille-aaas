@@ -25,8 +25,19 @@ export default function Dashboard({ user }) {
   const [repasJour, setRepasJour] = useState({})
   const [repasDemain, setRepasDemain] = useState({})
   const [users, setUsers] = useState([])
+  const [events, setEvents] = useState([])
 
   useEffect(() => {
+    const fetchEvents = async () => {
+      const eventsSnap = await getDocs(collection(db, 'events'))
+      const eventsData = eventsSnap.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data(),
+        date: doc.data().date?.toDate?.()?.toISOString?.().split('T')[0] || doc.data().date
+      }))
+      setEvents(eventsData)
+    }
+
     const fetchMeals = async () => {
       const ref = doc(db, 'repas', 'semaine')
       const snap = await getDoc(ref)
@@ -45,6 +56,7 @@ export default function Dashboard({ user }) {
       setUsers(data)
     }
 
+    fetchEvents()
     fetchMeals()
     fetchUsers()
   }, [])
@@ -53,22 +65,26 @@ export default function Dashboard({ user }) {
     try {
       if (eventData.id) {
         // Mise à jour d'un événement existant
-        await updateDoc(doc(db, 'calendarEvents', eventData.id), {
+        await updateDoc(doc(db, 'events', eventData.id), {
           title: eventData.title,
           date: eventData.date,
           duration: eventData.duration,
           participants: eventData.participants,
           type: eventData.type
         })
+        setEvents(prev => prev.map(e => 
+          e.id === eventData.id ? { ...eventData } : e
+        ))
       } else {
         // Création d'un nouvel événement
-        await addDoc(collection(db, 'calendarEvents'), {
+        const docRef = await addDoc(collection(db, 'events'), {
           title: eventData.title,
           date: eventData.date,
           duration: eventData.duration,
           participants: eventData.participants,
           type: eventData.type
         })
+        setEvents(prev => [...prev, { ...eventData, id: docRef.id }])
       }
       setAddEventOpen(false)
       setEditingEvent(null)
@@ -80,7 +96,8 @@ export default function Dashboard({ user }) {
 
   const handleDeleteEvent = async (id) => {
     try {
-      await deleteDoc(doc(db, 'calendarEvents', id))
+      await deleteDoc(doc(db, 'events', id))
+      setEvents(prev => prev.filter(e => e.id !== id))
       setPopupEvent(null)
     } catch (error) {
       console.error('Erreur lors de la suppression :', error)
@@ -113,6 +130,7 @@ export default function Dashboard({ user }) {
         <div className="dashboard-section full-width calendar-priority">
           <Calendar
             users={users}
+            events={events}
             onEventClick={(e) => setPopupEvent(e)}
           />
         </div>

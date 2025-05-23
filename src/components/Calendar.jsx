@@ -6,20 +6,13 @@ import "../styles/Calendar.css";
 import { addDays, format, startOfWeek } from "date-fns";
 import fr from "date-fns/locale/fr";
 
-export default function Calendar({ users = [], onEventClick }) {
-  const [events, setEvents] = useState([]);
+export default function Calendar({ users = [], events = [], onEventClick }) {
   const [weather, setWeather] = useState([]);
   const [weekOffset, setWeekOffset] = useState(0);
 
   const DAYS = Array.from({ length: 7 }, (_, i) =>
     addDays(startOfWeek(new Date(), { weekStartsOn: 1 }), i + weekOffset * 7)
   );
-
-  const fetchEvents = async () => {
-    const snap = await getDocs(collection(db, "calendarEvents"));
-    const data = snap.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
-    setEvents(data);
-  };
 
   const fetchWeather = async () => {
     try {
@@ -58,10 +51,6 @@ export default function Calendar({ users = [], onEventClick }) {
   useEffect(() => {
     fetchWeather();
   }, []);
-
-  useEffect(() => {
-    fetchEvents();
-  }, [weekOffset]);
 
   return (
     <div className="calendar-wrapper">
