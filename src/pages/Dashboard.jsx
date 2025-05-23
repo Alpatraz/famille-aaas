@@ -111,10 +111,13 @@ export default function Dashboard({ user }) {
 
   return (
     <div className="dashboard">
-      <h1 className="site-title">Famille AAA's</h1>
       <div className="welcome-banner">
-        <span className="welcome-text">👋 {user.displayName || user.email}</span>
-        <span className="role-tag">Rôle : {user.role}</span>
+        <h1>Tableau de bord Famille AAA's</h1>
+        <div className="user-info">
+          <span className="user-name">{user.displayName || user.email}</span>
+          <span className="role-tag">Rôle : {user.role}</span>
+          <button onClick={handleLogout} className="logout-button">👋 Déconnexion</button>
+        </div>
       </div>
 
       <div className="dashboard-grid">
