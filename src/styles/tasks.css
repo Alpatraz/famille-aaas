@@ -3,6 +3,9 @@
   border-radius: 12px;
   overflow: hidden;
   font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
 }
 
 .points-summary {
@@ -52,6 +55,9 @@
 
 .tasks-content {
   padding: 1rem;
+  flex: 1;
+  overflow-y: auto;
+  max-height: calc(100vh - 250px);
 }
 
 .view-tabs {
@@ -71,6 +77,7 @@
   background: #f1f5f9;
   color: #64748b;
   font-weight: 500;
+  white-space: nowrap;
 }
 
 .tab:hover {
@@ -113,12 +120,18 @@
   font-size: 0.95rem;
   color: #2d3748;
   font-weight: 500;
+  flex: 1;
+  margin-right: 0.5rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .item-actions {
   display: flex;
   align-items: center;
   gap: 0.75rem;
+  flex-shrink: 0;
 }
 
 .points-tag {
@@ -128,6 +141,7 @@
   font-weight: 500;
   background: #e0f2fe;
   color: #0369a1;
+  white-space: nowrap;
 }
 
 .points-tag.cost {
@@ -148,6 +162,7 @@
   cursor: pointer;
   transition: all 0.2s ease;
   font-weight: 500;
+  white-space: nowrap;
 }
 
 .use-button.reward {
@@ -185,21 +200,26 @@ input[type="checkbox"] {
   }
 
   .view-tabs {
-    flex-direction: column;
+    flex-direction: row;
+  }
+
+  .tab {
+    font-size: 0.85rem;
+    padding: 0.6rem;
   }
 
   .item-row {
-    flex-direction: column;
-    gap: 0.5rem;
-    text-align: center;
+    flex-direction: row;
+    align-items: center;
+    padding: 0.6rem;
   }
 
-  .item-actions {
-    width: 100%;
-    justify-content: center;
+  .item-label {
+    font-size: 0.9rem;
   }
 
   .use-button {
-    width: 100%;
+    padding: 0.4rem 0.6rem;
+    font-size: 0.85rem;
   }
 }
