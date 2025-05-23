@@ -2,9 +2,6 @@ import { useEffect, useState } from 'react'
 import { db } from '../firebase'
 import {
   collection,
-  addDoc,
-  updateDoc,
-  doc,
   getDocs,
 } from 'firebase/firestore'
 import './AddEventModal.css'
@@ -14,10 +11,12 @@ export default function AddEventModal({ onClose, initialData, onSave }) {
 
   const [formData, setFormData] = useState({
     title: initialData?.title || '',
-    date: initialData?.date
+    startDate: initialData?.date
       ? new Date(initialData.date).toISOString().slice(0, 16)
       : new Date().toISOString().slice(0, 16),
-    duration: initialData?.duration || 60,
+    endDate: initialData?.endDate
+      ? new Date(initialData.endDate).toISOString().slice(0, 16)
+      : new Date(Date.now() + 3600000).toISOString().slice(0, 16), // +1 hour by default
     participants: initialData?.participants || [],
     type: initialData?.type || 'autre',
   })
@@ -38,7 +37,17 @@ export default function AddEventModal({ onClose, initialData, onSave }) {
 
   const handleChange = (e) => {
     const { name, value } = e.target
-    setFormData((prev) => ({ ...prev, [name]: value }))
+    setFormData((prev) => {
+      if (name === 'startDate' && new Date(value) > new Date(prev.endDate)) {
+        // If start date is after end date, update end date
+        return {
+          ...prev,
+          [name]: value,
+          endDate: value
+        }
+      }
+      return { ...prev, [name]: value }
+    })
   }
 
   const handleCheckboxChange = (e) => {
@@ -51,13 +60,21 @@ export default function AddEventModal({ onClose, initialData, onSave }) {
     }))
   }
 
+  const calculateDuration = () => {
+    const start = new Date(formData.startDate)
+    const end = new Date(formData.endDate)
+    return Math.round((end - start) / (1000 * 60)) // Duration in minutes
+  }
+
   const handleSubmit = async (e) => {
     e.preventDefault()
     
     const payload = {
       title: formData.title,
-      date: formData.date.split('T')[0],
-      duration: Number(formData.duration),
+      date: formData.startDate.split('T')[0],
+      startTime: formData.startDate.split('T')[1],
+      endDate: formData.endDate,
+      duration: calculateDuration(),
       participants: formData.participants,
       type: formData.type,
     }
@@ -81,64 +98,64 @@ export default function AddEventModal({ onClose, initialData, onSave }) {
         <h3>{isEdit ? '✏️ Modifier' : '➕ Ajouter'} un événement</h3>
         <form onSubmit={handleSubmit}>
           <div className="form-group">
-            <label>
-              Titre :
-              <input
-                type="text"
-                name="title"
-                value={formData.title}
-                onChange={handleChange}
-                required
-              />
-            </label>
+            <label htmlFor="title">Titre</label>
+            <input
+              id="title"
+              type="text"
+              name="title"
+              value={formData.title}
+              onChange={handleChange}
+              required
+              placeholder="Ex: Rendez-vous dentiste"
+            />
           </div>
 
-          <div className="form-group">
-            <label>
-              Date et heure :
+          <div className="form-row">
+            <div className="form-group">
+              <label htmlFor="startDate">Début</label>
               <input
+                id="startDate"
                 type="datetime-local"
-                name="date"
-                value={formData.date}
+                name="startDate"
+                value={formData.startDate}
                 onChange={handleChange}
                 required
               />
-            </label>
-          </div>
+            </div>
 
-          <div className="form-group">
-            <label>
-              Durée (minutes) :
+            <div className="form-group">
+              <label htmlFor="endDate">Fin</label>
               <input
-                type="number"
-                name="duration"
-                value={formData.duration}
+                id="endDate"
+                type="datetime-local"
+                name="endDate"
+                value={formData.endDate}
+                min={formData.startDate}
                 onChange={handleChange}
                 required
               />
-            </label>
+            </div>
           </div>
 
           <div className="form-group">
-            <label>
-              Type :
-              <select
-                name="type"
-                value={formData.type}
-                onChange={handleChange}
-              >
-                <option value="activite">Activité</option>
-                <option value="rdv">Rendez-vous</option>
-                <option value="repas">Repas</option>
-                <option value="sport">Sport</option>
-                <option value="autre">Autre</option>
-              </select>
-            </label>
+            <label htmlFor="type">Type d'événement</label>
+            <select
+              id="type"
+              name="type"
+              value={formData.type}
+              onChange={handleChange}
+            >
+              <option value="activite">Activité</option>
+              <option value="rdv">Rendez-vous</option>
+              <option value="repas">Repas</option>
+              <option value="sport">Sport</option>
+              <option value="autre">Autre</option>
+            </select>
           </div>
 
           <div className="form-group">
-            <label>Participants :</label>
-            <div className="participants-list">
+            <label>Participants</label>
+            <div className="participants-grid">
               {users.map((user) => (
                 <label key={user.uid} className="participant-checkbox">
                   <input
@@ -147,7 +164,10 @@ export default function AddEventModal({ onClose, initialData, onSave }) {
                     checked={formData.participants.includes(user.uid)}
                     onChange={handleCheckboxChange}
                   />
-                  {user.avatar || '🙂'} {user.displayName}
+                  <span className="participant-info">
+                    <span className="participant-avatar">{user.avatar || '🙂'}</span>
+                    <span className="participant-name">{user.displayName}</span>
+                  </span>
                 </label>
               ))}
             </div>
