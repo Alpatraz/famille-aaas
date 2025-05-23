@@ -19,11 +19,6 @@ export default function ChildTasks({ user }) {
 
   const today = format(new Date(), 'yyyy-MM-dd');
 
-  // Early return if no user is provided
-  if (!user) {
-    return <p>Chargement de l'utilisateur...</p>;
-  }
-
   useEffect(() => {
     const fetchData = async () => {
       const taskSnap = await getDocs(collection(db, 'tasks'));
@@ -54,14 +49,13 @@ export default function ChildTasks({ user }) {
 
   useEffect(() => {
     const fetchPoints = async () => {
-      try {
-        const userId = user.id || user.displayName; // Fallback to displayName if id is not available
-        if (!userId) {
-          console.error('No user ID available');
-          setLoading(false);
-          return;
-        }
+      if (!user?.id && !user?.displayName) {
+        setLoading(false);
+        return;
+      }
 
+      try {
+        const userId = user.id || user.displayName;
         const totalSnap = await getDoc(doc(db, 'points', userId));
         setPointsTotal(totalSnap.exists() ? totalSnap.data().value : 0);
 
@@ -71,23 +65,20 @@ export default function ChildTasks({ user }) {
           .filter(doc => doc.data().type === 'task')
           .reduce((sum, doc) => sum + doc.data().value, 0);
         setPointsToday(todaySum);
-
-        setLoading(false);
       } catch (error) {
         console.error('Error fetching points:', error);
+      } finally {
         setLoading(false);
       }
     };
 
-    if (user) {
-      fetchPoints();
-    }
+    fetchPoints();
   }, [user, today]);
 
   const handleTaskClick = async (task) => {
+    if (!user?.id && !user?.displayName) return;
+    
     const userId = user.id || user.displayName;
-    if (!userId) return;
-
     const taskDone = !task.done;
     setTasks(prev => prev.map(t =>
       t.id === task.id ? { ...t, done: taskDone } : t
@@ -116,9 +107,9 @@ export default function ChildTasks({ user }) {
   };
 
   const handleRewardClick = async (reward) => {
+    if (!user?.id && !user?.displayName) return;
+    
     const userId = user.id || user.displayName;
-    if (!userId) return;
-
     if (pointsTotal >= reward.cost) {
       const newTotal = pointsTotal - reward.cost;
       setPointsTotal(newTotal);
@@ -138,9 +129,9 @@ export default function ChildTasks({ user }) {
   };
 
   const handleConsequenceClick = async (consequence) => {
+    if (!user?.id && !user?.displayName) return;
+    
     const userId = user.id || user.displayName;
-    if (!userId) return;
-
     const newTotal = pointsTotal - consequence.cost;
     setPointsTotal(newTotal);
     await setDoc(doc(db, 'points', userId), { value: newTotal }, { merge: true });
@@ -155,7 +146,13 @@ export default function ChildTasks({ user }) {
     alert(`⚠️ ${user.displayName || 'Utilisateur'} a reçu une conséquence.`);
   };
 
-  if (loading) return <p>Chargement...</p>;
+  if (!user) {
+    return <p>Chargement de l'utilisateur...</p>;
+  }
+
+  if (loading) {
+    return <p>Chargement...</p>;
+  }
 
   const backgroundColor = user.color ? `${user.color}33` : '#f8fafc';
 
