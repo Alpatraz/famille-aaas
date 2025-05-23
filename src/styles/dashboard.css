@@ -126,7 +126,7 @@
   grid-template-columns: repeat(3, 1fr);
   gap: 1rem;
   margin: 0 auto;
-  max-width: 1200px;
+  max-width: 1400px;
 }
 
 .child-task-card {
@@ -135,7 +135,8 @@
   padding: 1rem;
   transition: all 0.2s ease;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
-  min-width: 0; /* Empêche le débordement */
+  min-width: 0;
+  height: fit-content;
 }
 
 .child-task-card:hover {
@@ -187,7 +188,7 @@
 /* Responsive */
 @media (max-width: 1200px) {
   .tasks-grid {
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: repeat(3, 1fr);
   }
 }
 
