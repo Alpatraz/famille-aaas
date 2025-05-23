@@ -27,9 +27,19 @@ export default function App() {
         try {
           const userDoc = await getDoc(doc(db, 'users', currentUser.uid))
           const data = userDoc.exists() ? userDoc.data() : {}
-          setUser({ ...currentUser, role: data.role || 'enfant' })
+          setUser({ 
+            ...currentUser, 
+            role: data.role || 'enfant',
+            color: data.color || '#94a3b8',
+            avatar: data.avatar || '👤'
+          })
         } catch {
-          setUser({ ...currentUser, role: 'enfant' })
+          setUser({ 
+            ...currentUser, 
+            role: 'enfant',
+            color: '#94a3b8',
+            avatar: '👤'
+          })
         }
       } else {
         setUser(null)
@@ -71,15 +81,31 @@ export default function App() {
 
   return (
     <div className="dashboard">
-      <div className="nav-container">
-        <Link to="/" className="nav-button">🏠 Accueil</Link>
-        {user.role === 'parent' && (
-          <>
-            <Link to="/profil" className="nav-button">⚙️ Profils</Link>
-            <Link to="/historique" className="nav-button">📊 Historique</Link>
-            <Link to="/taches" className="nav-button">📋 Tâches</Link>
-          </>
-        )}
+      <div className="welcome-banner">
+        <div className="welcome-content">
+          <h1>TABLEAU DE BORD FAMILIAL</h1>
+          <div className="user-info">
+            <span className="user-name">{user.displayName || user.email}</span>
+            <span className="role-tag" style={{ backgroundColor: user.color }}>
+              {user.avatar} {user.role}
+            </span>
+          </div>
+        </div>
+        <div className="nav-actions">
+          <div className="nav-buttons">
+            <Link to="/" className="nav-button">🏠 Accueil</Link>
+            {user.role === 'parent' && (
+              <>
+                <Link to="/profil" className="nav-button">⚙️ Profils</Link>
+                <Link to="/historique" className="nav-button">📊 Historique</Link>
+                <Link to="/taches" className="nav-button">📋 Tâches</Link>
+              </>
+            )}
+          </div>
+          <button onClick={handleLogout} className="logout-button">
+            Déconnexion
+          </button>
+        </div>
       </div>
 
       <Routes>
