@@ -5,14 +5,13 @@
   right: 0;
   bottom: 0;
   background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(4px);
   display: flex;
   justify-content: center;
   align-items: center;
   z-index: 1000;
   padding: 1rem;
-  transform: translateZ(0);
-  backface-visibility: hidden;
-  perspective: 1000px;
+  animation: fadeIn 0.2s ease;
   will-change: opacity;
 }
 
@@ -20,16 +19,19 @@
   background: white;
   border-radius: 16px;
   width: 95%;
-  max-width: 600px;
-  max-height: 90vh;
+  max-width: 800px;
+  height: 90vh;
   position: relative;
   box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
   display: flex;
   flex-direction: column;
+  animation: slideIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  overflow: hidden;
+  will-change: transform;
   transform: translateZ(0);
   backface-visibility: hidden;
-  will-change: transform;
-  pointer-events: auto;
+  perspective: 1000px;
+  transform-style: preserve-3d;
 }
 
 .modal-header {
@@ -42,6 +44,7 @@
   top: 0;
   background: white;
   z-index: 10;
+  flex-shrink: 0;
   transform: translateZ(0);
 }
 
@@ -67,6 +70,7 @@
   justify-content: center;
   border-radius: 50%;
   transition: all 0.2s ease;
+  flex-shrink: 0;
   transform: translateZ(0);
 }
 
@@ -84,6 +88,22 @@
   transform: translateZ(0);
 }
 
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px) translateZ(0);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) translateZ(0);
+  }
+}
+
 @media (max-width: 768px) {
   .modal-overlay {
     padding: 0;
@@ -92,6 +112,7 @@
   .modal-content {
     width: 100%;
     height: 100vh;
+    max-height: 100vh;
     border-radius: 0;
   }
 

@@ -31,16 +31,14 @@ export default function App() {
             ...currentUser, 
             role: data.role || 'enfant',
             color: data.color || '#94a3b8',
-            avatar: data.avatar || '👤',
-            blocks: data.blocks || []
+            avatar: data.avatar || '👤'
           })
         } catch {
           setUser({ 
             ...currentUser, 
             role: 'enfant',
             color: '#94a3b8',
-            avatar: '👤',
-            blocks: []
+            avatar: '👤'
           })
         }
       } else {
@@ -81,8 +79,6 @@ export default function App() {
     )
   }
 
-  const canAccessAdmin = user.role === 'admin' || user.role === 'parent'
-
   return (
     <div className="dashboard">
       <div className="welcome-banner">
@@ -98,7 +94,7 @@ export default function App() {
         <div className="nav-actions">
           <div className="nav-buttons">
             <Link to="/" className="nav-button">🏠 Accueil</Link>
-            {canAccessAdmin && (
+            {user.role === 'parent' && (
               <>
                 <Link to="/profil" className="nav-button">⚙️ Profils</Link>
                 <Link to="/historique" className="nav-button">📊 Historique</Link>
@@ -114,13 +110,9 @@ export default function App() {
 
       <Routes>
         <Route path="/" element={<Dashboard user={user} />} />
-        {canAccessAdmin && (
-          <>
-            <Route path="/profil" element={<ProfileSettings currentUser={user} />} />
-            <Route path="/historique" element={<Historique />} />
-            <Route path="/taches" element={<TaskList />} />
-          </>
-        )}
+        {user.role === 'parent' && <Route path="/profil" element={<ProfileSettings />} />}
+        {user.role === 'parent' && <Route path="/historique" element={<Historique />} />}
+        {user.role === 'parent' && <Route path="/taches" element={<TaskList />} />}
       </Routes>
     </div>
   )
