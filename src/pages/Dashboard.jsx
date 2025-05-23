@@ -9,9 +9,9 @@ import { db } from '../firebase'
 import { collection, getDocs, doc, getDoc, addDoc, deleteDoc, updateDoc } from 'firebase/firestore'
 
 const enfants = [
-  { name: 'Antoine', uid: 'uid-Antoine', avatar: '🧒' },
-  { name: 'Anna', uid: 'uid-Anna', avatar: '👧' },
-  { name: 'Alexandre', uid: 'uid-Alexandre', avatar: '🧑' }
+  { name: 'Antoine', uid: 'uid-Antoine', avatar: '🧒', color: '#FFE0E0' },
+  { name: 'Anna', uid: 'uid-Anna', avatar: '👧', color: '#E0F4FF' },
+  { name: 'Alexandre', uid: 'uid-Alexandre', avatar: '🧑', color: '#E8FFE0' }
 ]
 
 const jours = ['dimanche','lundi','mardi','mercredi','jeudi','vendredi','samedi']
@@ -64,7 +64,6 @@ export default function Dashboard({ user }) {
   const handleSaveEvent = async (eventData) => {
     try {
       if (eventData.id) {
-        // Mise à jour d'un événement existant
         await updateDoc(doc(db, 'events', eventData.id), {
           title: eventData.title,
           date: eventData.date,
@@ -76,7 +75,6 @@ export default function Dashboard({ user }) {
           e.id === eventData.id ? { ...eventData } : e
         ))
       } else {
-        // Création d'un nouvel événement
         const docRef = await addDoc(collection(db, 'events'), {
           title: eventData.title,
           date: eventData.date,
@@ -117,11 +115,9 @@ export default function Dashboard({ user }) {
         <h1>Tableau de bord familial</h1>
         <div className="nav-buttons">
           {isParent && (
-            <>
-              <button className="nav-button" onClick={() => setAddEventOpen(true)}>
-                ➕ Ajouter un événement
-              </button>
-            </>
+            <button className="nav-button" onClick={() => setAddEventOpen(true)}>
+              ➕ Ajouter un événement
+            </button>
           )}
         </div>
       </div>
@@ -138,9 +134,16 @@ export default function Dashboard({ user }) {
         <div className="dashboard-section full-width">
           <h2>✅ Tâches & Récompenses</h2>
           {isParent ? (
-            <div className="dashboard-row">
+            <div className="tasks-grid">
               {enfants.map((child) => (
-                <div key={child.name} className="dashboard-section child-task-card">
+                <div 
+                  key={child.name} 
+                  className="child-task-card"
+                  style={{
+                    backgroundColor: `${child.color}22`,
+                    borderLeft: `4px solid ${child.color}`
+                  }}
+                >
                   <h3>{child.avatar} {child.name}</h3>
                   <TasksRewards user={{ uid: child.uid, displayName: child.name, avatar: child.avatar }} />
                 </div>
