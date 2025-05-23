@@ -2,12 +2,12 @@ import { useEffect, useState } from 'react';
 import { db } from '../firebase';
 import {
   doc, setDoc, getDoc,
-  collection, addDoc, getDocs
+  collection, addDoc, getDocs, query, where
 } from 'firebase/firestore';
 import { format } from 'date-fns';
 import '../styles/tasks.css';
 
-export default function ChildTasks({ name }) {
+export default function ChildTasks({ name, userId }) {
   const [pointsTotal, setPointsTotal] = useState(0);
   const [pointsToday, setPointsToday] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -21,7 +21,11 @@ export default function ChildTasks({ name }) {
 
   useEffect(() => {
     const fetchData = async () => {
-      const taskSnap = await getDocs(collection(db, 'tasks'));
+      // Fetch tasks assigned to this user
+      const taskSnap = await getDocs(query(
+        collection(db, 'tasks'),
+        where('assignedTo', 'array-contains', userId)
+      ));
       setTasks(taskSnap.docs.map(doc => ({
         id: doc.id,
         label: doc.data().label || 'Tâche sans nom',
@@ -29,14 +33,22 @@ export default function ChildTasks({ name }) {
         done: false
       })));
 
-      const rewardSnap = await getDocs(collection(db, 'rewards'));
+      // Fetch rewards assigned to this user
+      const rewardSnap = await getDocs(query(
+        collection(db, 'rewards'),
+        where('assignedTo', 'array-contains', userId)
+      ));
       setRewards(rewardSnap.docs.map(doc => ({
         id: doc.id,
         label: doc.data().label || 'Récompense sans nom',
         cost: doc.data().cost || 0
       })));
 
-      const consequenceSnap = await getDocs(collection(db, 'consequences'));
+      // Fetch consequences assigned to this user
+      const consequenceSnap = await getDocs(query(
+        collection(db, 'consequences'),
+        where('assignedTo', 'array-contains', userId)
+      ));
       setConsequences(consequenceSnap.docs.map(doc => ({
         id: doc.id,
         label: doc.data().label || 'Conséquence sans nom',
@@ -45,7 +57,7 @@ export default function ChildTasks({ name }) {
     };
 
     fetchData();
-  }, []);
+  }, [userId]);
 
   useEffect(() => {
     const fetchPoints = async () => {
