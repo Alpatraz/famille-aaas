@@ -23,7 +23,7 @@ export default function AddEventModal({ onClose, initialData, onSave }) {
   useEffect(() => {
     const fetchUsers = async () => {
       const snap = await getDocs(collection(db, 'users'))
-      const userList = snap.docs.map((doc) => ({
+      const userList = snap.docs.map(doc => ({
         uid: doc.id,
         ...doc.data(),
       }))
@@ -90,89 +90,95 @@ export default function AddEventModal({ onClose, initialData, onSave }) {
   return (
     <div className="modal-overlay">
       <div className="modal-content">
-        <h3>{isEdit ? '✏️ Modifier' : '➕ Ajouter'} un événement</h3>
-        <form onSubmit={handleSubmit}>
-          <div className="form-group">
-            <label htmlFor="title">Titre</label>
-            <input
-              id="title"
-              type="text"
-              name="title"
-              value={formData.title}
-              onChange={handleChange}
-              required
-              placeholder="Ex: Rendez-vous dentiste"
-            />
-          </div>
+        <div className="modal-header">
+          <h3>{isEdit ? '✏️ Modifier' : '➕ Ajouter'} un événement</h3>
+          <button className="modal-close" onClick={onClose}>×</button>
+        </div>
 
-          <div className="datetime-group">
+        <div className="modal-body">
+          <form onSubmit={handleSubmit}>
             <div className="form-group">
-              <label htmlFor="startDate">Début</label>
+              <label htmlFor="title">Titre</label>
               <input
-                id="startDate"
-                type="datetime-local"
-                name="startDate"
-                value={formData.startDate}
+                id="title"
+                type="text"
+                name="title"
+                value={formData.title}
                 onChange={handleChange}
                 required
+                placeholder="Ex: Rendez-vous dentiste"
               />
             </div>
 
+            <div className="datetime-group">
+              <div className="form-group">
+                <label htmlFor="startDate">Début</label>
+                <input
+                  id="startDate"
+                  type="datetime-local"
+                  name="startDate"
+                  value={formData.startDate}
+                  onChange={handleChange}
+                  required
+                />
+              </div>
+
+              <div className="form-group">
+                <label htmlFor="endDate">Fin</label>
+                <input
+                  id="endDate"
+                  type="datetime-local"
+                  name="endDate"
+                  value={formData.endDate}
+                  min={formData.startDate}
+                  onChange={handleChange}
+                  required
+                />
+              </div>
+            </div>
+
             <div className="form-group">
-              <label htmlFor="endDate">Fin</label>
-              <input
-                id="endDate"
-                type="datetime-local"
-                name="endDate"
-                value={formData.endDate}
-                min={formData.startDate}
+              <label htmlFor="type">Type d'événement</label>
+              <select
+                id="type"
+                name="type"
+                value={formData.type}
                 onChange={handleChange}
-                required
-              />
+              >
+                <option value="activite">Activité</option>
+                <option value="rdv">Rendez-vous</option>
+                <option value="repas">Repas</option>
+                <option value="sport">Sport</option>
+                <option value="autre">Autre</option>
+              </select>
             </div>
-          </div>
 
-          <div className="form-group">
-            <label htmlFor="type">Type d'événement</label>
-            <select
-              id="type"
-              name="type"
-              value={formData.type}
-              onChange={handleChange}
-            >
-              <option value="activite">Activité</option>
-              <option value="rdv">Rendez-vous</option>
-              <option value="repas">Repas</option>
-              <option value="sport">Sport</option>
-              <option value="autre">Autre</option>
-            </select>
-          </div>
-
-          <div className="form-group">
-            <label>Participants</label>
-            <div className="participants-grid">
-              {users.map((user) => (
-                <div
-                  key={user.uid}
-                  className={`participant-card ${formData.participants.includes(user.uid) ? 'selected' : ''}`}
-                  onClick={() => toggleParticipant(user.uid)}
-                >
-                  <span className="participant-avatar">{user.avatar || '🙂'}</span>
-                  <span className="participant-name">{user.displayName}</span>
-                </div>
-              ))}
+            <div className="form-group">
+              <label>Participants</label>
+              <div className="participants-grid">
+                {users.map((user) => (
+                  <div
+                    key={user.uid}
+                    className={`participant-card ${formData.participants.includes(user.uid) ? 'selected' : ''}`}
+                    onClick={() => toggleParticipant(user.uid)}
+                  >
+                    <span className="participant-avatar">{user.avatar || '🙂'}</span>
+                    <span className="participant-name">{user.displayName}</span>
+                  </div>
+                ))}
+              </div>
             </div>
-          </div>
+          </form>
+        </div>
 
-          <div className="modal-buttons">
-            <button type="submit" className="submit-button">
-              {isEdit ? 'Modifier' : 'Ajouter'}
-            </button>
-            <button type="button" onClick={onClose} className="cancel-button">
-              Annuler
-            </button>
-          </div>
-        </form>
+        <div className="modal-footer">
+          <button type="button" onClick={onClose} className="cancel-button">
+            Annuler
+          </button>
+          <button type="submit" onClick={handleSubmit} className="submit-button">
+            {isEdit ? 'Modifier' : 'Ajouter'}
+          </button>
+        </div>
       </div>
     </div>
   )
