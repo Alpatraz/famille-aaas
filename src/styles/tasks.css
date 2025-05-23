@@ -8,34 +8,54 @@
   flex-direction: column;
 }
 
-.points-summary {
-  display: flex;
-  align-items: center;
+.points-header {
   padding: 0.75rem;
-  gap: 1rem;
   background: rgba(255, 255, 255, 0.7);
   border-radius: 12px;
-  justify-content: space-between;
-}
-
-.points-today,
-.points-total {
   display: flex;
-  flex-direction: column;
+  justify-content: space-between;
   align-items: center;
-  gap: 0.25rem;
 }
 
-.points-today span,
-.points-total span {
-  font-size: 0.75rem;
-  color: #4a5568;
+.points-badges {
+  display: flex;
+  gap: 1rem;
+  flex: 1;
 }
 
-.points-today strong,
-.points-total strong {
-  font-size: 1rem;
-  color: #2d3748;
+.points-badge {
+  flex: 1;
+  padding: 0.5rem;
+  border-radius: 10px;
+  text-align: center;
+  transition: transform 0.2s ease;
+}
+
+.points-badge:hover {
+  transform: translateY(-2px);
+}
+
+.points-badge.today {
+  background: #e0f2fe;
+}
+
+.points-badge.total {
+  background: #f0fdf4;
+}
+
+.points-value {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #1e293b;
+  line-height: 1;
+  margin-bottom: 0.25rem;
+}
+
+.points-label {
+  font-size: 0.7rem;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
 .expand-button {
@@ -51,10 +71,12 @@
   align-items: center;
   justify-content: center;
   transition: all 0.2s ease;
+  color: #64748b;
 }
 
 .expand-button:hover {
   background: #f1f5f9;
+  color: #1e293b;
 }
 
 .tasks-content {
