@@ -65,14 +65,12 @@ export default function ChildTasks({ name }) {
     fetchPoints();
   }, [name]);
 
-  const handleTaskToggle = async (id) => {
-    const task = tasks.find(t => t.id === id);
-    const updated = tasks.map(t =>
-      t.id === id ? { ...t, done: !t.done } : t
-    );
-    setTasks(updated);
-
+  const handleTaskClick = async (task) => {
     const taskDone = !task.done;
+    setTasks(prev => prev.map(t =>
+      t.id === task.id ? { ...t, done: taskDone } : t
+    ));
+
     const delta = taskDone ? task.value : -task.value;
     const newTotal = pointsTotal + delta;
     setPointsTotal(newTotal);
@@ -89,21 +87,21 @@ export default function ChildTasks({ name }) {
 
       setTimeout(() => {
         setTasks(prev =>
-          prev.map(t => t.id === id ? { ...t, done: false } : t)
+          prev.map(t => t.id === task.id ? { ...t, done: false } : t)
         );
       }, 3000);
     }
   };
 
-  const handleRewardClick = async (cost, label) => {
-    if (pointsTotal >= cost) {
-      const newTotal = pointsTotal - cost;
+  const handleRewardClick = async (reward) => {
+    if (pointsTotal >= reward.cost) {
+      const newTotal = pointsTotal - reward.cost;
       setPointsTotal(newTotal);
       await setDoc(doc(db, 'points', name), { value: newTotal }, { merge: true });
 
       await addDoc(collection(db, 'taskHistory', name, today), {
-        label,
-        value: cost,
+        label: reward.label,
+        value: reward.cost,
         type: 'reward',
         date: new Date().toISOString()
       });
@@ -114,14 +112,14 @@ export default function ChildTasks({ name }) {
     }
   };
 
-  const handleConsequenceClick = async (cost, label) => {
-    const newTotal = pointsTotal - cost;
+  const handleConsequenceClick = async (consequence) => {
+    const newTotal = pointsTotal - consequence.cost;
     setPointsTotal(newTotal);
     await setDoc(doc(db, 'points', name), { value: newTotal }, { merge: true });
 
     await addDoc(collection(db, 'taskHistory', name, today), {
-      label,
-      value: cost,
+      label: consequence.label,
+      value: consequence.cost,
       type: 'consequence',
       date: new Date().toISOString()
     });
@@ -163,29 +161,26 @@ export default function ChildTasks({ name }) {
               className={`tab ${view === 'rewards' ? 'active' : ''}`}
               onClick={() => setView('rewards')}
             >
-              🎁 Récompenses
+              🎁 Récomp.
             </button>
             <button 
               className={`tab ${view === 'consequences' ? 'active' : ''}`}
               onClick={() => setView('consequences')}
             >
-              ⚠️ Conséquences
+              ⚠️ Conséq.
             </button>
           </div>
 
           {view === 'tasks' && (
             <ul className="items-list tasks-list">
               {tasks.map(task => (
-                <li key={task.id} className={`item-row ${task.done ? 'done' : ''}`}>
+                <li 
+                  key={task.id} 
+                  className={`item-row ${task.done ? 'done' : ''}`}
+                  onClick={() => handleTaskClick(task)}
+                >
                   <span className="item-label">{task.label}</span>
-                  <div className="item-actions">
-                    <span className="points-tag">+{task.value}</span>
-                    <input
-                      type="checkbox"
-                      checked={task.done}
-                      onChange={() => handleTaskToggle(task.id)}
-                    />
-                  </div>
+                  <span className="points-tag">+{task.value}</span>
                 </li>
               ))}
             </ul>
@@ -194,17 +189,13 @@ export default function ChildTasks({ name }) {
           {view === 'rewards' && (
             <ul className="items-list rewards-list">
               {rewards.map(reward => (
-                <li key={reward.id} className="item-row">
+                <li 
+                  key={reward.id} 
+                  className="item-row"
+                  onClick={() => handleRewardClick(reward)}
+                >
                   <span className="item-label">{reward.label}</span>
-                  <div className="item-actions">
-                    <span className="points-tag cost">{reward.cost}</span>
-                    <button 
-                      className="use-button reward"
-                      onClick={() => handleRewardClick(reward.cost, reward.label)}
-                    >
-                      Utiliser 🎁
-                    </button>
-                  </div>
+                  <span className="points-tag cost">{reward.cost}</span>
                 </li>
               ))}
             </ul>
@@ -213,17 +204,13 @@ export default function ChildTasks({ name }) {
           {view === 'consequences' && (
             <ul className="items-list consequences-list">
               {consequences.map(consequence => (
-                <li key={consequence.id} className="item-row">
+                <li 
+                  key={consequence.id} 
+                  className="item-row"
+                  onClick={() => handleConsequenceClick(consequence)}
+                >
                   <span className="item-label">{consequence.label}</span>
-                  <div className="item-actions">
-                    <span className="points-tag negative">-{consequence.cost}</span>
-                    <button 
-                      className="use-button consequence"
-                      onClick={() => handleConsequenceClick(consequence.cost, consequence.label)}
-                    >
-                      Appliquer ⚠️
-                    </button>
-                  </div>
+                  <span className="points-tag negative">-{consequence.cost}</span>
                 </li>
               ))}
             </ul>
