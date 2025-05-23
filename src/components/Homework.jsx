@@ -1,22 +1,34 @@
 import { useState, useEffect } from 'react';
 import { db } from '../firebase';
-import { collection, addDoc, getDocs, deleteDoc, doc } from 'firebase/firestore';
+import { collection, addDoc, getDocs, deleteDoc, doc, query, where } from 'firebase/firestore';
 import './Homework.css';
 
 export default function Homework() {
   const [homeworks, setHomeworks] = useState([]);
+  const [users, setUsers] = useState([]);
   const [showAddForm, setShowAddForm] = useState(false);
   const [newHomework, setNewHomework] = useState({
     title: '',
     subject: '',
     dueDate: '',
     link: '',
-    description: ''
+    description: '',
+    assignedTo: ''
   });
 
   useEffect(() => {
     loadHomeworks();
+    loadUsers();
   }, []);
+
+  const loadUsers = async () => {
+    const snap = await getDocs(query(collection(db, 'users'), where('role', '==', 'enfant')));
+    const data = snap.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data()
+    }));
+    setUsers(data);
+  };
 
   const loadHomeworks = async () => {
     const snap = await getDocs(collection(db, 'homeworks'));
@@ -29,6 +41,10 @@ export default function Homework() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!newHomework.assignedTo) {
+      alert('Veuillez sélectionner un enfant');
+      return;
+    }
     await addDoc(collection(db, 'homeworks'), {
       ...newHomework,
       createdAt: new Date().toISOString(),
@@ -39,7 +55,8 @@ export default function Homework() {
       subject: '',
       dueDate: '',
       link: '',
-      description: ''
+      description: '',
+      assignedTo: ''
     });
     setShowAddForm(false);
     loadHomeworks();
@@ -50,12 +67,13 @@ export default function Homework() {
     loadHomeworks();
   };
 
-  const toggleComplete = async (homework) => {
-    await updateDoc(doc(db, 'homeworks', homework.id), {
-      completed: !homework.completed
-    });
-    loadHomeworks();
-  };
+  const groupedHomeworks = homeworks.reduce((acc, homework) => {
+    if (!acc[homework.assignedTo]) {
+      acc[homework.assignedTo] = [];
+    }
+    acc[homework.assignedTo].push(homework);
+    return acc;
+  }, {});
 
   return (
     <div className="homework-container">
@@ -69,6 +87,18 @@ export default function Homework() {
       {showAddForm && (
         <div className="homework-form">
           <form onSubmit={handleSubmit}>
+            <select
+              value={newHomework.assignedTo}
+              onChange={e => setNewHomework({...newHomework, assignedTo: e.target.value})}
+              required
+            >
+              <option value="">Sélectionner un enfant</option>
+              {users.map(user => (
+                <option key={user.id} value={user.displayName}>
+                  {user.avatar} {user.displayName}
+                </option>
+              ))}
+            </select>
             <input
               type="text"
               placeholder="Titre du devoir"
@@ -118,42 +148,43 @@ export default function Homework() {
       )}
 
       <div className="homework-list">
-        {homeworks.length === 0 ? (
-          <p className="no-homework">Aucun devoir pour le moment</p>
-        ) : (
-          homeworks.map(homework => (
-            <div key={homework.id} className={`homework-item ${homework.completed ? 'completed' : ''}`}>
-              <div className="homework-content">
-                <div className="homework-header">
-                  <h4>{homework.title}</h4>
-                  <span className={`subject-tag ${homework.subject}`}>
-                    {homework.subject}
-                  </span>
-                </div>
-                <p className="homework-description">{homework.description}</p>
-                {homework.link && (
-                  <a href={homework.link} target="_blank" rel="noopener noreferrer" className="homework-link">
-                    📎 Voir le document
-                  </a>
-                )}
-                <div className="homework-footer">
-                  <span className="due-date">📅 Pour le {new Date(homework.dueDate).toLocaleDateString()}</span>
-                  <div className="homework-actions">
-                    <button 
-                      className={`complete-button ${homework.completed ? 'completed' : ''}`}
-                      onClick={() => toggleComplete(homework)}
-                    >
-                      {homework.completed ? '✓ Fait' : 'À faire'}
-                    </button>
-                    <button className="delete-button" onClick={() => handleDelete(homework.id)}>
-                      🗑️
-                    </button>
+        {users.map(user => (
+          <div key={user.id} className="homework-user-section">
+            <h4>
+              <span>{user.avatar}</span> {user.displayName}
+            </h4>
+            {groupedHomeworks[user.displayName]?.length === 0 ? (
+              <p className="no-homework">Aucun devoir pour le moment</p>
+            ) : (
+              groupedHomeworks[user.displayName]?.map(homework => (
+                <div key={homework.id} className={`homework-item ${homework.completed ? 'completed' : ''}`}>
+                  <div className="homework-content">
+                    <div className="homework-header">
+                      <h4>{homework.title}</h4>
+                      <span className={`subject-tag ${homework.subject}`}>
+                        {homework.subject}
+                      </span>
+                    </div>
+                    <p className="homework-description">{homework.description}</p>
+                    {homework.link && (
+                      <a href={homework.link} target="_blank" rel="noopener noreferrer" className="homework-link">
+                        📎 Voir le document
+                      </a>
+                    )}
+                    <div className="homework-footer">
+                      <span className="due-date">📅 Pour le {new Date(homework.dueDate).toLocaleDateString()}</span>
+                      <div className="homework-actions">
+                        <button className="delete-button" onClick={() => handleDelete(homework.id)}>
+                          🗑️
+                        </button>
+                      </div>
+                    </div>
                   </div>
                 </div>
-              </div>
-            </div>
-          ))
-        )}
+              ))
+            )}
+          </div>
+        ))}
       </div>
     </div>
   );
