@@ -140,13 +140,12 @@
 .meal-selector {
   position: fixed;
   top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
+  right: 2rem;
+  transform: translateY(-50%);
   background: white;
   border-radius: 16px;
-  width: 90%;
-  max-width: 400px;
-  max-height: 90vh;
+  width: 400px;
+  max-height: 600px;
   overflow-y: auto;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
   display: flex;
@@ -392,15 +391,9 @@
 }
 
 @media (max-width: 1024px) {
-  .meal-content {
-    flex-direction: column;
-  }
-
   .meal-selector {
-    width: 100%;
-    max-width: none;
-    height: 100vh;
-    border-radius: 0;
+    width: 320px;
+    right: 1rem;
   }
 }
 
@@ -416,5 +409,15 @@
 
   .meal-days {
     grid-template-columns: 1fr;
+  }
+
+  .meal-selector {
+    width: 100%;
+    height: 100vh;
+    top: 0;
+    right: 0;
+    transform: none;
+    border-radius: 0;
+    max-height: none;
   }
 }
