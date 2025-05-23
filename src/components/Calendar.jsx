@@ -1,4 +1,3 @@
-// Calendar.jsx
 import { useEffect, useState } from "react";
 import { db } from "../firebase";
 import { collection, getDocs } from "firebase/firestore";
@@ -17,14 +16,14 @@ export default function Calendar({ users = [], events = [], onEventClick }) {
   const fetchWeather = async () => {
     try {
       const response = await fetch(
-        `https://api.open-meteo.com/v1/forecast?latitude=45.7&longitude=-73.6&daily=temperature_2m_max,weathercode&timezone=auto`
+        `https://api.open-meteo.com/v1/forecast?latitude=45.69&longitude=-73.63&daily=temperature_2m_max,weathercode&timezone=America/Toronto`
       );
       const data = await response.json();
       setWeather(
         data.daily.time.map((date, i) => ({
           date,
           icon: weatherIcon(data.daily.weathercode[i]),
-          temp: data.daily.temperature_2m_max[i],
+          temp: Math.round(data.daily.temperature_2m_max[i])
         }))
       );
     } catch (err) {
@@ -72,12 +71,12 @@ export default function Calendar({ users = [], events = [], onEventClick }) {
           >
             <div className="day-header">
               <div>
-                <strong>{format(day, 'EEEE', { locale: fr })}</strong><br />
+                <strong>{format(day, 'EEEE', { locale: fr })}</strong>
                 <span className="day-date">{format(day, 'dd/MM')}</span>
               </div>
               {weather[i] && (
                 <div className="weather">
-                  <span>{weather[i].icon}</span> {weather[i].temp}°C
+                  {weather[i].icon} {weather[i].temp}°
                 </div>
               )}
             </div>
@@ -108,7 +107,7 @@ export default function Calendar({ users = [], events = [], onEventClick }) {
                       style={{ backgroundColor: color }}
                       onClick={() => onEventClick && onEventClick(e)}
                     >
-                      {avatars} - {e.title}
+                      {avatars} {e.title}
                     </div>
                   );
                 })}

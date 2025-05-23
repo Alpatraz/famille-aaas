@@ -110,6 +110,7 @@
   display: flex;
   align-items: center;
   gap: 0.35rem;
+  white-space: nowrap;
 }
 
 .day-events {
@@ -117,6 +118,7 @@
   flex-direction: column;
   gap: 0.5rem;
   flex-grow: 1;
+  overflow: hidden;
 }
 
 .event-bubble {
@@ -132,6 +134,9 @@
   align-items: center;
   gap: 0.5rem;
   font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .event-bubble:hover {
