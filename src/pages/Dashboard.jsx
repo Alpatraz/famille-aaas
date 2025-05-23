@@ -111,11 +111,6 @@ export default function Dashboard({ user }) {
           <span className="user-name">{user.displayName || user.email}</span>
           <span className="role-tag">{user.role}</span>
         </div>
-        {isParent && (
-          <button className="add-event-button" onClick={() => setAddEventOpen(true)}>
-            ➕ Ajouter un événement
-          </button>
-        )}
       </div>
 
       <div className="dashboard-grid">
@@ -124,6 +119,7 @@ export default function Dashboard({ user }) {
             users={users}
             events={events}
             onEventClick={(e) => setPopupEvent(e)}
+            onAddEvent={() => isParent && setAddEventOpen(true)}
           />
         </div>
 

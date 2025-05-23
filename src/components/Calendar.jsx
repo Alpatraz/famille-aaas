@@ -5,7 +5,7 @@ import "../styles/Calendar.css";
 import { addDays, format, startOfWeek } from "date-fns";
 import fr from "date-fns/locale/fr";
 
-export default function Calendar({ users = [], events = [], onEventClick }) {
+export default function Calendar({ users = [], events = [], onEventClick, onAddEvent }) {
   const [weather, setWeather] = useState([]);
   const [weekOffset, setWeekOffset] = useState(0);
 
@@ -53,14 +53,23 @@ export default function Calendar({ users = [], events = [], onEventClick }) {
 
   return (
     <div className="calendar-wrapper">
-      <div className="calendar-header-bar">
-        <div className="calendar-nav-buttons">
-          <button className="nav-button" onClick={() => setWeekOffset(weekOffset - 1)}>⬅️</button>
+      <div className="calendar-header">
+        <div className="calendar-nav">
+          <button className="nav-arrow prev" onClick={() => setWeekOffset(weekOffset - 1)}>
+            <span>←</span>
+          </button>
+          <h2 className="calendar-week-label">
+            Semaine du {format(DAYS[0], 'dd MMMM yyyy', { locale: fr })}
+          </h2>
+          <button className="nav-arrow next" onClick={() => setWeekOffset(weekOffset + 1)}>
+            <span>→</span>
+          </button>
         </div>
-        <h2 className="calendar-week-label">🗓️ Semaine du {format(DAYS[0], 'dd MMMM yyyy', { locale: fr })}</h2>
-        <div className="calendar-nav-buttons">
-          <button className="nav-button" onClick={() => setWeekOffset(weekOffset + 1)}>➡️</button>
-        </div>
+        {onAddEvent && (
+          <button className="add-event-button" onClick={onAddEvent}>
+            ➕ Ajouter un événement
+          </button>
+        )}
       </div>
 
       <div className="calendar-grid">
