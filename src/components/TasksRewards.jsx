@@ -1,4 +1,3 @@
-// TasksRewards.jsx
 import ChildTasks from './ChildTasks'
 
 export default function TasksRewards({ user }) {

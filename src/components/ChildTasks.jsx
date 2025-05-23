@@ -7,7 +7,7 @@ import {
 import { format } from 'date-fns';
 import '../styles/tasks.css';
 
-export default function ChildTasks({ user }) {
+export default function ChildTasks({ name }) {
   const [pointsTotal, setPointsTotal] = useState(0);
   const [pointsToday, setPointsToday] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -49,49 +49,38 @@ export default function ChildTasks({ user }) {
 
   useEffect(() => {
     const fetchPoints = async () => {
-      if (!user?.id && !user?.displayName) {
-        setLoading(false);
-        return;
-      }
+      const totalSnap = await getDoc(doc(db, 'points', name));
+      setPointsTotal(totalSnap.exists() ? totalSnap.data().value : 0);
 
-      try {
-        const userId = user.id || user.displayName;
-        const totalSnap = await getDoc(doc(db, 'points', userId));
-        setPointsTotal(totalSnap.exists() ? totalSnap.data().value : 0);
+      const col = collection(db, 'taskHistory', name, today);
+      const snap = await getDocs(col);
+      const todaySum = snap.docs
+        .filter(doc => doc.data().type === 'task')
+        .reduce((sum, doc) => sum + doc.data().value, 0);
+      setPointsToday(todaySum);
 
-        const col = collection(db, 'taskHistory', userId, today);
-        const snap = await getDocs(col);
-        const todaySum = snap.docs
-          .filter(doc => doc.data().type === 'task')
-          .reduce((sum, doc) => sum + doc.data().value, 0);
-        setPointsToday(todaySum);
-      } catch (error) {
-        console.error('Error fetching points:', error);
-      } finally {
-        setLoading(false);
-      }
+      setLoading(false);
     };
 
     fetchPoints();
-  }, [user, today]);
+  }, [name]);
 
-  const handleTaskClick = async (task) => {
-    if (!user?.id && !user?.displayName) return;
-    
-    const userId = user.id || user.displayName;
+  const handleTaskToggle = async (id) => {
+    const task = tasks.find(t => t.id === id);
+    const updated = tasks.map(t =>
+      t.id === id ? { ...t, done: !t.done } : t
+    );
+    setTasks(updated);
+
     const taskDone = !task.done;
-    setTasks(prev => prev.map(t =>
-      t.id === task.id ? { ...t, done: taskDone } : t
-    ));
-
     const delta = taskDone ? task.value : -task.value;
     const newTotal = pointsTotal + delta;
     setPointsTotal(newTotal);
     setPointsToday(prev => prev + (taskDone ? task.value : -task.value));
-    await setDoc(doc(db, 'points', userId), { value: newTotal }, { merge: true });
+    await setDoc(doc(db, 'points', name), { value: newTotal }, { merge: true });
 
     if (taskDone) {
-      await addDoc(collection(db, 'taskHistory', userId, today), {
+      await addDoc(collection(db, 'taskHistory', name, today), {
         label: task.label,
         value: task.value,
         type: 'task',
@@ -100,147 +89,104 @@ export default function ChildTasks({ user }) {
 
       setTimeout(() => {
         setTasks(prev =>
-          prev.map(t => t.id === task.id ? { ...t, done: false } : t)
+          prev.map(t => t.id === id ? { ...t, done: false } : t)
         );
       }, 3000);
     }
   };
 
-  const handleRewardClick = async (reward) => {
-    if (!user?.id && !user?.displayName) return;
-    
-    const userId = user.id || user.displayName;
-    if (pointsTotal >= reward.cost) {
-      const newTotal = pointsTotal - reward.cost;
+  const handleRewardClick = async (cost, label) => {
+    if (pointsTotal >= cost) {
+      const newTotal = pointsTotal - cost;
       setPointsTotal(newTotal);
-      await setDoc(doc(db, 'points', userId), { value: newTotal }, { merge: true });
+      await setDoc(doc(db, 'points', name), { value: newTotal }, { merge: true });
 
-      await addDoc(collection(db, 'taskHistory', userId, today), {
-        label: reward.label,
-        value: reward.cost,
+      await addDoc(collection(db, 'taskHistory', name, today), {
+        label,
+        value: cost,
         type: 'reward',
         date: new Date().toISOString()
       });
 
-      alert(`🎁 ${user.displayName || 'Utilisateur'} a utilisé une récompense !`);
+      alert(`🎁 ${name} a utilisé une récompense !`);
     } else {
       alert(`⛔ Pas assez de points.`);
     }
   };
 
-  const handleConsequenceClick = async (consequence) => {
-    if (!user?.id && !user?.displayName) return;
-    
-    const userId = user.id || user.displayName;
-    const newTotal = pointsTotal - consequence.cost;
+  const handleConsequenceClick = async (cost, label) => {
+    const newTotal = pointsTotal - cost;
     setPointsTotal(newTotal);
-    await setDoc(doc(db, 'points', userId), { value: newTotal }, { merge: true });
+    await setDoc(doc(db, 'points', name), { value: newTotal }, { merge: true });
 
-    await addDoc(collection(db, 'taskHistory', userId, today), {
-      label: consequence.label,
-      value: consequence.cost,
+    await addDoc(collection(db, 'taskHistory', name, today), {
+      label,
+      value: cost,
       type: 'consequence',
       date: new Date().toISOString()
     });
 
-    alert(`⚠️ ${user.displayName || 'Utilisateur'} a reçu une conséquence.`);
+    alert(`⚠️ ${name} a reçu une conséquence.`);
   };
 
-  if (!user) {
-    return <p>Chargement de l'utilisateur...</p>;
-  }
-
-  if (loading) {
-    return <p>Chargement...</p>;
-  }
-
-  const backgroundColor = user.color ? `${user.color}33` : '#f8fafc';
+  if (loading) return <p>Chargement...</p>;
 
   return (
-    <div className="child-tasks-container" style={{ background: backgroundColor }}>
-      <div className="points-header">
-        <div className="points-badges">
-          <div className="points-badge today">
-            <div className="points-value">{pointsToday}</div>
-            <div className="points-label">Points du jour</div>
-          </div>
-          <div className="points-badge total">
-            <div className="points-value">{pointsTotal}</div>
-            <div className="points-label">Total</div>
-          </div>
+    <div className="dashboard-section" style={{ background: '#fdfdfd', borderRadius: '8px', padding: '1rem', boxShadow: '0 0 4px rgba(0,0,0,0.05)' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <div>
+          <strong>{name}</strong><br />
+          <small>🎯 Points du jour : <strong>{pointsToday}</strong></small><br />
+          <small>💰 Total : <strong>{pointsTotal}</strong></small>
         </div>
-        <button 
-          className="expand-button"
-          onClick={() => setExpanded(!expanded)}
-          title={expanded ? "Réduire" : "Développer"}
-        >
-          {expanded ? '➖' : '➕'}
+        <button onClick={() => setExpanded(!expanded)} style={{ fontSize: '1.2rem', background: 'none', border: 'none', cursor: 'pointer' }}>
+          {expanded ? '▲' : '▼'}
         </button>
       </div>
 
       {expanded && (
-        <div className="tasks-content">
-          <div className="view-tabs">
-            <button 
-              className={`tab ${view === 'tasks' ? 'active' : ''}`}
-              onClick={() => setView('tasks')}
-            >
-              ✅ Tâches
-            </button>
-            <button 
-              className={`tab ${view === 'rewards' ? 'active' : ''}`}
-              onClick={() => setView('rewards')}
-            >
-              🎁 Réc.
-            </button>
-            <button 
-              className={`tab ${view === 'consequences' ? 'active' : ''}`}
-              onClick={() => setView('consequences')}
-            >
-              ⚠️ Cons.
-            </button>
+        <div style={{ marginTop: '1rem' }}>
+          <div style={{ display: 'flex', gap: '1rem', marginBottom: '0.5rem' }}>
+            <button onClick={() => setView('tasks')} style={{ background: view === 'tasks' ? '#d0e9ff' : '#eee', border: '1px solid #ccc', borderRadius: '6px', padding: '0.3rem 0.6rem' }}>✅ Tâches</button>
+            <button onClick={() => setView('rewards')} style={{ background: view === 'rewards' ? '#d0ffd9' : '#eee', border: '1px solid #ccc', borderRadius: '6px', padding: '0.3rem 0.6rem' }}>🎁 Récompenses</button>
+            <button onClick={() => setView('consequences')} style={{ background: view === 'consequences' ? '#ffe0e0' : '#eee', border: '1px solid #ccc', borderRadius: '6px', padding: '0.3rem 0.6rem' }}>⚠️ Conséquences</button>
           </div>
 
           {view === 'tasks' && (
-            <ul className="items-list tasks-list">
+            <ul className="task-list">
               {tasks.map(task => (
-                <li 
-                  key={task.id} 
-                  className={`item-row ${task.done ? 'done' : ''}`}
-                  onClick={() => handleTaskClick(task)}
-                >
-                  <span className="item-label">{task.label}</span>
-                  <span className="points-tag">+{task.value}</span>
+                <li key={task.id} className="task-row">
+                  <span className="task-label">{task.label}</span>
+                  <span className="tag">+{task.value} pts</span>
+                  <input
+                    type="checkbox"
+                    checked={task.done}
+                    onChange={() => handleTaskToggle(task.id)}
+                  />
                 </li>
               ))}
             </ul>
           )}
 
           {view === 'rewards' && (
-            <ul className="items-list rewards-list">
+            <ul className="reward-list">
               {rewards.map(reward => (
-                <li 
-                  key={reward.id} 
-                  className="item-row"
-                  onClick={() => handleRewardClick(reward)}
-                >
-                  <span className="item-label">{reward.label}</span>
-                  <span className="points-tag cost">{reward.cost}</span>
+                <li key={reward.id} className="reward-row">
+                  <span className="reward-label">{reward.label}</span>
+                  <span className="tag">{reward.cost} pts</span>
+                  <button className="reward-button" onClick={() => handleRewardClick(reward.cost, reward.label)}>Utiliser 🎁</button>
                 </li>
               ))}
             </ul>
           )}
 
           {view === 'consequences' && (
-            <ul className="items-list consequences-list">
+            <ul className="consequence-list">
               {consequences.map(consequence => (
-                <li 
-                  key={consequence.id} 
-                  className="item-row"
-                  onClick={() => handleConsequenceClick(consequence)}
-                >
-                  <span className="item-label">{consequence.label}</span>
-                  <span className="points-tag negative">-{consequence.cost}</span>
+                <li key={consequence.id} className="consequence-row">
+                  <span className="consequence-label">{consequence.label}</span>
+                  <span className="tag">-{consequence.cost} pts</span>
+                  <button className="consequence-button" onClick={() => handleConsequenceClick(consequence.cost, consequence.label)}>Appliquer ⚠️</button>
                 </li>
               ))}
             </ul>
