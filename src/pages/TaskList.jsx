@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { db } from '../firebase';
 import {
-  collection, getDocs, addDoc, deleteDoc, doc, updateDoc
+  collection, getDocs, addDoc, deleteDoc, doc, updateDoc, query, where
 } from 'firebase/firestore';
 import '../styles/taskPage.css';
 
@@ -28,11 +28,8 @@ export default function TaskList() {
     const consequenceSnap = await getDocs(collection(db, 'consequences'));
     setConsequences(consequenceSnap.docs.map(doc => ({ id: doc.id, ...doc.data() })));
 
-    const usersSnap = await getDocs(collection(db, 'users'));
-    setUsers(usersSnap.docs
-      .map(doc => ({ id: doc.id, ...doc.data() }))
-      .filter(user => user.role === 'enfant')
-    );
+    const usersSnap = await getDocs(query(collection(db, 'users'), where('role', '==', 'enfant')));
+    setUsers(usersSnap.docs.map(doc => ({ id: doc.id, ...doc.data() })));
   };
 
   useEffect(() => {
@@ -167,14 +164,13 @@ export default function TaskList() {
             />
             <div className="user-selector">
               {users.map(user => (
-                <label key={user.id} className="user-checkbox">
-                  <input
-                    type="checkbox"
-                    checked={selectedUsers.includes(user.id)}
-                    onChange={() => toggleUser(user.id)}
-                  />
-                  <span>{user.avatar} {user.displayName}</span>
-                </label>
+                <div
+                  key={user.id}
+                  className={`user-tag ${selectedUsers.includes(user.id) ? 'selected' : ''}`}
+                  onClick={() => toggleUser(user.id)}
+                >
+                  {user.avatar} {user.displayName}
+                </div>
               ))}
             </div>
             <button onClick={handleAdd} className="add-button">
@@ -202,14 +198,13 @@ export default function TaskList() {
                   />
                   <div className="user-selector">
                     {users.map(user => (
-                      <label key={user.id} className="user-checkbox">
-                        <input
-                          type="checkbox"
-                          checked={editingItem.assignedTo.includes(user.id)}
-                          onChange={() => toggleUser(user.id, true)}
-                        />
-                        <span>{user.avatar} {user.displayName}</span>
-                      </label>
+                      <div
+                        key={user.id}
+                        className={`user-tag ${editingItem.assignedTo.includes(user.id) ? 'selected' : ''}`}
+                        onClick={() => toggleUser(user.id, true)}
+                      >
+                        {user.avatar} {user.displayName}
+                      </div>
                     ))}
                   </div>
                   <button onClick={confirmEdit} className="confirm-button">
@@ -229,7 +224,7 @@ export default function TaskList() {
                       const user = users.find(u => u.id === userId);
                       return user ? (
                         <span key={userId} className="assigned-user">
-                          {user.avatar}
+                          {user.avatar} {user.displayName}
                         </span>
                       ) : null;
                     })}
