@@ -132,61 +132,86 @@ export default function ChildTasks({ name }) {
   if (loading) return <p>Chargement...</p>;
 
   return (
-    <div className="dashboard-section" style={{ background: '#fdfdfd', borderRadius: '8px', padding: '1rem', boxShadow: '0 0 4px rgba(0,0,0,0.05)' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <div>
-          <strong>{name}</strong><br />
-          <small>🎯 Points du jour : <strong>{pointsToday}</strong></small><br />
-          <small>💰 Total : <strong>{pointsTotal}</strong></small>
+    <div className="child-tasks-container">
+      <div className="points-header">
+        <div className="points-badges">
+          <div className="points-badge today">
+            <div className="points-value">+{pointsToday}</div>
+            <div className="points-label">Points du jour</div>
+          </div>
+          <div className="points-badge total">
+            <div className="points-value">{pointsTotal}</div>
+            <div className="points-label">Total</div>
+          </div>
         </div>
-        <button onClick={() => setExpanded(!expanded)} style={{ fontSize: '1.2rem', background: 'none', border: 'none', cursor: 'pointer' }}>
-          {expanded ? '▲' : '▼'}
+        <button onClick={() => setExpanded(!expanded)} className="expand-button">
+          {expanded ? '−' : '+'}
         </button>
       </div>
 
       {expanded && (
-        <div style={{ marginTop: '1rem' }}>
-          <div style={{ display: 'flex', gap: '1rem', marginBottom: '0.5rem' }}>
-            <button onClick={() => setView('tasks')} style={{ background: view === 'tasks' ? '#d0e9ff' : '#eee', border: '1px solid #ccc', borderRadius: '6px', padding: '0.3rem 0.6rem' }}>✅ Tâches</button>
-            <button onClick={() => setView('rewards')} style={{ background: view === 'rewards' ? '#d0ffd9' : '#eee', border: '1px solid #ccc', borderRadius: '6px', padding: '0.3rem 0.6rem' }}>🎁 Récompenses</button>
-            <button onClick={() => setView('consequences')} style={{ background: view === 'consequences' ? '#ffe0e0' : '#eee', border: '1px solid #ccc', borderRadius: '6px', padding: '0.3rem 0.6rem' }}>⚠️ Conséquences</button>
+        <div>
+          <div className="view-tabs">
+            <button 
+              className={`tab ${view === 'tasks' ? 'active' : ''}`}
+              onClick={() => setView('tasks')}
+            >
+              ✅ Tâches
+            </button>
+            <button 
+              className={`tab ${view === 'rewards' ? 'active' : ''}`}
+              onClick={() => setView('rewards')}
+            >
+              🎁 Récompenses
+            </button>
+            <button 
+              className={`tab ${view === 'consequences' ? 'active' : ''}`}
+              onClick={() => setView('consequences')}
+            >
+              ⚠️ Conséquences
+            </button>
           </div>
 
           {view === 'tasks' && (
-            <ul className="task-list">
+            <ul className="items-list">
               {tasks.map(task => (
-                <li key={task.id} className="task-row">
-                  <span className="task-label">{task.label}</span>
-                  <span className="tag">+{task.value} pts</span>
-                  <input
-                    type="checkbox"
-                    checked={task.done}
-                    onChange={() => handleTaskToggle(task.id)}
-                  />
+                <li 
+                  key={task.id} 
+                  className={`item-row ${task.done ? 'done' : ''}`}
+                  onClick={() => handleTaskToggle(task.id)}
+                >
+                  <span className="item-label">{task.label}</span>
+                  <span className="points-tag">+{task.value} pts</span>
                 </li>
               ))}
             </ul>
           )}
 
           {view === 'rewards' && (
-            <ul className="reward-list">
+            <ul className="items-list">
               {rewards.map(reward => (
-                <li key={reward.id} className="reward-row">
-                  <span className="reward-label">{reward.label}</span>
-                  <span className="tag">{reward.cost} pts</span>
-                  <button className="reward-button" onClick={() => handleRewardClick(reward.cost, reward.label)}>Utiliser 🎁</button>
+                <li 
+                  key={reward.id} 
+                  className="item-row"
+                  onClick={() => handleRewardClick(reward.cost, reward.label)}
+                >
+                  <span className="item-label">{reward.label}</span>
+                  <span className="points-tag cost">{reward.cost} pts</span>
                 </li>
               ))}
             </ul>
           )}
 
           {view === 'consequences' && (
-            <ul className="consequence-list">
+            <ul className="items-list">
               {consequences.map(consequence => (
-                <li key={consequence.id} className="consequence-row">
-                  <span className="consequence-label">{consequence.label}</span>
-                  <span className="tag">-{consequence.cost} pts</span>
-                  <button className="consequence-button" onClick={() => handleConsequenceClick(consequence.cost, consequence.label)}>Appliquer ⚠️</button>
+                <li 
+                  key={consequence.id} 
+                  className="item-row"
+                  onClick={() => handleConsequenceClick(consequence.cost, consequence.label)}
+                >
+                  <span className="item-label">{consequence.label}</span>
+                  <span className="points-tag negative">-{consequence.cost} pts</span>
                 </li>
               ))}
             </ul>
