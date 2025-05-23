@@ -1,4 +1,5 @@
-// EventPopup.jsx
+import './EventPopup.css';
+
 export default function EventPopup({ event, users, onClose, onDelete, onEdit }) {
   if (!event || !users) return null;
 
@@ -7,11 +8,11 @@ export default function EventPopup({ event, users, onClose, onDelete, onEdit }) 
     .filter(Boolean);
 
   return (
-    <div className="event-modal">
-      <div className="event-form">
+    <div className="event-modal-overlay">
+      <div className="event-modal-content">
         <h3>📌 {event.title}</h3>
         
-        <div style={{ marginBottom: '1.5rem' }}>
+        <div className="event-details">
           <div className="event-detail">
             <strong>📅 Date :</strong> {event.date}
           </div>
