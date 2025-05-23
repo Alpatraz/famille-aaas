@@ -1,9 +1,6 @@
 import { useEffect, useState } from 'react'
 import { db } from '../firebase'
-import {
-  collection,
-  getDocs,
-} from 'firebase/firestore'
+import { collection, getDocs } from 'firebase/firestore'
 import './AddEventModal.css'
 
 export default function AddEventModal({ onClose, initialData, onSave }) {
@@ -16,7 +13,7 @@ export default function AddEventModal({ onClose, initialData, onSave }) {
       : new Date().toISOString().slice(0, 16),
     endDate: initialData?.endDate
       ? new Date(initialData.endDate).toISOString().slice(0, 16)
-      : new Date(Date.now() + 3600000).toISOString().slice(0, 16), // +1 hour by default
+      : new Date(Date.now() + 3600000).toISOString().slice(0, 16),
     participants: initialData?.participants || [],
     type: initialData?.type || 'autre',
   })
@@ -39,7 +36,6 @@ export default function AddEventModal({ onClose, initialData, onSave }) {
     const { name, value } = e.target
     setFormData((prev) => {
       if (name === 'startDate' && new Date(value) > new Date(prev.endDate)) {
-        // If start date is after end date, update end date
         return {
           ...prev,
           [name]: value,
@@ -50,20 +46,19 @@ export default function AddEventModal({ onClose, initialData, onSave }) {
     })
   }
 
-  const handleCheckboxChange = (e) => {
-    const { value, checked } = e.target
-    setFormData((prev) => ({
+  const toggleParticipant = (uid) => {
+    setFormData(prev => ({
       ...prev,
-      participants: checked
-        ? [...prev.participants, value]
-        : prev.participants.filter((uid) => uid !== value),
+      participants: prev.participants.includes(uid)
+        ? prev.participants.filter(id => id !== uid)
+        : [...prev.participants, uid]
     }))
   }
 
   const calculateDuration = () => {
     const start = new Date(formData.startDate)
     const end = new Date(formData.endDate)
-    return Math.round((end - start) / (1000 * 60)) // Duration in minutes
+    return Math.round((end - start) / (1000 * 60))
   }
 
   const handleSubmit = async (e) => {
@@ -110,7 +105,7 @@ export default function AddEventModal({ onClose, initialData, onSave }) {
             />
           </div>
 
-          <div className="form-row">
+          <div className="datetime-group">
             <div className="form-group">
               <label htmlFor="startDate">Début</label>
               <input
@@ -157,18 +152,14 @@ export default function AddEventModal({ onClose, initialData, onSave }) {
             <label>Participants</label>
             <div className="participants-grid">
               {users.map((user) => (
-                <label key={user.uid} className="participant-checkbox">
-                  <input
-                    type="checkbox"
-                    value={user.uid}
-                    checked={formData.participants.includes(user.uid)}
-                    onChange={handleCheckboxChange}
-                  />
-                  <span className="participant-info">
-                    <span className="participant-avatar">{user.avatar || '🙂'}</span>
-                    <span className="participant-name">{user.displayName}</span>
-                  </span>
-                </label>
+                <div
+                  key={user.uid}
+                  className={`participant-card ${formData.participants.includes(user.uid) ? 'selected' : ''}`}
+                  onClick={() => toggleParticipant(user.uid)}
+                >
+                  <span className="participant-avatar">{user.avatar || '🙂'}</span>
+                  <span className="participant-name">{user.displayName}</span>
+                </div>
               ))}
             </div>
           </div>
