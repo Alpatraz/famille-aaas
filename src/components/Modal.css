@@ -18,8 +18,8 @@
   background: white;
   border-radius: 16px;
   width: 95%;
-  max-width: 1400px;
-  max-height: 90vh;
+  max-width: 800px;
+  height: 600px;
   position: relative;
   box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
   display: flex;
@@ -42,7 +42,7 @@
 
 .modal-header h2 {
   margin: 0;
-  font-size: 1.5rem;
+  font-size: 1.25rem;
   color: #1e293b;
   display: flex;
   align-items: center;
@@ -52,11 +52,11 @@
 .modal-close {
   background: none;
   border: none;
-  font-size: 2rem;
+  font-size: 1.5rem;
   color: #64748b;
   cursor: pointer;
-  width: 40px;
-  height: 40px;
+  width: 32px;
+  height: 32px;
   display: flex;
   align-items: center;
   justify-content: center;
