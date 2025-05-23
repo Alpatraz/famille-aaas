@@ -5,6 +5,7 @@ import AddEventModal from '../components/AddEventModal'
 import EventPopup from '../components/EventPopup'
 import Modal from '../components/Modal'
 import MealPlanner from '../components/MealPlanner'
+import Homework from '../components/Homework'
 import { db } from '../firebase'
 import { collection, getDocs, doc, getDoc, addDoc, deleteDoc, updateDoc } from 'firebase/firestore'
 
@@ -82,7 +83,7 @@ export default function Dashboard({ user }) {
       setEditingEvent(null)
     } catch (error) {
       console.error('Erreur lors de la sauvegarde :', error)
-      alert('Une erreur est survenue lors de la sauvegarde de l\'événement.')
+      alert('Une erreur est survenue lors de la sauvegarde.')
     }
   }
 
@@ -93,7 +94,7 @@ export default function Dashboard({ user }) {
       setPopupEvent(null)
     } catch (error) {
       console.error('Erreur lors de la suppression :', error)
-      alert('Une erreur est survenue lors de la suppression de l\'événement.')
+      alert('Une erreur est survenue lors de la suppression.')
     }
   }
 
@@ -155,8 +156,7 @@ export default function Dashboard({ user }) {
         </div>
 
         <div className="dashboard-section">
-          <h2>🛒 Liste de courses</h2>
-          <p>Ajouts favoris, historique familial</p>
+          <Homework />
         </div>
 
         <div className="dashboard-section">
