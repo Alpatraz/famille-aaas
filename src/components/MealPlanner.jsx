@@ -1,8 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { db } from '../firebase';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
-import { DndProvider, useDrag, useDrop } from 'react-dnd';
-import { HTML5Backend } from 'react-dnd-html5-backend';
 import './MealPlanner.css';
 
 const jours = ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi', 'Dimanche'];
@@ -13,13 +11,12 @@ const jourEmoji = {
 
 export default function MealPlanner() {
   const [meals, setMeals] = useState({});
-  const [lunchList, setLunchList] = useState([]);
-  const [souperList, setSouperList] = useState([]);
+  const [mealsList, setMealsList] = useState([]);
   const [favorites, setFavorites] = useState([]);
-  const [newMeal, setNewMeal] = useState('');
-  const [newType, setNewType] = useState('Lunch');
   const [selectedDay, setSelectedDay] = useState(null);
   const [selectedType, setSelectedType] = useState(null);
+  const [showMealDialog, setShowMealDialog] = useState(false);
+  const [newMeal, setNewMeal] = useState({ name: '', types: [] });
 
   useEffect(() => {
     const fetchData = async () => {
@@ -42,27 +39,63 @@ export default function MealPlanner() {
       const listSnap = await getDoc(listesRef);
       if (listSnap.exists()) {
         const data = listSnap.data();
-        setLunchList(data.lunch || []);
-        setSouperList(data.souper || []);
+        setMealsList(data.meals || []);
         setFavorites(data.favoris || []);
       }
     };
     fetchData();
   }, []);
 
-  const persistLists = async (newLunch, newSouper, newFavorites) => {
+  const persistData = async (newMeals, newFavorites) => {
     await setDoc(doc(db, 'repas', 'listes'), {
-      lunch: newLunch,
-      souper: newSouper,
+      meals: newMeals,
       favoris: newFavorites
     });
   };
 
-  const updateMeal = async (jour, type, name) => {
+  const handleAddMeal = async () => {
+    if (!newMeal.name.trim() || newMeal.types.length === 0) return;
+    
+    const updatedMeals = [...mealsList, {
+      name: newMeal.name.trim(),
+      types: newMeal.types,
+      isFavorite: false
+    }];
+    
+    setMealsList(updatedMeals);
+    await persistData(updatedMeals, favorites);
+    setNewMeal({ name: '', types: [] });
+    setShowMealDialog(false);
+  };
+
+  const toggleMealType = (type) => {
+    setNewMeal(prev => ({
+      ...prev,
+      types: prev.types.includes(type)
+        ? prev.types.filter(t => t !== type)
+        : [...prev.types, type]
+    }));
+  };
+
+  const toggleFavorite = async (meal) => {
+    const updatedMeals = mealsList.map(m => 
+      m.name === meal.name ? { ...m, isFavorite: !m.isFavorite } : m
+    );
+    
+    const newFavorites = updatedMeals
+      .filter(m => m.isFavorite)
+      .map(m => m.name);
+    
+    setMealsList(updatedMeals);
+    setFavorites(newFavorites);
+    await persistData(updatedMeals, newFavorites);
+  };
+
+  const updateMeal = async (jour, type, meal) => {
     const updated = { ...meals };
     const list = updated[jour][type.toLowerCase()];
-    if (!list.includes(name)) {
-      list.push(name);
+    if (!list.includes(meal.name)) {
+      list.push(meal.name);
       setMeals(updated);
       await setDoc(doc(db, 'repas', 'semaine'), updated);
     }
@@ -77,135 +110,114 @@ export default function MealPlanner() {
     await setDoc(doc(db, 'repas', 'semaine'), updated);
   };
 
-  const handleAddMeal = async () => {
-    const trimmed = newMeal.trim();
-    if (!trimmed) return;
-    if (newType === 'Lunch' && !lunchList.includes(trimmed)) {
-      const updated = [...lunchList, trimmed];
-      setLunchList(updated);
-      await persistLists(updated, souperList, favorites);
-    }
-    if (newType === 'Souper' && !souperList.includes(trimmed)) {
-      const updated = [...souperList, trimmed];
-      setSouperList(updated);
-      await persistLists(lunchList, updated, favorites);
-    }
-    setNewMeal('');
-  };
-
   const handleDayClick = (jour, type) => {
     setSelectedDay(jour);
     setSelectedType(type);
   };
 
-  const handleMealSelect = (meal) => {
-    if (selectedDay && selectedType) {
-      updateMeal(selectedDay, selectedType, meal);
-    }
-  };
+  return (
+    <div className="meal-planner">
+      <div className="meal-header">
+        <button className="add-meal-button" onClick={() => setShowMealDialog(true)}>
+          ➕ Ajouter un plat
+        </button>
+      </div>
 
-  const MealSelector = ({ type, meals }) => {
-    return (
-      <div className="meal-selector">
-        <h4>{type === 'Lunch' ? '🍱 Lunchs' : '🍽️ Soupers'}</h4>
-        <div className="meal-options">
-          {meals.map((meal, i) => (
-            <button
-              key={i}
-              className="meal-option"
-              onClick={() => handleMealSelect(meal)}
-            >
-              {meal}
-            </button>
+      <div className="meal-content">
+        <div className="meal-days">
+          {jours.map((jour) => (
+            <div key={jour} className="meal-day">
+              <h3>{jourEmoji[jour]} {jour}</h3>
+              
+              <div className={`meal-slot ${selectedDay === jour && selectedType === 'lunch' ? 'selected' : ''}`}
+                   onClick={() => handleDayClick(jour, 'lunch')}>
+                <h4>🍱 Lunch</h4>
+                {meals[jour]?.lunch.map((name) => (
+                  <div key={name} className="meal-item">
+                    <span>{name}</span>
+                    <button onClick={(e) => {
+                      e.stopPropagation();
+                      removeMeal(jour, 'lunch', name);
+                    }}>×</button>
+                  </div>
+                ))}
+              </div>
+
+              <div className={`meal-slot ${selectedDay === jour && selectedType === 'souper' ? 'selected' : ''}`}
+                   onClick={() => handleDayClick(jour, 'souper')}>
+                <h4>🍽️ Souper</h4>
+                {meals[jour]?.souper.map((name) => (
+                  <div key={name} className="meal-item">
+                    <span>{name}</span>
+                    <button onClick={(e) => {
+                      e.stopPropagation();
+                      removeMeal(jour, 'souper', name);
+                    }}>×</button>
+                  </div>
+                ))}
+              </div>
+            </div>
           ))}
         </div>
-      </div>
-    );
-  };
 
-  return (
-    <div className="meal-planner-full">
-      <div className="meal-grid">
-        {jours.map((jour) => (
-          <div key={jour} className="meal-day-card">
-            <h5>{jourEmoji[jour]} {jour}</h5>
-            <div 
-              className={`meal-slot ${selectedDay === jour && selectedType === 'Lunch' ? 'selected' : ''}`}
-              onClick={() => handleDayClick(jour, 'Lunch')}
-            >
-              <strong>Lunch</strong>
-              {meals[jour]?.lunch.map((meal, i) => (
-                <div key={i} className="meal-item">
-                  {meal}
-                  <button className="remove-btn" onClick={(e) => {
-                    e.stopPropagation();
-                    removeMeal(jour, 'Lunch', meal);
-                  }}>×</button>
+        {(selectedDay || showMealDialog) && (
+          <div className="meal-selector">
+            {showMealDialog ? (
+              <div className="add-meal-form">
+                <h3>Ajouter un nouveau plat</h3>
+                <input
+                  type="text"
+                  value={newMeal.name}
+                  onChange={(e) => setNewMeal(prev => ({ ...prev, name: e.target.value }))}
+                  placeholder="Nom du plat"
+                />
+                <div className="meal-types">
+                  <label>
+                    <input
+                      type="checkbox"
+                      checked={newMeal.types.includes('lunch')}
+                      onChange={() => toggleMealType('lunch')}
+                    />
+                    🍱 Lunch
+                  </label>
+                  <label>
+                    <input
+                      type="checkbox"
+                      checked={newMeal.types.includes('souper')}
+                      onChange={() => toggleMealType('souper')}
+                    />
+                    🍽️ Souper
+                  </label>
                 </div>
-              ))}
-              {meals[jour]?.lunch.length === 0 && (
-                <div className="empty-slot">Ajouter un lunch</div>
-              )}
-            </div>
-            
-            <div 
-              className={`meal-slot ${selectedDay === jour && selectedType === 'Souper' ? 'selected' : ''}`}
-              onClick={() => handleDayClick(jour, 'Souper')}
-            >
-              <strong>Souper</strong>
-              {meals[jour]?.souper.map((meal, i) => (
-                <div key={i} className="meal-item">
-                  {meal}
-                  <button className="remove-btn" onClick={(e) => {
-                    e.stopPropagation();
-                    removeMeal(jour, 'Souper', meal);
-                  }}>×</button>
+                <div className="form-actions">
+                  <button onClick={handleAddMeal} className="save-button">
+                    Ajouter
+                  </button>
+                  <button onClick={() => setShowMealDialog(false)} className="cancel-button">
+                    Annuler
+                  </button>
                 </div>
-              ))}
-              {meals[jour]?.souper.length === 0 && (
-                <div className="empty-slot">Ajouter un souper</div>
-              )}
-            </div>
-          </div>
-        ))}
-      </div>
-
-      <div className="meal-sidebar">
-        <div className="add-meal">
-          <input
-            value={newMeal}
-            onChange={(e) => setNewMeal(e.target.value)}
-            placeholder="Ajouter un plat"
-            onKeyPress={(e) => e.key === 'Enter' && handleAddMeal()}
-          />
-          <select value={newType} onChange={(e) => setNewType(e.target.value)}>
-            <option value="Lunch">Lunch</option>
-            <option value="Souper">Souper</option>
-          </select>
-          <button onClick={handleAddMeal}>+</button>
-        </div>
-
-        {selectedDay && selectedType && (
-          <MealSelector
-            type={selectedType}
-            meals={selectedType === 'Lunch' ? lunchList : souperList}
-          />
-        )}
-
-        {favorites.length > 0 && (
-          <div className="favorites-section">
-            <h4>⭐ Favoris</h4>
-            <div className="meal-options">
-              {favorites.map((meal, i) => (
-                <button
-                  key={i}
-                  className="meal-option favorite"
-                  onClick={() => handleMealSelect(meal)}
-                >
-                  {meal}
-                </button>
-              ))}
-            </div>
+              </div>
+            ) : (
+              <div className="meal-list">
+                <h3>Choisir un plat pour {selectedDay} ({selectedType})</h3>
+                {mealsList
+                  .filter(meal => meal.types.includes(selectedType))
+                  .map((meal) => (
+                    <div key={meal.name} className="meal-option">
+                      <button onClick={() => updateMeal(selectedDay, selectedType, meal)}>
+                        {meal.name}
+                      </button>
+                      <button 
+                        className={`favorite-button ${meal.isFavorite ? 'active' : ''}`}
+                        onClick={() => toggleFavorite(meal)}
+                      >
+                        {meal.isFavorite ? '⭐' : '☆'}
+                      </button>
+                    </div>
+                  ))}
+              </div>
+            )}
           </div>
         )}
       </div>
