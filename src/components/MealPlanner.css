@@ -26,7 +26,8 @@
 }
 
 .add-meal-button,
-.list-meal-button {
+.list-meal-button,
+.reset-week-button {
   padding: 0.75rem 1rem;
   border-radius: 10px;
   font-weight: 500;
@@ -49,6 +50,12 @@
   border: 2px solid #e2e8f0;
 }
 
+.reset-week-button {
+  background: #fee2e2;
+  color: #991b1b;
+  border: 2px solid #fecaca;
+}
+
 .list-meal-button.active {
   background: #f1f5f9;
   color: #1e293b;
@@ -56,8 +63,13 @@
 }
 
 .add-meal-button:hover,
-.list-meal-button:hover {
+.list-meal-button:hover,
+.reset-week-button:hover {
   transform: translateY(-1px);
+}
+
+.reset-week-button:hover {
+  background: #fecaca;
 }
 
 .meal-content {
@@ -143,32 +155,48 @@
 
 .meal-selector {
   position: fixed;
-  right: 1rem;
   top: 50%;
-  transform: translateY(-50%);
-  width: 320px;
-  max-height: 80vh;
-  background: #f8fafc;
-  border-radius: 12px;
-  padding: 1.25rem;
-  overflow-y: auto;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 95%;
+  max-width: 500px;
+  max-height: 90vh;
+  background: white;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
   z-index: 10;
+  animation: modalSlideIn 0.3s ease;
+}
+
+@keyframes modalSlideIn {
+  from {
+    transform: translate(-50%, -45%);
+    opacity: 0;
+  }
+  to {
+    transform: translate(-50%, -50%);
+    opacity: 1;
+  }
 }
 
 .meal-selector-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 1rem;
-  padding-bottom: 0.75rem;
+  padding: 1.25rem;
   border-bottom: 2px solid #e2e8f0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: white;
+  position: sticky;
+  top: 0;
+  z-index: 1;
 }
 
 .meal-selector-header h3 {
   margin: 0;
+  font-size: 1.2rem;
   color: #1e293b;
-  font-size: 1.1rem;
+  font-weight: 600;
 }
 
 .close-selector {
@@ -188,12 +216,18 @@
 }
 
 .close-selector:hover {
-  background: #e2e8f0;
+  background: #f1f5f9;
   color: #1e293b;
 }
 
+.meal-selector-content {
+  padding: 1.25rem;
+  overflow-y: auto;
+  max-height: calc(90vh - 70px);
+}
+
 .add-meal-form {
-  background: white;
+  background: #f8fafc;
   border-radius: 12px;
   padding: 1.25rem;
   margin-bottom: 1rem;
@@ -208,6 +242,7 @@
   font-size: 0.95rem;
   color: #1e293b;
   transition: all 0.2s ease;
+  background: white;
 }
 
 .add-meal-form input:focus {
@@ -234,6 +269,7 @@
   transition: all 0.2s ease;
   font-size: 0.95rem;
   color: #64748b;
+  background: white;
 }
 
 .meal-types label:has(input:checked) {
@@ -379,13 +415,13 @@
 @media (max-width: 768px) {
   .meal-selector {
     position: fixed;
+    top: auto;
+    left: 0;
     right: 0;
     bottom: 0;
-    left: 0;
-    top: auto;
     transform: none;
     width: 100%;
-    max-height: 80vh;
+    max-height: 90vh;
     border-radius: 20px 20px 0 0;
   }
 
@@ -403,5 +439,17 @@
 
   .form-actions {
     flex-direction: column;
+  }
+
+  .meal-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .add-meal-button,
+  .list-meal-button,
+  .reset-week-button {
+    width: 100%;
+    justify-content: center;
   }
 }
