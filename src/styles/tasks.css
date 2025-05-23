@@ -1,213 +1,177 @@
-.tasks-manager {
-  background: white;
-  border-radius: 16px;
-  overflow: hidden;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.04);
-}
-
-.tasks-tabs {
-  display: flex;
-  gap: 0.5rem;
-  padding: 1rem;
-  background: #f8fafc;
-  border-bottom: 2px solid #e2e8f0;
-}
-
-.tab {
-  padding: 0.75rem 1.25rem;
-  border: none;
-  border-radius: 10px;
-  cursor: pointer;
-  font-size: 0.95rem;
-  font-weight: 500;
-  transition: all 0.2s ease;
-  background: white;
-  color: #64748b;
-  border: 2px solid #e2e8f0;
-}
-
-.tab:hover {
-  background: #f1f5f9;
-  transform: translateY(-1px);
-}
-
-.tab.active {
-  background: #3b82f6;
-  color: white;
-  border-color: #3b82f6;
-}
-
-.tasks-content {
-  padding: 1.5rem;
-}
-
-.section {
-  animation: fadeIn 0.3s ease;
-}
-
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.section h2 {
-  margin: 0 0 1.5rem;
-  font-size: 1.4rem;
-  color: #1e293b;
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-}
-
-.add-form {
-  display: flex;
-  gap: 0.75rem;
-  margin-bottom: 1.5rem;
-}
-
-.add-form input[type="text"] {
-  flex: 1;
-  padding: 0.75rem;
-  border: 2px solid #e2e8f0;
-  border-radius: 10px;
-  font-size: 0.95rem;
-  transition: all 0.2s ease;
-}
-
-.add-form input[type="number"] {
-  width: 100px;
-  padding: 0.75rem;
-  border: 2px solid #e2e8f0;
-  border-radius: 10px;
-  font-size: 0.95rem;
-  transition: all 0.2s ease;
-}
-
-.add-form input:focus {
-  outline: none;
-  border-color: #3b82f6;
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
-}
-
-.add-form button {
-  padding: 0.75rem 1.5rem;
-  border: none;
-  border-radius: 10px;
-  background: #3b82f6;
-  color: white;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.add-form button:hover {
-  background: #2563eb;
-  transform: translateY(-1px);
-}
-
-.items-list {
+/* --- Listes --- */
+.task-list,
+.reward-list {
   list-style: none;
   padding: 0;
   margin: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  overflow: hidden;
 }
 
-.item {
+/* --- Rangées individuelles --- */
+.task-row,
+.reward-row {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 1rem;
-  background: #f8fafc;
-  border-radius: 12px;
-  transition: all 0.2s ease;
+  padding: 10px 12px;
+  border-bottom: 1px solid #eee;
+  background-color: #fff;
+  font-size: 0.95rem;
 }
 
-.item:hover {
-  transform: translateX(2px);
-  background: #f1f5f9;
+.task-row:last-child,
+.reward-row:last-child {
+  border-bottom: none;
 }
 
-.item-label {
-  font-size: 1rem;
-  color: #334155;
+/* --- Nom de tâche ou récompense --- */
+.task-label,
+.reward-label {
+  flex: 1;
   font-weight: 500;
 }
 
-.item-actions {
+/* --- Pastille de points --- */
+.tag {
+  background-color: #eef2f7;
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 0.8rem;
+  color: #333;
+  margin: 0 1rem;
+  white-space: nowrap;
+}
+
+/* --- Bouton récompense --- */
+.reward-button {
+  background-color: #fff7e6;
+  border: 1px solid #f0c36d;
+  padding: 4px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.85rem;
+  transition: background-color 0.2s ease;
+}
+
+.reward-button:hover {
+  background-color: #ffebc0;
+}
+
+/* --- Case à cocher alignée --- */
+input[type='checkbox'] {
+  transform: scale(1.2);
+  margin-left: 0.5rem;
+}
+
+.accordion-section {
+  margin-bottom: 1rem;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  overflow: hidden;
+  background-color: #fff;
+}
+
+.accordion-header {
+  padding: 10px 12px;
+  background-color: #f7f7f7;
+  font-weight: 600;
+  font-size: 1rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  cursor: pointer;
+  border-bottom: 1px solid #ddd;
+}
+
+.accordion-content {
+  padding: 10px 12px;
+}
+
+/* Liste des tâches */
+.task-list,
+.reward-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.task-row,
+.reward-row {
   display: flex;
   align-items: center;
-  gap: 1rem;
+  justify-content: space-between;
+  padding: 0.4rem 0;
+  border-bottom: 1px solid #eee;
 }
 
-.points {
-  padding: 0.4rem 0.75rem;
-  border-radius: 8px;
-  font-size: 0.9rem;
+.task-label,
+.reward-label {
+  flex: 1;
   font-weight: 500;
-  background: #e0f2fe;
-  color: #0369a1;
 }
 
-.points.cost {
-  background: #fef3c7;
-  color: #92400e;
+/* Étiquette points */
+.tag {
+  background: #e0f7fa;
+  color: #007d8c;
+  border-radius: 12px;
+  padding: 0.2rem 0.6rem;
+  font-size: 0.85rem;
+  margin: 0 0.5rem;
+  white-space: nowrap;
 }
 
-.points.negative {
-  background: #fee2e2;
-  color: #991b1b;
-}
-
-.delete {
-  background: none;
-  border: none;
-  cursor: pointer;
-  font-size: 1.1rem;
-  padding: 0.4rem;
+/* Bouton récompense */
+.reward-button {
+  background-color: #e3f8dc;
+  border: 1px solid #a3dca6;
+  color: #2e7d32;
   border-radius: 6px;
-  transition: all 0.2s ease;
+  padding: 0.3rem 0.6rem;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: background 0.2s ease;
 }
 
-.delete:hover {
-  background: #fee2e2;
-  transform: scale(1.1);
+.reward-button:hover {
+  background-color: #d0f2c2;
 }
 
-@media (max-width: 640px) {
-  .tasks-tabs {
+@media (max-width: 600px) {
+  .task-row,
+  .reward-row {
     flex-direction: column;
-    padding: 0.75rem;
+    align-items: flex-start;
+    gap: 0.4rem;
+    padding: 0.6rem 0;
   }
 
-  .tab {
+  .task-label,
+  .reward-label {
+    font-size: 1rem;
+    font-weight: 500;
+  }
+
+  .tag {
+    margin: 0;
+    background: #f0f0f0;
+    font-size: 0.8rem;
+  }
+
+  .reward-button {
     width: 100%;
     text-align: center;
+    font-size: 0.9rem;
   }
 
-  .add-form {
-    flex-direction: column;
+  .task-list,
+  .reward-list {
+    padding: 0.2rem;
   }
 
-  .add-form input[type="number"] {
-    width: 100%;
-  }
-
-  .item {
-    flex-direction: column;
-    gap: 0.75rem;
-    align-items: flex-start;
-  }
-
-  .item-actions {
-    width: 100%;
-    justify-content: space-between;
+  .dashboard-section {
+    padding: 1rem 0.8rem;
   }
 }

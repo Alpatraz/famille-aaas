@@ -3,20 +3,22 @@ import { db } from '../firebase'
 import {
   collection, getDocs, addDoc, deleteDoc, doc, updateDoc
 } from 'firebase/firestore'
-import '../styles/tasks.css'
 
 export default function TaskList() {
   const [tasks, setTasks] = useState([])
   const [rewards, setRewards] = useState([])
-  const [consequences, setConsequences] = useState([])
-  const [activeTab, setActiveTab] = useState('tasks')
 
   const [newTask, setNewTask] = useState('')
   const [newTaskValue, setNewTaskValue] = useState(5)
+
   const [newReward, setNewReward] = useState('')
   const [newRewardCost, setNewRewardCost] = useState(20)
-  const [newConsequence, setNewConsequence] = useState('')
-  const [newConsequenceCost, setNewConsequenceCost] = useState(10)
+
+  const [editingTaskId, setEditingTaskId] = useState(null)
+  const [editingTask, setEditingTask] = useState({ label: '', value: 0 })
+
+  const [editingRewardId, setEditingRewardId] = useState(null)
+  const [editingReward, setEditingReward] = useState({ label: '', cost: 0 })
 
   const loadData = async () => {
     const taskSnap = await getDocs(collection(db, 'tasks'))
@@ -24,182 +26,162 @@ export default function TaskList() {
 
     const rewardSnap = await getDocs(collection(db, 'rewards'))
     setRewards(rewardSnap.docs.map(doc => ({ id: doc.id, ...doc.data() })))
-
-    const consequenceSnap = await getDocs(collection(db, 'consequences'))
-    setConsequences(consequenceSnap.docs.map(doc => ({ id: doc.id, ...doc.data() })))
   }
 
   useEffect(() => {
     loadData()
   }, [])
 
-  const handleAdd = async (type) => {
-    let collection_name, data
-    
-    switch (type) {
-      case 'task':
-        if (!newTask.trim()) return
-        collection_name = 'tasks'
-        data = { label: newTask.trim(), value: Number(newTaskValue) }
-        setNewTask('')
-        setNewTaskValue(5)
-        break
-      case 'reward':
-        if (!newReward.trim()) return
-        collection_name = 'rewards'
-        data = { label: newReward.trim(), cost: Number(newRewardCost) }
-        setNewReward('')
-        setNewRewardCost(20)
-        break
-      case 'consequence':
-        if (!newConsequence.trim()) return
-        collection_name = 'consequences'
-        data = { label: newConsequence.trim(), cost: Number(newConsequenceCost) }
-        setNewConsequence('')
-        setNewConsequenceCost(10)
-        break
-    }
-
-    await addDoc(collection(db, collection_name), data)
+  const handleAddTask = async () => {
+    if (!newTask.trim()) return
+    await addDoc(collection(db, 'tasks'), { label: newTask.trim(), value: Number(newTaskValue) })
+    setNewTask('')
+    setNewTaskValue(5)
     loadData()
   }
 
-  const handleDelete = async (type, id) => {
-    if (!window.confirm('Êtes-vous sûr de vouloir supprimer cet élément ?')) return
-    await deleteDoc(doc(db, type, id))
+  const handleAddReward = async () => {
+    if (!newReward.trim()) return
+    await addDoc(collection(db, 'rewards'), { label: newReward.trim(), cost: Number(newRewardCost) })
+    setNewReward('')
+    setNewRewardCost(20)
     loadData()
   }
 
-  const handleEdit = async (type, id, data) => {
-    await updateDoc(doc(db, type, id), data)
+  const handleDeleteTask = async (id) => {
+    await deleteDoc(doc(db, 'tasks', id))
+    loadData()
+  }
+
+  const handleDeleteReward = async (id) => {
+    await deleteDoc(doc(db, 'rewards', id))
+    loadData()
+  }
+
+  const startEditTask = (task) => {
+    setEditingTaskId(task.id)
+    setEditingTask({ label: task.label, value: task.value })
+  }
+
+  const confirmEditTask = async () => {
+    if (!editingTask.label.trim()) return
+    await updateDoc(doc(db, 'tasks', editingTaskId), {
+      label: editingTask.label.trim(),
+      value: Number(editingTask.value)
+    })
+    setEditingTaskId(null)
+    setEditingTask({ label: '', value: 0 })
+    loadData()
+  }
+
+  const startEditReward = (reward) => {
+    setEditingRewardId(reward.id)
+    setEditingReward({ label: reward.label, cost: reward.cost })
+  }
+
+  const confirmEditReward = async () => {
+    if (!editingReward.label.trim()) return
+    await updateDoc(doc(db, 'rewards', editingRewardId), {
+      label: editingReward.label.trim(),
+      cost: Number(editingReward.cost)
+    })
+    setEditingRewardId(null)
+    setEditingReward({ label: '', cost: 0 })
     loadData()
   }
 
   return (
-    <div className="tasks-manager">
-      <div className="tasks-tabs">
-        <button 
-          className={`tab ${activeTab === 'tasks' ? 'active' : ''}`}
-          onClick={() => setActiveTab('tasks')}
-        >
-          ✅ Tâches
-        </button>
-        <button 
-          className={`tab ${activeTab === 'rewards' ? 'active' : ''}`}
-          onClick={() => setActiveTab('rewards')}
-        >
-          🎁 Récompenses
-        </button>
-        <button 
-          className={`tab ${activeTab === 'consequences' ? 'active' : ''}`}
-          onClick={() => setActiveTab('consequences')}
-        >
-          ⚠️ Conséquences
-        </button>
+    <div className="dashboard-section">
+      <h2>📋 Tâches disponibles</h2>
+      <ul>
+        {tasks.map(task => (
+          <li key={task.id}>
+            {editingTaskId === task.id ? (
+              <>
+                <input
+                  type="text"
+                  value={editingTask.label}
+                  onChange={e => setEditingTask({ ...editingTask, label: e.target.value })}
+                />
+                <input
+                  type="number"
+                  value={editingTask.value}
+                  onChange={e => setEditingTask({ ...editingTask, value: e.target.value })}
+                  style={{ width: 60 }}
+                />
+                <button onClick={confirmEditTask}>✅</button>
+              </>
+            ) : (
+              <>
+                ✅ {task.label} — <strong>{task.value} pts</strong>{' '}
+                <button onClick={() => startEditTask(task)}>✏️</button>{' '}
+                <button onClick={() => handleDeleteTask(task.id)}>🗑️</button>
+              </>
+            )}
+          </li>
+        ))}
+      </ul>
+
+      <div style={{ marginTop: '1rem' }}>
+        <input
+          type="text"
+          placeholder="Nouvelle tâche"
+          value={newTask}
+          onChange={e => setNewTask(e.target.value)}
+        />
+        <input
+          type="number"
+          value={newTaskValue}
+          onChange={e => setNewTaskValue(e.target.value)}
+          style={{ width: 80, marginLeft: 8 }}
+        />
+        <button onClick={handleAddTask}>➕ Ajouter tâche</button>
       </div>
 
-      <div className="tasks-content">
-        {activeTab === 'tasks' && (
-          <div className="section">
-            <h2>✅ Gestion des tâches</h2>
-            <div className="add-form">
-              <input
-                type="text"
-                placeholder="Nouvelle tâche"
-                value={newTask}
-                onChange={e => setNewTask(e.target.value)}
-              />
-              <input
-                type="number"
-                value={newTaskValue}
-                onChange={e => setNewTaskValue(e.target.value)}
-                min="0"
-              />
-              <button onClick={() => handleAdd('task')}>Ajouter</button>
-            </div>
-            <ul className="items-list">
-              {tasks.map(task => (
-                <li key={task.id} className="item">
-                  <span className="item-label">{task.label}</span>
-                  <div className="item-actions">
-                    <span className="points">+{task.value} pts</span>
-                    <button onClick={() => handleDelete('tasks', task.id)} className="delete">
-                      🗑️
-                    </button>
-                  </div>
-                </li>
-              ))}
-            </ul>
-          </div>
-        )}
+      <h2 style={{ marginTop: '2rem' }}>🎁 Récompenses disponibles</h2>
+      <ul>
+        {rewards.map(reward => (
+          <li key={reward.id}>
+            {editingRewardId === reward.id ? (
+              <>
+                <input
+                  type="text"
+                  value={editingReward.label}
+                  onChange={e => setEditingReward({ ...editingReward, label: e.target.value })}
+                />
+                <input
+                  type="number"
+                  value={editingReward.cost}
+                  onChange={e => setEditingReward({ ...editingReward, cost: e.target.value })}
+                  style={{ width: 60 }}
+                />
+                <button onClick={confirmEditReward}>✅</button>
+              </>
+            ) : (
+              <>
+                🎁 {reward.label} — <strong>{reward.cost} pts</strong>{' '}
+                <button onClick={() => startEditReward(reward)}>✏️</button>{' '}
+                <button onClick={() => handleDeleteReward(reward.id)}>🗑️</button>
+              </>
+            )}
+          </li>
+        ))}
+      </ul>
 
-        {activeTab === 'rewards' && (
-          <div className="section">
-            <h2>🎁 Gestion des récompenses</h2>
-            <div className="add-form">
-              <input
-                type="text"
-                placeholder="Nouvelle récompense"
-                value={newReward}
-                onChange={e => setNewReward(e.target.value)}
-              />
-              <input
-                type="number"
-                value={newRewardCost}
-                onChange={e => setNewRewardCost(e.target.value)}
-                min="0"
-              />
-              <button onClick={() => handleAdd('reward')}>Ajouter</button>
-            </div>
-            <ul className="items-list">
-              {rewards.map(reward => (
-                <li key={reward.id} className="item">
-                  <span className="item-label">{reward.label}</span>
-                  <div className="item-actions">
-                    <span className="points cost">{reward.cost} pts</span>
-                    <button onClick={() => handleDelete('rewards', reward.id)} className="delete">
-                      🗑️
-                    </button>
-                  </div>
-                </li>
-              ))}
-            </ul>
-          </div>
-        )}
-
-        {activeTab === 'consequences' && (
-          <div className="section">
-            <h2>⚠️ Gestion des conséquences</h2>
-            <div className="add-form">
-              <input
-                type="text"
-                placeholder="Nouvelle conséquence"
-                value={newConsequence}
-                onChange={e => setNewConsequence(e.target.value)}
-              />
-              <input
-                type="number"
-                value={newConsequenceCost}
-                onChange={e => setNewConsequenceCost(e.target.value)}
-                min="0"
-              />
-              <button onClick={() => handleAdd('consequence')}>Ajouter</button>
-            </div>
-            <ul className="items-list">
-              {consequences.map(consequence => (
-                <li key={consequence.id} className="item">
-                  <span className="item-label">{consequence.label}</span>
-                  <div className="item-actions">
-                    <span className="points negative">-{consequence.cost} pts</span>
-                    <button onClick={() => handleDelete('consequences', consequence.id)} className="delete">
-                      🗑️
-                    </button>
-                  </div>
-                </li>
-              ))}
-            </ul>
-          </div>
-        )}
+      <div style={{ marginTop: '1rem' }}>
+        <input
+          type="text"
+          placeholder="Nouvelle récompense"
+          value={newReward}
+          onChange={e => setNewReward(e.target.value)}
+        />
+        <input
+          type="number"
+          value={newRewardCost}
+          onChange={e => setNewRewardCost(e.target.value)}
+          style={{ width: 80, marginLeft: 8 }}
+        />
+        <button onClick={handleAddReward}>➕ Ajouter récompense</button>
       </div>
     </div>
   )
