@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { db } from '../firebase'
 import {
-  collection, getDocs, setDoc, doc, addDoc, deleteDoc
+  collection, getDocs, setDoc, doc, addDoc, deleteDoc, query, where
 } from 'firebase/firestore'
 import "../styles/profile.css"
 
@@ -37,7 +37,27 @@ export default function ProfileSettings({ currentUser }) {
       blocks: [],
       ...doc.data()
     }))
-    setUsers(allUsers)
+
+    // Si Guillaume existe et n'est pas admin, mettre à jour son rôle
+    const guillaume = allUsers.find(u => u.displayName === 'Guillaume')
+    if (guillaume && guillaume.role !== 'admin') {
+      await setDoc(doc(db, 'users', guillaume.id), {
+        ...guillaume,
+        role: 'admin'
+      }, { merge: true })
+      
+      // Recharger les utilisateurs après la mise à jour
+      const updatedSnap = await getDocs(collection(db, 'users'))
+      const updatedUsers = updatedSnap.docs.map(doc => ({
+        id: doc.id,
+        uid: doc.id,
+        blocks: [],
+        ...doc.data()
+      }))
+      setUsers(updatedUsers)
+    } else {
+      setUsers(allUsers)
+    }
   }
 
   useEffect(() => {
