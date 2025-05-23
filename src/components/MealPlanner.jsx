@@ -7,6 +7,10 @@ import './MealPlanner.css';
 
 const jours = ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi', 'Dimanche'];
 const jourAbbr = { Lundi: 'Lu', Mardi: 'Ma', Mercredi: 'Me', Jeudi: 'Je', Vendredi: 'Ve', Samedi: 'Sa', Dimanche: 'Di' };
+const jourEmoji = { 
+  Lundi: '🌅', Mardi: '🌤️', Mercredi: '🌞', Jeudi: '🌈', 
+  Vendredi: '🌙', Samedi: '⭐', Dimanche: '☀️' 
+};
 
 export default function MealPlanner() {
   const [meals, setMeals] = useState({});
@@ -71,10 +75,12 @@ export default function MealPlanner() {
   };
 
   const clearAllMeals = async () => {
-    const cleared = {};
-    jours.forEach(j => cleared[j] = { lunch: [], souper: [] });
-    setMeals(cleared);
-    await setDoc(doc(db, 'repas', 'semaine'), cleared);
+    if (window.confirm('Êtes-vous sûr de vouloir vider tous les repas de la semaine ?')) {
+      const cleared = {};
+      jours.forEach(j => cleared[j] = { lunch: [], souper: [] });
+      setMeals(cleared);
+      await setDoc(doc(db, 'repas', 'semaine'), cleared);
+    }
   };
 
   const getUsedDays = (mealName) => {
@@ -141,11 +147,9 @@ export default function MealPlanner() {
       <div
         ref={dragRef}
         className={`suggestion ${isDragging ? 'dragging' : ''}`}
-        onMouseEnter={(e) => e.currentTarget.classList.add('hover')}
-        onMouseLeave={(e) => e.currentTarget.classList.remove('hover')}
       >
-        {name} {used.length > 0 && <span className="used-days">({used.join(', ')})</span>}
-        <button className="remove-btn-inline" onClick={() => removeFromList(name, listType)}>✖</button>
+        <span>{name}</span>
+        {used.length > 0 && <span className="used-days">({used.join(', ')})</span>}
       </div>
     );
   };
@@ -159,12 +163,22 @@ export default function MealPlanner() {
 
     return (
       <div ref={dropRef} className={`drop-zone ${isOver ? 'hovered' : ''}`}>
-        <strong>{type} :</strong>
-        {meals.length === 0 ? ' —' : (
+        <strong>{type}</strong>
+        {meals.length === 0 ? (
+          <div style={{ color: '#94a3b8', fontSize: '0.9rem', textAlign: 'center', marginTop: '0.5rem' }}>
+            Glissez un repas ici
+          </div>
+        ) : (
           <ul className="meal-list">
             {meals.map((meal, i) => (
               <li key={i}>
-                {meal} <button className="remove-btn" onClick={() => onRemoveMeal(jour, type, meal)}>❌</button>
+                {meal}
+                <button 
+                  className="remove-btn"
+                  onClick={() => onRemoveMeal(jour, type, meal)}
+                >
+                  ×
+                </button>
               </li>
             ))}
           </ul>
@@ -195,12 +209,17 @@ export default function MealPlanner() {
       <div className="meal-planner-full">
         <div className="meal-suggestions">
           <div className="add-meal">
-            <input value={newMeal} onChange={(e) => setNewMeal(e.target.value)} placeholder="Ajouter un plat" />
+            <input 
+              value={newMeal} 
+              onChange={(e) => setNewMeal(e.target.value)}
+              placeholder="Ajouter un plat"
+              onKeyPress={(e) => e.key === 'Enter' && handleAddMeal()}
+            />
             <select value={newType} onChange={(e) => setNewType(e.target.value)}>
               <option value="Lunch">Lunch</option>
               <option value="Souper">Souper</option>
             </select>
-            <button onClick={handleAddMeal}>➕</button>
+            <button onClick={handleAddMeal}>+</button>
           </div>
 
           <FavoritesDropZone />
@@ -210,18 +229,20 @@ export default function MealPlanner() {
             <DraggableSuggestion key={i} name={name} type="Lunch" listType="Lunch" />
           ))}
 
-          <h4>🍽 Soupers</h4>
+          <h4>🍽️ Soupers</h4>
           {souperList.map((name, i) => (
             <DraggableSuggestion key={i} name={name} type="Souper" listType="Souper" />
           ))}
 
-          <button className="clear-btn" onClick={clearAllMeals}>🧹 Vider la semaine</button>
+          <button className="clear-btn" onClick={clearAllMeals}>
+            🗑️ Vider la semaine
+          </button>
         </div>
 
         <div className="meal-grid">
           {jours.map((jour) => (
             <div key={jour} className="meal-day-card">
-              <h5>{jour}</h5>
+              <h5>{jourEmoji[jour]} {jour}</h5>
               <DropZone
                 jour={jour}
                 type="Lunch"
