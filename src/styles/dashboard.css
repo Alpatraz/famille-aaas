@@ -6,20 +6,37 @@
   font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
 }
 
-.dashboard-header {
+.site-title {
+  font-size: 2rem;
+  color: #2d3748;
+  text-align: center;
+  margin: 1rem 0;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.welcome-banner {
   background: white;
-  padding: 1.25rem;
-  border-radius: 16px;
+  padding: 0.75rem 1.25rem;
+  border-radius: 12px;
   margin-bottom: 1.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.04);
 }
 
-.dashboard-header h1 {
-  font-size: 1.8rem;
-  margin: 0 0 1.25rem;
-  color: #2d3748;
-  font-weight: 600;
-  letter-spacing: -0.02em;
+.welcome-text {
+  color: #64748b;
+  font-size: 0.95rem;
+}
+
+.role-tag {
+  background: #f1f5f9;
+  color: #64748b;
+  padding: 0.35rem 0.75rem;
+  border-radius: 20px;
+  font-size: 0.85rem;
 }
 
 .nav-buttons {
@@ -62,9 +79,32 @@
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.04);
 }
 
+.calendar-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.add-event-button {
+  background: #3b82f6;
+  color: white;
+  border: none;
+  padding: 0.6rem 1rem;
+  border-radius: 12px;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.add-event-button:hover {
+  background: #2563eb;
+  transform: translateY(-1px);
+}
+
 .dashboard-section h2 {
   font-size: 1.4rem;
-  margin: -0.25rem 0 1.25rem;
+  margin: 0 0 1.25rem;
   display: flex;
   align-items: center;
   gap: 0.5rem;
@@ -141,19 +181,23 @@
     padding: 0.5rem;
   }
 
-  .dashboard-header {
-    padding: 1rem;
+  .site-title {
+    font-size: 1.75rem;
+    margin: 0.75rem 0;
   }
 
-  .dashboard-header h1 {
-    font-size: 1.5rem;
-    margin-bottom: 1rem;
+  .welcome-banner {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+    padding: 1rem;
   }
 
   .nav-buttons {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
     gap: 0.5rem;
+    width: 100%;
   }
 
   .nav-button {
@@ -170,6 +214,16 @@
 
   .dashboard-section {
     padding: 1.25rem;
+  }
+
+  .calendar-header {
+    flex-direction: column;
+    gap: 0.75rem;
+    align-items: flex-start;
+  }
+
+  .add-event-button {
+    width: 100%;
   }
 
   .dashboard-section h2 {

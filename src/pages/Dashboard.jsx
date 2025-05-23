@@ -111,19 +111,22 @@ export default function Dashboard({ user }) {
 
   return (
     <div className="dashboard">
-      <div className="dashboard-header">
-        <h1>Tableau de bord familial</h1>
-        <div className="nav-buttons">
-          {isParent && (
-            <button className="nav-button" onClick={() => setAddEventOpen(true)}>
-              ➕ Ajouter un événement
-            </button>
-          )}
-        </div>
+      <h1 className="site-title">Famille AAA's</h1>
+      <div className="welcome-banner">
+        <span className="welcome-text">👋 {user.displayName || user.email}</span>
+        <span className="role-tag">Rôle : {user.role}</span>
       </div>
 
       <div className="dashboard-grid">
         <div className="dashboard-section full-width calendar-priority">
+          <div className="calendar-header">
+            <h2>📅 Calendrier Familial</h2>
+            {isParent && (
+              <button className="add-event-button" onClick={() => setAddEventOpen(true)}>
+                ➕ Ajouter un événement
+              </button>
+            )}
+          </div>
           <Calendar
             users={users}
             events={events}
