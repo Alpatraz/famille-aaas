@@ -133,7 +133,7 @@ export default function ChildTasks({ name }) {
       <div className="points-header">
         <div className="points-badges">
           <div className="points-badge today">
-            <div className="points-value">+{pointsToday}</div>
+            <div className="points-value">{pointsToday}</div>
             <div className="points-label">Points du jour</div>
           </div>
           <div className="points-badge total">
@@ -178,7 +178,7 @@ export default function ChildTasks({ name }) {
                   onClick={() => handleTaskClick(task)}
                 >
                   <span className="item-label">{task.label}</span>
-                  <span className="points-tag">+{task.value} pts</span>
+                  <span className="points-tag">{task.value} pts</span>
                 </li>
               ))}
             </ul>
@@ -208,7 +208,7 @@ export default function ChildTasks({ name }) {
                   onClick={() => handleConsequenceClick(consequence.cost, consequence.label)}
                 >
                   <span className="item-label">{consequence.label}</span>
-                  <span className="points-tag negative">-{consequence.cost} pts</span>
+                  <span className="points-tag negative">{consequence.cost} pts</span>
                 </li>
               ))}
             </ul>
