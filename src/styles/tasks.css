@@ -28,7 +28,7 @@
   cursor: pointer;
   transition: all 0.2s ease;
   border: 1px solid #e2e8f0;
-  font-size: 0.65rem !important;
+  font-size: 0.6rem !important;
   min-height: 18px;
   width: 100%;
   box-sizing: border-box;
@@ -48,7 +48,7 @@
 
 .child-tasks-container .item-label {
   font-weight: 500;
-  font-size: 0.65rem !important;
+  font-size: 0.6rem !important;
   color: #1e293b;
   margin-right: 0.4rem;
   white-space: nowrap;
@@ -60,7 +60,7 @@
 .child-tasks-container .points-tag {
   padding: 0.15rem 0.3rem;
   border-radius: 6px;
-  font-size: 0.65rem !important;
+  font-size: 0.6rem !important;
   font-weight: 500;
   background: #dbeafe;
   color: #1e40af;
