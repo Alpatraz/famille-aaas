@@ -1,7 +1,7 @@
 import React from 'react';
 import TasksRewards from '../components/TasksRewards';
 
-function Dashboard() {
+function Dashboard({ children = [] }) {
   return (
     <div>
       {/* Contenu précédent inchangé jusqu'à la ligne du rendu des cartes enfants */}
