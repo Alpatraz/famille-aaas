@@ -71,19 +71,15 @@ export default function App() {
 
   return (
     <div className="dashboard">
-      <div className="dashboard-header">
-        <h1>Bienvenue {user.displayName || user.email}</h1>
-        <div className="nav-buttons">
-          <Link to="/" className="nav-button">🏠 Accueil</Link>
-          {user.role === 'parent' && (
-            <>
-              <Link to="/profil" className="nav-button">⚙️ Profils</Link>
-              <Link to="/historique" className="nav-button">📊 Historique</Link>
-              <Link to="/taches" className="nav-button">📋 Tâches</Link>
-            </>
-          )}
-          <button onClick={handleLogout} className="nav-button">👋 Déconnexion</button>
-        </div>
+      <div className="nav-container">
+        <Link to="/" className="nav-button">🏠 Accueil</Link>
+        {user.role === 'parent' && (
+          <>
+            <Link to="/profil" className="nav-button">⚙️ Profils</Link>
+            <Link to="/historique" className="nav-button">📊 Historique</Link>
+            <Link to="/taches" className="nav-button">📋 Tâches</Link>
+          </>
+        )}
       </div>
 
       <Routes>
@@ -93,4 +89,5 @@ export default function App() {
         {user.role === 'parent' && <Route path="/taches" element={<TaskList />} />}
       </Routes>
     </div>
-  )}
+  )
+}
