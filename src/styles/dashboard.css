@@ -193,12 +193,16 @@
 }
 
 @media (max-width: 768px) {
+  .dashboard {
+    padding: 0.5rem;
+  }
+
   .welcome-banner {
     padding: 0.75rem;
   }
 
   .welcome-banner h1 {
-    font-size: 2rem;
+    font-size: 1.5rem;
   }
 
   .user-info {
@@ -220,18 +224,53 @@
     grid-template-columns: 1fr;
   }
 
+  .dashboard-section {
+    padding: 0.75rem;
+  }
+
+  .dashboard-section h2 {
+    font-size: 1rem;
+  }
+
+  .tasks-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .child-task-card {
+    padding: 0.75rem;
+  }
+
+  .child-task-card h3 {
+    font-size: 1rem;
+  }
+
   .meals-preview {
     grid-template-columns: 1fr;
   }
 }
 
 @media (max-width: 480px) {
+  .dashboard {
+    padding: 0.25rem;
+  }
+
   .welcome-banner h1 {
-    font-size: 1.8rem;
+    font-size: 1.25rem;
   }
 
   .nav-button {
     width: 100%;
     text-align: center;
+    font-size: 0.85rem;
+    padding: 0.5rem;
+  }
+
+  .dashboard-section {
+    padding: 0.5rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .child-task-card {
+    padding: 0.5rem;
   }
 }

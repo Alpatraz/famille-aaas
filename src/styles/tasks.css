@@ -194,13 +194,36 @@
 
   .tab {
     white-space: nowrap;
+    padding: 0.2rem 0.3rem;
+    font-size: 0.55rem;
   }
 
   .child-tasks-container {
-    padding: 0.4rem;
+    padding: 0.3rem;
   }
 
   .item-row {
     padding: 0.2rem 0.3rem;
+  }
+
+  .child-tasks-container .item-label {
+    font-size: 0.6rem !important;
+  }
+
+  .child-tasks-container .points-tag {
+    font-size: 0.6rem !important;
+    padding: 0.1rem 0.25rem;
+  }
+
+  .points-value {
+    font-size: 0.75rem;
+  }
+
+  .points-label {
+    font-size: 0.55rem;
+  }
+
+  .points-badge {
+    padding: 0.25rem 0.4rem;
   }
 }
