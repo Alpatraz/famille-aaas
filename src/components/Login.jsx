@@ -32,7 +32,9 @@ export default function Login({ onLogin }) {
       }
     } catch (err) {
       console.error('Erreur de connexion:', err)
-      if (err.code === 'auth/wrong-password' || err.code === 'auth/user-not-found') {
+      if (err.code === 'auth/wrong-password' || 
+          err.code === 'auth/user-not-found' || 
+          err.code === 'auth/invalid-credential') {
         setError('Email ou mot de passe incorrect')
       } else if (err.code === 'auth/too-many-requests') {
         setError('Trop de tentatives. Veuillez réessayer plus tard.')
