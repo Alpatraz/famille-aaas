@@ -154,7 +154,7 @@
   background-color: #f1f5f9;
   color: #2d3748;
   padding: 0.4rem 0.6rem;
-  font-size: 0.75rem;
+  font-size: min(0.75rem, calc(12px + 0.3vw));
   border-radius: 6px;
   cursor: pointer;
   transition: all 0.2s ease;
@@ -167,6 +167,8 @@
   overflow: hidden;
   text-overflow: ellipsis;
   line-height: 1.2;
+  min-height: 24px;
+  box-sizing: border-box;
 }
 
 .event-bubble:hover {
@@ -183,6 +185,12 @@
 @media screen and (max-width: 1200px) {
   .calendar-grid {
     grid-template-columns: repeat(4, minmax(110px, 1fr));
+  }
+  
+  .event-bubble {
+    font-size: min(0.7rem, calc(11px + 0.3vw));
+    padding: 0.35rem 0.5rem;
+    min-height: 22px;
   }
 }
 
@@ -203,6 +211,12 @@
     font-size: 0.9rem;
     padding: 0.5rem 0.75rem;
   }
+  
+  .event-bubble {
+    font-size: min(0.65rem, calc(10px + 0.3vw));
+    padding: 0.3rem 0.45rem;
+    min-height: 20px;
+  }
 }
 
 @media screen and (max-width: 480px) {
@@ -220,5 +234,11 @@
 
   .calendar-week-label {
     font-size: 1rem;
+  }
+  
+  .event-bubble {
+    font-size: min(0.6rem, calc(9px + 0.3vw));
+    padding: 0.25rem 0.4rem;
+    min-height: 18px;
   }
 }
