@@ -7,7 +7,7 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 1.5rem;
+  margin-bottom: 1rem;
   flex-wrap: wrap;
   gap: 1rem;
 }
@@ -21,14 +21,15 @@
   gap: 0.5rem;
 }
 
-.tab-buttons {
+.section-buttons {
   display: flex;
   gap: 0.5rem;
+  flex-wrap: wrap;
 }
 
-.tab-button {
+.section-button {
   background: #f8fafc;
-  border: none;
+  border: 2px solid #e2e8f0;
   padding: 0.5rem 0.75rem;
   border-radius: 8px;
   font-size: 0.85rem;
@@ -37,22 +38,13 @@
   transition: all 0.2s ease;
 }
 
-.tab-button:hover {
+.section-button:hover {
   background: #f1f5f9;
   transform: translateY(-1px);
+  border-color: #cbd5e1;
 }
 
-.tab-button.active {
-  background: #3b82f6;
-  color: white;
-}
-
-.karate-content {
-  display: grid;
-  gap: 1.5rem;
-}
-
-/* Progression Tab */
+/* Progression Section */
 .users-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
@@ -149,7 +141,7 @@
   padding: 0.25rem 0;
 }
 
-/* Trainings Tab */
+/* Trainings Section */
 .trainings-section {
   background: #f8fafc;
   border: 2px solid #e2e8f0;
@@ -212,7 +204,7 @@
   border: 1px solid #e2e8f0;
 }
 
-/* Competitions Tab */
+/* Competitions Section */
 .competitions-section {
   background: #f8fafc;
   border: 2px solid #e2e8f0;
@@ -310,8 +302,13 @@
     align-items: stretch;
   }
 
-  .tab-buttons {
+  .section-buttons {
     flex-direction: column;
+  }
+
+  .section-button {
+    width: 100%;
+    text-align: center;
   }
 
   .users-grid {

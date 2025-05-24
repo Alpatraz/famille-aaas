@@ -11,6 +11,7 @@ import {
   Legend
 } from 'chart.js';
 import { Bar } from 'react-chartjs-2';
+import Modal from './Modal';
 import './Karate.css';
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
@@ -33,7 +34,7 @@ const KATA_CATEGORIES = {
 };
 
 export default function Karate({ user }) {
-  const [activeTab, setActiveTab] = useState('progression');
+  const [selectedSection, setSelectedSection] = useState(null);
   const [users, setUsers] = useState([]);
   const [trainings, setTrainings] = useState([]);
   const [competitions, setCompetitions] = useState([]);
@@ -84,7 +85,7 @@ export default function Karate({ user }) {
     return Math.min(100, (userData.attendedClasses / userData.requiredClasses) * 100);
   };
 
-  const renderProgressionTab = () => (
+  const renderProgressionContent = () => (
     <div className="progression-section">
       <div className="users-grid">
         {users.map(userData => (
@@ -145,7 +146,7 @@ export default function Karate({ user }) {
     </div>
   );
 
-  const renderTrainingsTab = () => (
+  const renderTrainingsContent = () => (
     <div className="trainings-section">
       <div className="training-calendar">
         <h3>Cours réguliers</h3>
@@ -204,7 +205,7 @@ export default function Karate({ user }) {
     </div>
   );
 
-  const renderCompetitionsTab = () => (
+  const renderCompetitionsContent = () => (
     <div className="competitions-section">
       <div className="competitions-list">
         <h3>Compétitions à venir</h3>
@@ -264,33 +265,54 @@ export default function Karate({ user }) {
     <div className="karate-container">
       <div className="karate-header">
         <h2>🥋 Karaté</h2>
-        <div className="tab-buttons">
+        <div className="section-buttons">
           <button 
-            className={`tab-button ${activeTab === 'progression' ? 'active' : ''}`}
-            onClick={() => setActiveTab('progression')}
+            className="section-button"
+            onClick={() => setSelectedSection('progression')}
           >
             📊 Progression
           </button>
           <button 
-            className={`tab-button ${activeTab === 'trainings' ? 'active' : ''}`}
-            onClick={() => setActiveTab('trainings')}
+            className="section-button"
+            onClick={() => setSelectedSection('trainings')}
           >
             🎯 Entraînements
           </button>
           <button 
-            className={`tab-button ${activeTab === 'competitions' ? 'active' : ''}`}
-            onClick={() => setActiveTab('competitions')}
+            className="section-button"
+            onClick={() => setSelectedSection('competitions')}
           >
             🏆 Compétitions
           </button>
         </div>
       </div>
 
-      <div className="karate-content">
-        {activeTab === 'progression' && renderProgressionTab()}
-        {activeTab === 'trainings' && renderTrainingsTab()}
-        {activeTab === 'competitions' && renderCompetitionsTab()}
-      </div>
+      {selectedSection === 'progression' && (
+        <Modal
+          title="📊 Progression"
+          onClose={() => setSelectedSection(null)}
+        >
+          {renderProgressionContent()}
+        </Modal>
+      )}
+
+      {selectedSection === 'trainings' && (
+        <Modal
+          title="🎯 Entraînements"
+          onClose={() => setSelectedSection(null)}
+        >
+          {renderTrainingsContent()}
+        </Modal>
+      )}
+
+      {selectedSection === 'competitions' && (
+        <Modal
+          title="🏆 Compétitions"
+          onClose={() => setSelectedSection(null)}
+        >
+          {renderCompetitionsContent()}
+        </Modal>
+      )}
     </div>
   );
 }
