@@ -9,6 +9,7 @@
     "react-chartjs-2": "^5.2.0"
   },
   "devDependencies": {
+    "@vitejs/plugin-react": "^4.2.1",
     "vite": "^5.0.8"
   }
 }
