@@ -23,6 +23,7 @@ export default function Homework() {
   const [editingHomework, setEditingHomework] = useState(null);
   const [selectedFile, setSelectedFile] = useState(null);
   const [uploadProgress, setUploadProgress] = useState(0);
+  const [uploadError, setUploadError] = useState(null);
   const [newHomework, setNewHomework] = useState({
     title: '',
     subject: '',
@@ -38,87 +39,126 @@ export default function Homework() {
   }, []);
 
   const loadUsers = async () => {
-    const snap = await getDocs(query(collection(db, 'users'), where('role', '==', 'enfant')));
-    const data = snap.docs.map(doc => ({
-      id: doc.id,
-      ...doc.data()
-    }));
-    setUsers(data);
+    try {
+      const snap = await getDocs(query(collection(db, 'users'), where('role', '==', 'enfant')));
+      const data = snap.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      }));
+      setUsers(data);
+    } catch (error) {
+      console.error('Error loading users:', error);
+    }
   };
 
   const loadHomeworks = async () => {
-    const snap = await getDocs(collection(db, 'homeworks'));
-    const data = snap.docs.map(doc => ({
-      id: doc.id,
-      ...doc.data()
-    }));
-    setHomeworks(data);
+    try {
+      const snap = await getDocs(collection(db, 'homeworks'));
+      const data = snap.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      }));
+      setHomeworks(data);
+    } catch (error) {
+      console.error('Error loading homeworks:', error);
+    }
   };
 
   const handleFileChange = (e) => {
-    if (e.target.files[0]) {
-      setSelectedFile(e.target.files[0]);
+    const file = e.target.files[0];
+    if (file) {
+      if (file.size > 10 * 1024 * 1024) { // 10MB limit
+        setUploadError('Le fichier est trop volumineux (max 10MB)');
+        return;
+      }
+      setSelectedFile(file);
+      setUploadError(null);
+    }
+  };
+
+  const uploadFile = async (file, assignedTo) => {
+    try {
+      const timestamp = Date.now();
+      const fileName = `${timestamp}_${file.name}`;
+      const filePath = `homeworks/${assignedTo}/${fileName}`;
+      const fileRef = ref(storage, filePath);
+      
+      await uploadBytes(fileRef, file);
+      const downloadUrl = await getDownloadURL(fileRef);
+      
+      return { fileUrl: downloadUrl, filePath };
+    } catch (error) {
+      console.error('Error uploading file:', error);
+      throw new Error('Erreur lors du téléchargement du fichier');
     }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    let fileUrl = '';
-    let filePath = '';
+    setUploadError(null);
+    setUploadProgress(0);
 
-    if (selectedFile) {
-      const timestamp = Date.now();
-      const fileName = `${timestamp}_${selectedFile.name}`;
-      filePath = `homeworks/${newHomework.assignedTo}/${fileName}`;
-      const fileRef = ref(storage, filePath);
-      
-      await uploadBytes(fileRef, selectedFile);
-      fileUrl = await getDownloadURL(fileRef);
-    }
-
-    const homeworkData = {
-      ...newHomework,
-      fileUrl,
-      filePath,
-      updatedAt: new Date().toISOString()
-    };
-
-    if (editingHomework) {
-      if (editingHomework.filePath && fileUrl) {
-        const oldFileRef = ref(storage, editingHomework.filePath);
-        await deleteObject(oldFileRef);
+    try {
+      if (!newHomework.title || !newHomework.subject || !newHomework.dueDate || !newHomework.assignedTo) {
+        throw new Error('Veuillez remplir tous les champs obligatoires');
       }
-      await updateDoc(doc(db, 'homeworks', editingHomework.id), homeworkData);
-    } else {
-      await addDoc(collection(db, 'homeworks'), {
-        ...homeworkData,
-        createdAt: new Date().toISOString(),
-        completed: false
-      });
-    }
 
-    setNewHomework({
-      title: '',
-      subject: '',
-      dueDate: '',
-      link: '',
-      description: '',
-      assignedTo: ''
-    });
-    setSelectedFile(null);
-    setShowAddForm(false);
-    setEditingHomework(null);
-    loadHomeworks();
+      let fileData = {};
+      if (selectedFile) {
+        fileData = await uploadFile(selectedFile, newHomework.assignedTo);
+      }
+
+      const homeworkData = {
+        ...newHomework,
+        ...fileData,
+        updatedAt: new Date().toISOString()
+      };
+
+      if (editingHomework) {
+        if (editingHomework.filePath && fileData.fileUrl) {
+          const oldFileRef = ref(storage, editingHomework.filePath);
+          await deleteObject(oldFileRef);
+        }
+        await updateDoc(doc(db, 'homeworks', editingHomework.id), homeworkData);
+      } else {
+        await addDoc(collection(db, 'homeworks'), {
+          ...homeworkData,
+          createdAt: new Date().toISOString(),
+          completed: false
+        });
+      }
+
+      setNewHomework({
+        title: '',
+        subject: '',
+        dueDate: '',
+        link: '',
+        description: '',
+        assignedTo: ''
+      });
+      setSelectedFile(null);
+      setShowAddForm(false);
+      setEditingHomework(null);
+      await loadHomeworks();
+    } catch (error) {
+      console.error('Error submitting homework:', error);
+      setUploadError(error.message || 'Une erreur est survenue');
+    }
   };
 
   const handleDelete = async (homework) => {
     if (confirm('Êtes-vous sûr de vouloir supprimer ce devoir ?')) {
-      if (homework.filePath) {
-        const fileRef = ref(storage, homework.filePath);
-        await deleteObject(fileRef);
+      try {
+        if (homework.filePath) {
+          const fileRef = ref(storage, homework.filePath);
+          await deleteObject(fileRef);
+        }
+        await deleteDoc(doc(db, 'homeworks', homework.id));
+        await loadHomeworks();
+      } catch (error) {
+        console.error('Error deleting homework:', error);
+        alert('Erreur lors de la suppression');
       }
-      await deleteDoc(doc(db, 'homeworks', homework.id));
-      loadHomeworks();
     }
   };
 
@@ -279,6 +319,8 @@ export default function Homework() {
               description: '',
               assignedTo: ''
             });
+            setSelectedFile(null);
+            setUploadError(null);
           }}
         >
           <form onSubmit={handleSubmit} className="homework-form">
@@ -336,15 +378,21 @@ export default function Homework() {
                 type="file"
                 onChange={handleFileChange}
                 className="file-input"
+                accept=".pdf,.doc,.docx,.txt,.jpg,.jpeg,.png"
               />
               {selectedFile && (
                 <div className="selected-file">
                   📎 {selectedFile.name}
                 </div>
               )}
+              {uploadError && (
+                <div className="upload-error">
+                  ❌ {uploadError}
+                </div>
+              )}
             </div>
             <div className="form-actions">
-              <button type="submit" className="submit-button">
+              <button type="submit" className="submit-button" disabled={uploadError}>
                 {editingHomework ? 'Modifier' : 'Ajouter'}
               </button>
               <button
@@ -353,6 +401,8 @@ export default function Homework() {
                 onClick={() => {
                   setShowAddForm(false);
                   setEditingHomework(null);
+                  setSelectedFile(null);
+                  setUploadError(null);
                 }}
               >
                 Annuler
