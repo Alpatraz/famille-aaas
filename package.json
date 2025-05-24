@@ -1,4 +1,9 @@
 {
+  "name": "famille-aaas",
+  "version": "1.0.0",
+  "scripts": {
+    "dev": "vite"
+  },
   "dependencies": {
     "chart.js": "^4.4.1",
     "react-chartjs-2": "^5.2.0"
