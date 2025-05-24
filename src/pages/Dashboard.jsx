@@ -7,6 +7,7 @@ import Modal from '../components/Modal'
 import MealPlanner from '../components/MealPlanner'
 import Homework from '../components/Homework'
 import TodoManager from '../components/TodoManager'
+import Karate from '../components/Karate'
 import { db } from '../firebase'
 import { collection, getDocs, doc, getDoc, addDoc, deleteDoc, updateDoc } from 'firebase/firestore'
 
@@ -165,8 +166,7 @@ export default function Dashboard({ user }) {
         </div>
 
         <div className="dashboard-section">
-          <h2>🥋 Karaté</h2>
-          <p>Suivi des cours, compétitions, passages de ceinture</p>
+          <Karate user={user} />
         </div>
 
         <div className="dashboard-section full-width">
