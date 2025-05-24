@@ -196,15 +196,19 @@
 
 @media screen and (max-width: 768px) {
   .calendar-grid {
-    grid-template-columns: repeat(2, minmax(140px, 1fr));
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.5rem;
+    min-width: 0;
+    width: 100%;
   }
   
   .calendar-wrapper {
-    padding: 1rem;
+    padding: 0.75rem;
   }
   
   .calendar-week-label {
     font-size: 1.1rem;
+    min-width: 0;
   }
 
   .nav-button {
@@ -217,19 +221,26 @@
     padding: 0.2rem 0.3rem;
     min-height: 16px;
   }
+
+  .calendar-day {
+    padding: 0.5rem;
+    min-height: 120px;
+  }
 }
 
 @media screen and (max-width: 480px) {
   .calendar-grid {
     grid-template-columns: 1fr;
+    width: 100%;
   }
 
   .calendar-day {
-    min-height: 120px;
+    min-height: 100px;
+    padding: 0.4rem;
   }
 
   .calendar-wrapper {
-    padding: 0.75rem;
+    padding: 0.5rem;
   }
 
   .calendar-week-label {
@@ -240,5 +251,10 @@
     font-size: min(0.55rem, calc(7px + 0.2vw));
     padding: 0.15rem 0.25rem;
     min-height: 14px;
+  }
+
+  .day-header {
+    margin-bottom: 0.5rem;
+    padding-bottom: 0.3rem;
   }
 }
