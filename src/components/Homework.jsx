@@ -22,13 +22,11 @@ export default function Homework() {
   const [selectedSubject, setSelectedSubject] = useState(null);
   const [editingHomework, setEditingHomework] = useState(null);
   const [selectedFile, setSelectedFile] = useState(null);
-  const [uploadProgress, setUploadProgress] = useState(0);
-  const [uploadError, setUploadError] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [uploadError, setUploadError] = useState(null);
   const [newHomework, setNewHomework] = useState({
     title: '',
     subject: '',
-    dueDate: '',
     link: '',
     description: '',
     assignedTo: ''
@@ -68,7 +66,7 @@ export default function Homework() {
   const handleFileChange = (e) => {
     const file = e.target.files[0];
     if (file) {
-      if (file.size > 10 * 1024 * 1024) { // 10MB limit
+      if (file.size > 10 * 1024 * 1024) {
         setUploadError('Le fichier est trop volumineux (max 10MB)');
         return;
       }
@@ -100,10 +98,9 @@ export default function Homework() {
 
     setIsSubmitting(true);
     setUploadError(null);
-    setUploadProgress(0);
 
     try {
-      if (!newHomework.title || !newHomework.subject || !newHomework.dueDate || !newHomework.assignedTo) {
+      if (!newHomework.title || !newHomework.subject || !newHomework.assignedTo) {
         throw new Error('Veuillez remplir tous les champs obligatoires');
       }
 
@@ -112,9 +109,12 @@ export default function Homework() {
         fileData = await uploadFile(selectedFile, newHomework.assignedTo);
       }
 
+      const today = new Date().toISOString().split('T')[0];
+
       const homeworkData = {
         ...newHomework,
         ...fileData,
+        dueDate: today,
         updatedAt: new Date().toISOString()
       };
 
@@ -135,7 +135,6 @@ export default function Homework() {
       setNewHomework({
         title: '',
         subject: '',
-        dueDate: '',
         link: '',
         description: '',
         assignedTo: ''
@@ -173,13 +172,23 @@ export default function Homework() {
     setNewHomework({
       title: homework.title,
       subject: homework.subject,
-      dueDate: homework.dueDate,
       link: homework.link,
       description: homework.description,
       assignedTo: homework.assignedTo
     });
     setShowAddForm(true);
   };
+
+  const groupedHomeworks = homeworks.reduce((acc, homework) => {
+    if (!acc[homework.assignedTo]) {
+      acc[homework.assignedTo] = {};
+    }
+    if (!acc[homework.assignedTo][homework.subject]) {
+      acc[homework.assignedTo][homework.subject] = [];
+    }
+    acc[homework.assignedTo][homework.subject].push(homework);
+    return acc;
+  }, {});
 
   const renderHomeworkFile = (homework) => (
     <div key={homework.id} className="homework-file">
@@ -209,7 +218,7 @@ export default function Homework() {
           )}
         </div>
         <div className="file-date">
-          Pour le {new Date(homework.dueDate).toLocaleDateString()}
+          Ajouté le {new Date(homework.createdAt).toLocaleDateString()}
         </div>
       </div>
       <div className="file-actions">
@@ -309,7 +318,6 @@ export default function Homework() {
             setNewHomework({
               title: '',
               subject: '',
-              dueDate: '',
               link: '',
               description: '',
               assignedTo: ''
@@ -351,12 +359,6 @@ export default function Homework() {
               ))}
             </select>
             <input
-              type="date"
-              value={newHomework.dueDate}
-              onChange={e => setNewHomework({...newHomework, dueDate: e.target.value})}
-              required
-            />
-            <input
               type="url"
               placeholder="Lien (optionnel)"
               value={newHomework.link}
@@ -381,7 +383,7 @@ export default function Homework() {
                 </div>
               )}
               {uploadError && (
-                <div className="upload-error">
+                <div className="upload-error" style={{ color: 'red', marginTop: '0.5rem' }}>
                   ❌ {uploadError}
                 </div>
               )}
