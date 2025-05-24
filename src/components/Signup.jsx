@@ -8,9 +8,13 @@ export default function Signup({ onSignup }) {
   const [password, setPassword] = useState('')
   const [prenom, setPrenom] = useState('')
   const [error, setError] = useState(null)
+  const [isLoading, setIsLoading] = useState(false)
 
   const handleSignup = async (e) => {
     e.preventDefault()
+    setIsLoading(true)
+    setError(null)
+    
     try {
       const userCredential = await createUserWithEmailAndPassword(auth, email, password)
       const user = userCredential.user
@@ -29,7 +33,13 @@ export default function Signup({ onSignup }) {
       onSignup(user)
     } catch (err) {
       console.error('❌ Erreur inscription :', err)
-      setError(err.message)
+      if (err.code === 'auth/email-already-in-use') {
+        setError('Cette adresse email est déjà utilisée. Veuillez vous connecter ou utiliser une autre adresse email.')
+      } else {
+        setError("Une erreur s'est produite lors de l'inscription. Veuillez réessayer.")
+      }
+    } finally {
+      setIsLoading(false)
     }
   }
 
@@ -67,7 +77,9 @@ export default function Signup({ onSignup }) {
             required
           />
         </label>
-        <button type="submit">Créer mon compte</button>
+        <button type="submit" disabled={isLoading}>
+          {isLoading ? 'Création en cours...' : 'Créer mon compte'}
+        </button>
       </form>
       {error && <p style={{ color: 'red', marginTop: '1rem' }}>{error}</p>}
     </div>
