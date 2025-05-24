@@ -18,6 +18,7 @@ export default function ProfileSettings() {
   const [resetStatus, setResetStatus] = useState({ loading: false, message: '', error: false })
   const [showPasswordModal, setShowPasswordModal] = useState(false)
   const [selectedUser, setSelectedUser] = useState(null)
+  const [currentPassword, setCurrentPassword] = useState('')
   const [newPassword, setNewPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
 
@@ -129,7 +130,13 @@ export default function ProfileSettings() {
     try {
       setResetStatus({ loading: true, message: '', error: false })
       
-      // Change password directly without re-authentication
+      // Re-authenticate user before changing password
+      const credential = EmailAuthProvider.credential(
+        auth.currentUser.email,
+        currentPassword
+      )
+      
+      await reauthenticateWithCredential(auth.currentUser, credential)
       await updatePassword(auth.currentUser, newPassword)
       
       setResetStatus({
@@ -138,13 +145,18 @@ export default function ProfileSettings() {
         error: false
       })
       setShowPasswordModal(false)
+      setCurrentPassword('')
       setNewPassword('')
       setConfirmPassword('')
     } catch (error) {
       console.error('Password change error:', error)
+      let errorMessage = '❌ Erreur lors du changement de mot de passe'
+      if (error.code === 'auth/wrong-password') {
+        errorMessage = '❌ Mot de passe actuel incorrect'
+      }
       setResetStatus({
         loading: false,
-        message: '❌ Erreur lors du changement de mot de passe',
+        message: errorMessage,
         error: true
       })
     }
@@ -303,6 +315,12 @@ export default function ProfileSettings() {
             <h3>🔑 Changer le mot de passe</h3>
             <input
               type="password"
+              placeholder="Mot de passe actuel"
+              value={currentPassword}
+              onChange={(e) => setCurrentPassword(e.target.value)}
+            />
+            <input
+              type="password"
               placeholder="Nouveau mot de passe"
               value={newPassword}
               onChange={(e) => setNewPassword(e.target.value)}
@@ -317,6 +335,7 @@ export default function ProfileSettings() {
               <button onClick={handleDirectPasswordChange}>Confirmer</button>
               <button onClick={() => {
                 setShowPasswordModal(false)
+                setCurrentPassword('')
                 setNewPassword('')
                 setConfirmPassword('')
               }}>Annuler</button>
