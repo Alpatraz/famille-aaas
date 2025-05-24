@@ -1,7 +1,6 @@
 .karate-container {
   height: 100%;
   overflow-y: auto;
-  padding: 1rem;
 }
 
 .karate-header {
@@ -9,15 +8,43 @@
   justify-content: space-between;
   align-items: center;
   margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+  gap: 1rem;
 }
 
 .karate-header h2 {
   margin: 0;
-  font-size: 1.2rem;
+  font-size: 1.1rem;
   color: #1e293b;
   display: flex;
   align-items: center;
   gap: 0.5rem;
+}
+
+.tab-buttons {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.tab-button {
+  background: #f8fafc;
+  border: none;
+  padding: 0.5rem 0.75rem;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  color: #64748b;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.tab-button:hover {
+  background: #f1f5f9;
+  transform: translateY(-1px);
+}
+
+.tab-button.active {
+  background: #3b82f6;
+  color: white;
 }
 
 .karate-content {
@@ -25,29 +52,29 @@
   gap: 1.5rem;
 }
 
+/* Progression Tab */
 .users-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
   gap: 1rem;
 }
 
 .user-karate-card {
   background: #f8fafc;
+  border: 2px solid #e2e8f0;
   border-radius: 12px;
-  overflow: hidden;
+  padding: 1rem;
   transition: all 0.2s ease;
 }
 
 .user-karate-card:hover {
   transform: translateY(-2px);
+  border-color: #cbd5e1;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
 }
 
-.belt-section {
+.belt-info {
   text-align: center;
-  padding: 1rem;
-  border: 2px solid #e2e8f0;
-  border-radius: 12px;
 }
 
 .current-belt {
@@ -60,106 +87,252 @@
   font-weight: 500;
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
   margin-bottom: 1rem;
-  width: fit-content;
 }
 
-.current-belt span {
-  mix-blend-mode: difference;
+.belt-dates {
+  margin: 1rem 0;
+  font-size: 0.85rem;
+  color: #64748b;
 }
 
-.progress-container {
-  max-width: 100%;
-  margin: 0 auto;
+.belt-date {
+  margin: 0.25rem 0;
+}
+
+.progress-section {
+  margin: 1rem 0;
 }
 
 .progress-bar {
-  height: 12px;
-  background: #f1f5f9;
-  border-radius: 6px;
+  height: 8px;
+  background: #e2e8f0;
+  border-radius: 4px;
   overflow: hidden;
-  margin-bottom: 0.5rem;
 }
 
 .progress-fill {
   height: 100%;
+  background: #3b82f6;
   transition: width 0.3s ease;
 }
 
 .progress-text {
-  font-size: 0.9rem;
+  margin-top: 0.5rem;
+  font-size: 0.85rem;
   color: #64748b;
 }
 
-.next-belt-info {
-  font-size: 0.85rem;
-  color: #475569;
-  margin-top: 0.5rem;
+.kata-categories {
+  margin-top: 1.5rem;
+  text-align: left;
 }
 
-.theme-section,
-.training-section,
-.competition-section {
-  background: #f8fafc;
-  padding: 1rem;
-  border-radius: 12px;
-  border: 2px solid #e2e8f0;
+.kata-category {
+  margin-bottom: 1rem;
 }
 
-.theme-section h3,
-.training-section h3,
-.competition-section h3 {
-  margin: 0 0 1rem;
-  font-size: 1rem;
+.kata-category h4 {
+  margin: 0 0 0.5rem;
+  font-size: 0.9rem;
   color: #1e293b;
+}
+
+.kata-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.kata-item {
+  font-size: 0.85rem;
+  color: #64748b;
+  padding: 0.25rem 0;
+}
+
+/* Trainings Tab */
+.trainings-section {
+  background: #f8fafc;
+  border: 2px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 1rem;
+}
+
+.regular-classes,
+.private-classes {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin: 1rem 0;
+}
+
+.class-item,
+.private-class {
+  background: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 0.75rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.9rem;
+}
+
+.class-info {
+  display: flex;
+  gap: 1rem;
+}
+
+.class-status {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 0.75rem;
 }
 
-.training-list,
-.competition-list {
+.payment-status {
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.8rem;
+}
+
+.payment-status.paid {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.payment-status.unpaid {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.attendance-chart {
+  margin-top: 2rem;
+  padding: 1rem;
+  background: white;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+}
+
+/* Competitions Tab */
+.competitions-section {
+  background: #f8fafc;
+  border: 2px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 1rem;
+}
+
+.competition-card {
+  background: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 1rem;
+  margin-bottom: 1rem;
+}
+
+.competition-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.75rem;
+}
+
+.competition-header h4 {
+  margin: 0;
+  font-size: 1rem;
+  color: #1e293b;
+}
+
+.competition-date {
+  font-size: 0.85rem;
+  color: #64748b;
+}
+
+.competition-details p {
+  margin: 0.5rem 0;
+  font-size: 0.9rem;
+  color: #475569;
+}
+
+.participants {
+  margin-top: 1rem;
+}
+
+.participants h5 {
+  margin: 0 0 0.5rem;
+  font-size: 0.9rem;
+  color: #1e293b;
+}
+
+.participant {
+  display: flex;
+  justify-content: space-between;
+  padding: 0.5rem;
+  background: #f8fafc;
+  border-radius: 4px;
+  font-size: 0.85rem;
+  margin: 0.25rem 0;
+}
+
+.competition-results {
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
 }
 
-.training-item,
-.competition-item {
+.result-item {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 0.75rem;
-  background: white;
-  border-radius: 8px;
-  font-size: 0.9rem;
+  padding: 0.5rem;
+  background: #f8fafc;
+  border-radius: 4px;
+  font-size: 0.85rem;
+}
+
+.medal {
+  font-weight: 500;
+}
+
+.medal[data-position="1"] {
+  color: #fbbf24;
+}
+
+.medal[data-position="2"] {
+  color: #94a3b8;
+}
+
+.medal[data-position="3"] {
+  color: #b45309;
 }
 
 @media (max-width: 768px) {
-  .karate-container {
-    padding: 0.5rem;
+  .karate-header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .tab-buttons {
+    flex-direction: column;
   }
 
   .users-grid {
     grid-template-columns: 1fr;
   }
 
-  .belt-section,
-  .theme-section,
-  .training-section,
-  .competition-section {
-    padding: 0.75rem;
-  }
-
-  .current-belt {
-    padding: 0.5rem 1rem;
-    font-size: 0.9rem;
-  }
-
-  .training-item,
-  .competition-item {
-    padding: 0.5rem;
-    font-size: 0.85rem;
-    flex-wrap: wrap;
+  .class-item,
+  .private-class {
+    flex-direction: column;
     gap: 0.5rem;
+    align-items: flex-start;
+  }
+
+  .class-info {
+    flex-direction: column;
+    gap: 0.25rem;
+  }
+
+  .competition-header {
+    flex-direction: column;
+    gap: 0.5rem;
+    align-items: flex-start;
   }
 }
