@@ -66,3 +66,42 @@
 .reset-button:hover {
   background-color: #ffdddd;
 }
+
+.reset-password-button {
+  background: #e0f2fe;
+  color: #0369a1;
+  border: 1px solid #7dd3fc;
+  padding: 8px 16px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.reset-password-button:hover {
+  background: #bae6fd;
+}
+
+.reset-password-button:disabled {
+  background: #f1f5f9;
+  color: #94a3b8;
+  border-color: #e2e8f0;
+  cursor: not-allowed;
+}
+
+.reset-status {
+  text-align: center;
+  padding: 8px;
+  border-radius: 8px;
+  font-size: 0.9rem;
+}
+
+.reset-status.success {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.reset-status.error {
+  background: #fee2e2;
+  color: #991b1b;
+}
