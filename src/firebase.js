@@ -1,6 +1,6 @@
 import { initializeApp } from 'firebase/app'
 import { getFirestore } from 'firebase/firestore'
-import { getAuth } from 'firebase/auth'
+import { getAuth, browserLocalPersistence } from 'firebase/auth'
 import { getStorage } from 'firebase/storage'
 
 // Verify all required config values are present
@@ -35,8 +35,11 @@ export const db = getFirestore(app)
 export const auth = getAuth(app)
 export const storage = getStorage(app)
 
-// Initialize auth state persistence
-auth.setPersistence('local')
+// Initialize auth state persistence after auth is initialized
+auth.setPersistence(browserLocalPersistence)
+  .catch((error) => {
+    console.error('Error setting auth persistence:', error)
+  })
 
 // Add auth state observer for debugging
 auth.onAuthStateChanged((user) => {
