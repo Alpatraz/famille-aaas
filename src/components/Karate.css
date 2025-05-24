@@ -1,6 +1,7 @@
 .karate-container {
   height: 100%;
   overflow-y: auto;
+  padding: 1rem;
 }
 
 .karate-header {
@@ -19,15 +20,6 @@
   gap: 0.5rem;
 }
 
-.karate-header select {
-  padding: 0.5rem;
-  border: 2px solid #e2e8f0;
-  border-radius: 8px;
-  font-size: 0.95rem;
-  background: white;
-  cursor: pointer;
-}
-
 .karate-content {
   display: grid;
   gap: 1.5rem;
@@ -35,6 +27,10 @@
 
 .belt-section {
   text-align: center;
+  background: #f8fafc;
+  padding: 1.5rem;
+  border-radius: 12px;
+  border: 2px solid #e2e8f0;
 }
 
 .current-belt {
@@ -82,25 +78,63 @@
   margin-top: 0.5rem;
 }
 
+.theme-section,
+.training-section,
+.competition-section {
+  background: #f8fafc;
+  padding: 1rem;
+  border-radius: 12px;
+  border: 2px solid #e2e8f0;
+}
+
+.theme-section h3,
+.training-section h3,
+.competition-section h3 {
+  margin: 0 0 1rem;
+  font-size: 1rem;
+  color: #1e293b;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.training-list,
+.competition-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.training-item,
+.competition-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem;
+  background: white;
+  border-radius: 8px;
+  font-size: 0.9rem;
+}
+
 @media (max-width: 768px) {
-  .karate-header {
-    flex-direction: column;
-    gap: 1rem;
-    align-items: stretch;
+  .karate-container {
+    padding: 0.5rem;
   }
 
-  .karate-header select {
-    width: 100%;
+  .belt-section,
+  .theme-section,
+  .training-section,
+  .competition-section {
+    padding: 1rem;
   }
 
   .current-belt {
-    width: 100%;
-    padding: 0.75rem;
+    padding: 0.75rem 1.5rem;
   }
-}
 
-@media (max-width: 480px) {
-  .karate-container {
+  .training-item,
+  .competition-item {
     padding: 0.5rem;
+    font-size: 0.85rem;
   }
 }

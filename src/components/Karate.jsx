@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { db } from '../firebase';
-import { collection, getDocs, doc, getDoc, setDoc } from 'firebase/firestore';
+import { collection, getDocs, doc, getDoc, setDoc, addDoc } from 'firebase/firestore';
 import './Karate.css';
 
 const BELT_COLORS = {
@@ -23,54 +23,78 @@ const REQUIRED_SESSIONS = {
 };
 
 export default function Karate({ user }) {
-  const [users, setUsers] = useState([]);
-  const [selectedUser, setSelectedUser] = useState(null);
   const [karateData, setKarateData] = useState(null);
+  const [trainings, setTrainings] = useState([]);
+  const [competitions, setCompetitions] = useState([]);
+  const [weeklyTheme, setWeeklyTheme] = useState('');
 
   useEffect(() => {
-    loadUsers();
-  }, []);
-
-  useEffect(() => {
-    if (selectedUser) {
-      loadKarateData(selectedUser.id);
+    if (user) {
+      loadKarateData();
+      loadTrainings();
+      loadCompetitions();
+      loadWeeklyTheme();
     }
-  }, [selectedUser]);
+  }, [user]);
 
-  const loadUsers = async () => {
-    const snap = await getDocs(collection(db, 'users'));
-    const userData = snap.docs.map(doc => ({
-      id: doc.id,
-      ...doc.data()
-    }));
-    setUsers(userData);
-    
-    // Si l'utilisateur est un enfant, le sélectionner automatiquement
-    if (user?.role === 'enfant') {
-      const currentUser = userData.find(u => u.id === user.uid);
-      if (currentUser) {
-        setSelectedUser(currentUser);
-      }
-    }
-  };
+  const loadKarateData = async () => {
+    if (!user) return;
 
-  const loadKarateData = async (userId) => {
-    const userRef = doc(db, 'karate_users', userId);
+    const userRef = doc(db, 'karate_users', user.uid);
     const snap = await getDoc(userRef);
     
     if (snap.exists()) {
       setKarateData(snap.data());
     } else {
-      // Initialiser les données pour un nouvel utilisateur
       const initialData = {
         belt: 'white',
         lastPromotion: null,
         katas: [],
-        attendance: 0
+        attendance: 0,
+        nextExamDate: null
       };
       await setDoc(userRef, initialData);
       setKarateData(initialData);
     }
+  };
+
+  const loadTrainings = async () => {
+    if (!user) return;
+
+    const snap = await getDocs(collection(db, 'karate_sessions'));
+    const data = snap.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data()
+    }));
+    setTrainings(data);
+  };
+
+  const loadCompetitions = async () => {
+    if (!user) return;
+
+    const snap = await getDocs(collection(db, 'karate_competitions'));
+    const data = snap.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data()
+    }));
+    setCompetitions(data);
+  };
+
+  const loadWeeklyTheme = async () => {
+    const themeRef = doc(db, 'karate_theme', 'current');
+    const snap = await getDoc(themeRef);
+    if (snap.exists()) {
+      setWeeklyTheme(snap.data().theme);
+    }
+  };
+
+  const calculateProgress = () => {
+    if (!karateData) return 0;
+    
+    const required = REQUIRED_SESSIONS[karateData.belt];
+    if (!required) return 100; // Ceinture noire
+    
+    return Math.min(100, (karateData.attendance / required) * 100);
   };
 
   const calculateNextBelt = () => {
@@ -88,57 +112,13 @@ export default function Karate({ user }) {
     };
   };
 
-  const renderProgressBar = () => {
-    if (!karateData) return null;
-    
-    const nextBelt = calculateNextBelt();
-    if (!nextBelt) return null;
-    
-    const required = REQUIRED_SESSIONS[karateData.belt];
-    const progress = Math.min(100, (karateData.attendance / required) * 100);
-    
-    return (
-      <div className="progress-container">
-        <div className="progress-bar">
-          <div 
-            className="progress-fill"
-            style={{ 
-              width: `${progress}%`,
-              backgroundColor: BELT_COLORS[karateData.belt].color,
-              borderColor: karateData.belt === 'white' ? '#ddd' : 'transparent'
-            }}
-          />
-        </div>
-        <div className="progress-text">
-          {karateData.attendance} / {required} cours
-        </div>
-      </div>
-    );
-  };
-
   return (
     <div className="karate-container">
       <div className="karate-header">
         <h2>🥋 Karaté</h2>
-        {user?.role === 'parent' && (
-          <select 
-            value={selectedUser?.id || ''} 
-            onChange={(e) => {
-              const selected = users.find(u => u.id === e.target.value);
-              setSelectedUser(selected);
-            }}
-          >
-            <option value="">Sélectionner un membre</option>
-            {users.map(u => (
-              <option key={u.id} value={u.id}>
-                {u.avatar} {u.displayName}
-              </option>
-            ))}
-          </select>
-        )}
       </div>
 
-      {selectedUser && karateData && (
+      {karateData && (
         <div className="karate-content">
           <div className="belt-section">
             <div className="current-belt" style={{
@@ -147,7 +127,23 @@ export default function Karate({ user }) {
             }}>
               <span>Ceinture {BELT_COLORS[karateData.belt].name}</span>
             </div>
-            {renderProgressBar()}
+
+            <div className="progress-container">
+              <div className="progress-bar">
+                <div 
+                  className="progress-fill"
+                  style={{ 
+                    width: `${calculateProgress()}%`,
+                    backgroundColor: BELT_COLORS[karateData.belt].color,
+                    borderColor: karateData.belt === 'white' ? '#ddd' : 'transparent'
+                  }}
+                />
+              </div>
+              <div className="progress-text">
+                {karateData.attendance} / {REQUIRED_SESSIONS[karateData.belt] || '∞'} cours
+              </div>
+            </div>
+
             {calculateNextBelt() && (
               <div className="next-belt-info">
                 <p>
@@ -156,6 +152,39 @@ export default function Karate({ user }) {
                 </p>
               </div>
             )}
+          </div>
+
+          {weeklyTheme && (
+            <div className="theme-section">
+              <h3>📝 Thème de la semaine</h3>
+              <p>{weeklyTheme}</p>
+            </div>
+          )}
+
+          <div className="training-section">
+            <h3>🎯 Entraînements</h3>
+            <div className="training-list">
+              {trainings.map(training => (
+                <div key={training.id} className="training-item">
+                  <span>{training.date}</span>
+                  <span>{training.type}</span>
+                  <span>{training.attended ? '✅' : '❌'}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="competition-section">
+            <h3>🏆 Compétitions</h3>
+            <div className="competition-list">
+              {competitions.map(competition => (
+                <div key={competition.id} className="competition-item">
+                  <span>{competition.date}</span>
+                  <span>{competition.name}</span>
+                  <span>{competition.result || 'À venir'}</span>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       )}
