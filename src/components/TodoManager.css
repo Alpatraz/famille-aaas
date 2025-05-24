@@ -40,6 +40,12 @@
   gap: 0.75rem;
 }
 
+.folder-icon {
+  font-size: 2rem;
+  margin-bottom: 0.5rem;
+  text-align: center;
+}
+
 .folder-card {
   background: #f8fafc;
   border: 2px solid #e2e8f0;
@@ -47,6 +53,7 @@
   padding: 0.75rem;
   cursor: pointer;
   transition: all 0.2s ease;
+  text-align: center;
 }
 
 .folder-card:hover {
@@ -236,6 +243,11 @@
 }
 
 @media (max-width: 768px) {
+  .folder-icon {
+    font-size: 1.5rem;
+    margin-bottom: 0.3rem;
+  }
+
   .folders-grid,
   .lists-grid {
     grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));

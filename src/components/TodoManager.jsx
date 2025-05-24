@@ -6,26 +6,31 @@ import './TodoManager.css';
 const DEFAULT_FOLDERS = {
   'shopping': {
     name: '🛒 Liste de courses',
+    icon: '🛒',
     description: 'Courses, favoris, types et magasins',
     lists: []
   },
   'home': {
     name: '🏠 Maison',
+    icon: '🏠',
     description: 'Tâches à faire à la maison',
     lists: []
   },
   'vacation': {
     name: '✈️ Vacances',
+    icon: '✈️',
     description: 'Idées de voyages et activités',
     lists: []
   },
   'projects': {
     name: '📋 Projets',
+    icon: '📋',
     description: 'Projets personnels et familiaux',
     lists: []
   },
   'events': {
     name: '🎉 Événements',
+    icon: '🎉',
     description: 'Planification d\'événements',
     lists: []
   }
@@ -269,6 +274,7 @@ export default function TodoManager() {
               className="folder-card"
               onClick={() => setSelectedFolder(id)}
             >
+              <div className="folder-icon">{folder.icon}</div>
               <h3>{folder.name}</h3>
               <p>{folder.description}</p>
               <div className="folder-stats">
