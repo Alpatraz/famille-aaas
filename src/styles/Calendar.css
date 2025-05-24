@@ -53,7 +53,7 @@
 
 .calendar-week-label {
   font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
-  font-size: 1.4rem;
+  font-size: 1.2rem;
   font-weight: 600;
   color: #2d3748;
   margin: 0;
@@ -93,7 +93,7 @@
   background-color: #f8fafc;
   border: 1px solid #e2e8f0;
   border-radius: 12px;
-  padding: 1rem;
+  padding: 0.75rem;
   display: flex;
   flex-direction: column;
   min-height: 140px;
@@ -116,21 +116,21 @@
 
 .day-header strong {
   font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
-  font-size: 1rem;
+  font-size: 0.9rem;
   color: #2d3748;
   text-transform: capitalize;
   font-weight: 600;
 }
 
 .day-date {
-  font-size: 0.9rem;
+  font-size: 0.8rem;
   color: #64748b;
   margin-top: 0.25rem;
   display: block;
 }
 
 .weather {
-  font-size: 0.9rem;
+  font-size: 0.8rem;
   color: #4a5568;
   background: #ffffff;
   padding: 0.35rem 0.5rem;
@@ -144,27 +144,29 @@
 .day-events {
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: 0.4rem;
   flex-grow: 1;
-  overflow: hidden;
+  overflow-y: auto;
+  max-height: calc(100% - 3rem);
 }
 
 .event-bubble {
   background-color: #f1f5f9;
   color: #2d3748;
-  padding: 0.5rem 0.75rem;
-  font-size: 0.95rem;
-  border-radius: 8px;
+  padding: 0.4rem 0.6rem;
+  font-size: 0.75rem;
+  border-radius: 6px;
   cursor: pointer;
   transition: all 0.2s ease;
   border: 1px solid transparent;
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 0.4rem;
   font-weight: 500;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  line-height: 1.2;
 }
 
 .event-bubble:hover {
@@ -194,11 +196,11 @@
   }
   
   .calendar-week-label {
-    font-size: 1.25rem;
+    font-size: 1.1rem;
   }
 
   .nav-button {
-    font-size: 1rem;
+    font-size: 0.9rem;
     padding: 0.5rem 0.75rem;
   }
 }
@@ -217,6 +219,6 @@
   }
 
   .calendar-week-label {
-    font-size: 1.15rem;
+    font-size: 1rem;
   }
 }
