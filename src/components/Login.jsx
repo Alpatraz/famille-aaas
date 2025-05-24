@@ -43,7 +43,8 @@ export default function Login({ onLogin }) {
           setError('Aucun compte trouvé avec cet email')
           break
         case 'auth/wrong-password':
-          setError('Mot de passe incorrect')
+        case 'auth/invalid-credential':
+          setError('Email ou mot de passe incorrect')
           break
         case 'auth/invalid-email':
           setError('Format d\'email invalide')
