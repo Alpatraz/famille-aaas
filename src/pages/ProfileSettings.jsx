@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { db, auth } from '../firebase'
-import { sendPasswordResetEmail } from 'firebase/auth'
+import { sendPasswordResetEmail, updatePassword } from 'firebase/auth'
 import {
   collection, getDocs, setDoc, doc, addDoc, deleteDoc
 } from 'firebase/firestore'
@@ -11,6 +11,10 @@ export default function ProfileSettings() {
   const [editing, setEditing] = useState({})
   const [currentUser, setCurrentUser] = useState(null)
   const [resetStatus, setResetStatus] = useState({ loading: false, message: '', error: false })
+  const [showPasswordModal, setShowPasswordModal] = useState(false)
+  const [selectedUser, setSelectedUser] = useState(null)
+  const [newPassword, setNewPassword] = useState('')
+  const [confirmPassword, setConfirmPassword] = useState('')
 
   const [newName, setNewName] = useState('')
   const [newRole, setNewRole] = useState('enfant')
@@ -75,31 +79,66 @@ export default function ProfileSettings() {
     loadUsers()
   }
 
-  const handleResetPassword = async (user) => {
+  const handleResetPassword = async (user, method) => {
     if (user.role !== 'parent') {
       alert('⚠️ Seuls les parents peuvent réinitialiser leur mot de passe')
       return
     }
 
-    try {
-      setResetStatus({ loading: true, message: '', error: false })
-      await sendPasswordResetEmail(auth, user.email)
-      setResetStatus({
-        loading: false,
-        message: '✅ Email de réinitialisation envoyé',
-        error: false
-      })
-    } catch (error) {
-      setResetStatus({
-        loading: false,
-        message: '❌ Erreur lors de l\'envoi de l\'email',
-        error: true
-      })
+    if (method === 'email') {
+      try {
+        setResetStatus({ loading: true, message: '', error: false })
+        await sendPasswordResetEmail(auth, user.email)
+        setResetStatus({
+          loading: false,
+          message: '✅ Email de réinitialisation envoyé',
+          error: false
+        })
+      } catch (error) {
+        setResetStatus({
+          loading: false,
+          message: '❌ Erreur lors de l\'envoi de l\'email',
+          error: true
+        })
+      }
+    } else if (method === 'direct') {
+      setSelectedUser(user)
+      setShowPasswordModal(true)
     }
 
     setTimeout(() => {
       setResetStatus({ loading: false, message: '', error: false })
     }, 3000)
+  }
+
+  const handleDirectPasswordChange = async () => {
+    if (newPassword !== confirmPassword) {
+      setResetStatus({
+        loading: false,
+        message: '❌ Les mots de passe ne correspondent pas',
+        error: true
+      })
+      return
+    }
+
+    try {
+      setResetStatus({ loading: true, message: '', error: false })
+      await updatePassword(auth.currentUser, newPassword)
+      setResetStatus({
+        loading: false,
+        message: '✅ Mot de passe modifié avec succès',
+        error: false
+      })
+      setShowPasswordModal(false)
+      setNewPassword('')
+      setConfirmPassword('')
+    } catch (error) {
+      setResetStatus({
+        loading: false,
+        message: '❌ Erreur lors du changement de mot de passe',
+        error: true
+      })
+    }
   }
 
   const handleResetScores = async () => {
@@ -182,13 +221,22 @@ export default function ProfileSettings() {
             <button onClick={() => handleSave(user.uid)}>✅ Valider</button>
 
             {user.role === 'parent' && (
-              <button 
-                className="reset-password-button"
-                onClick={() => handleResetPassword(user)}
-                disabled={resetStatus.loading}
-              >
-                🔑 Réinitialiser le mot de passe
-              </button>
+              <div className="password-reset-options">
+                <button 
+                  className="reset-password-button"
+                  onClick={() => handleResetPassword(user, 'email')}
+                  disabled={resetStatus.loading}
+                >
+                  📧 Réinitialiser par email
+                </button>
+                <button 
+                  className="reset-password-button"
+                  onClick={() => handleResetPassword(user, 'direct')}
+                  disabled={resetStatus.loading}
+                >
+                  🔑 Changer le mot de passe
+                </button>
+              </div>
             )}
 
             {resetStatus.message && user.role === 'parent' && (
@@ -238,6 +286,34 @@ export default function ProfileSettings() {
         >
           🔄 Réinitialiser tous les scores et historiques
         </button>
+      )}
+
+      {showPasswordModal && (
+        <div className="password-modal">
+          <div className="password-modal-content">
+            <h3>🔑 Changer le mot de passe</h3>
+            <input
+              type="password"
+              placeholder="Nouveau mot de passe"
+              value={newPassword}
+              onChange={(e) => setNewPassword(e.target.value)}
+            />
+            <input
+              type="password"
+              placeholder="Confirmer le mot de passe"
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
+            />
+            <div className="modal-actions">
+              <button onClick={handleDirectPasswordChange}>Confirmer</button>
+              <button onClick={() => {
+                setShowPasswordModal(false)
+                setNewPassword('')
+                setConfirmPassword('')
+              }}>Annuler</button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   )
