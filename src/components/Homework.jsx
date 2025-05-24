@@ -24,6 +24,7 @@ export default function Homework() {
   const [selectedFile, setSelectedFile] = useState(null);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [uploadError, setUploadError] = useState(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [newHomework, setNewHomework] = useState({
     title: '',
     subject: '',
@@ -95,6 +96,9 @@ export default function Homework() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (isSubmitting) return;
+
+    setIsSubmitting(true);
     setUploadError(null);
     setUploadProgress(0);
 
@@ -117,7 +121,7 @@ export default function Homework() {
       if (editingHomework) {
         if (editingHomework.filePath && fileData.fileUrl) {
           const oldFileRef = ref(storage, editingHomework.filePath);
-          await deleteObject(oldFileRef);
+          await deleteObject(oldFileRef).catch(console.error);
         }
         await updateDoc(doc(db, 'homeworks', editingHomework.id), homeworkData);
       } else {
@@ -143,6 +147,8 @@ export default function Homework() {
     } catch (error) {
       console.error('Error submitting homework:', error);
       setUploadError(error.message || 'Une erreur est survenue');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -151,7 +157,7 @@ export default function Homework() {
       try {
         if (homework.filePath) {
           const fileRef = ref(storage, homework.filePath);
-          await deleteObject(fileRef);
+          await deleteObject(fileRef).catch(console.error);
         }
         await deleteDoc(doc(db, 'homeworks', homework.id));
         await loadHomeworks();
@@ -174,17 +180,6 @@ export default function Homework() {
     });
     setShowAddForm(true);
   };
-
-  const groupedHomeworks = homeworks.reduce((acc, homework) => {
-    if (!acc[homework.assignedTo]) {
-      acc[homework.assignedTo] = {};
-    }
-    if (!acc[homework.assignedTo][homework.subject]) {
-      acc[homework.assignedTo][homework.subject] = [];
-    }
-    acc[homework.assignedTo][homework.subject].push(homework);
-    return acc;
-  }, {});
 
   const renderHomeworkFile = (homework) => (
     <div key={homework.id} className="homework-file">
@@ -392,8 +387,12 @@ export default function Homework() {
               )}
             </div>
             <div className="form-actions">
-              <button type="submit" className="submit-button" disabled={uploadError}>
-                {editingHomework ? 'Modifier' : 'Ajouter'}
+              <button 
+                type="submit" 
+                className="submit-button"
+                disabled={isSubmitting || uploadError}
+              >
+                {isSubmitting ? 'Enregistrement...' : (editingHomework ? 'Modifier' : 'Ajouter')}
               </button>
               <button
                 type="button"
