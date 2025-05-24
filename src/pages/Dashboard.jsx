@@ -6,7 +6,7 @@ import EventPopup from '../components/EventPopup'
 import Modal from '../components/Modal'
 import MealPlanner from '../components/MealPlanner'
 import Homework from '../components/Homework'
-import ShoppingList from '../components/ShoppingList'
+import TodoManager from '../components/TodoManager'
 import { db } from '../firebase'
 import { collection, getDocs, doc, getDoc, addDoc, deleteDoc, updateDoc } from 'firebase/firestore'
 
@@ -161,7 +161,7 @@ export default function Dashboard({ user }) {
         </div>
 
         <div className="dashboard-section">
-          <ShoppingList />
+          <TodoManager />
         </div>
 
         <div className="dashboard-section">
@@ -203,5 +203,5 @@ export default function Dashboard({ user }) {
         />
       )}
     </div>
-  )
+  );
 }
