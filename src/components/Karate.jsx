@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { db } from '../firebase';
-import { collection, getDocs, doc, getDoc, setDoc, addDoc, query, where, orderBy } from 'firebase/firestore';
+import { collection, getDocs, doc, getDoc, setDoc } from 'firebase/firestore';
 import './Karate.css';
 
 const BELT_COLORS = {
@@ -26,22 +26,14 @@ export default function Karate({ user }) {
   const [users, setUsers] = useState([]);
   const [selectedUser, setSelectedUser] = useState(null);
   const [karateData, setKarateData] = useState(null);
-  const [weeklyTheme, setWeeklyTheme] = useState('');
-  const [competitions, setCompetitions] = useState([]);
-  const [sessions, setSessions] = useState([]);
-  const [showAddSession, setShowAddSession] = useState(false);
-  const [showAddCompetition, setShowAddCompetition] = useState(false);
 
   useEffect(() => {
     loadUsers();
-    loadWeeklyTheme();
-    loadCompetitions();
   }, []);
 
   useEffect(() => {
     if (selectedUser) {
       loadKarateData(selectedUser.id);
-      loadSessions(selectedUser.id);
     }
   }, [selectedUser]);
 
@@ -53,7 +45,7 @@ export default function Karate({ user }) {
     }));
     setUsers(userData);
     
-    // If current user is a child, auto-select them
+    // Si l'utilisateur est un enfant, le sélectionner automatiquement
     if (user?.role === 'enfant') {
       const currentUser = userData.find(u => u.id === user.uid);
       if (currentUser) {
@@ -69,7 +61,7 @@ export default function Karate({ user }) {
     if (snap.exists()) {
       setKarateData(snap.data());
     } else {
-      // Initialize new user data
+      // Initialiser les données pour un nouvel utilisateur
       const initialData = {
         belt: 'white',
         lastPromotion: null,
@@ -81,75 +73,6 @@ export default function Karate({ user }) {
     }
   };
 
-  const loadWeeklyTheme = async () => {
-    const themeRef = doc(db, 'karate_theme', 'current');
-    const snap = await getDoc(themeRef);
-    if (snap.exists()) {
-      setWeeklyTheme(snap.data().theme);
-    }
-  };
-
-  const loadCompetitions = async () => {
-    const snap = await getDocs(
-      query(collection(db, 'karate_competitions'), orderBy('date', 'desc'))
-    );
-    setCompetitions(snap.docs.map(doc => ({
-      id: doc.id,
-      ...doc.data()
-    })));
-  };
-
-  const loadSessions = async (userId) => {
-    const snap = await getDocs(
-      query(
-        collection(db, 'karate_sessions'),
-        where('userId', '==', userId),
-        orderBy('date', 'desc')
-      )
-    );
-    setSessions(snap.docs.map(doc => ({
-      id: doc.id,
-      ...doc.data()
-    })));
-  };
-
-  const handleAddSession = async (sessionData) => {
-    try {
-      await addDoc(collection(db, 'karate_sessions'), {
-        userId: selectedUser.id,
-        ...sessionData,
-        date: new Date().toISOString()
-      });
-      
-      // Update attendance count
-      const userRef = doc(db, 'karate_users', selectedUser.id);
-      await setDoc(userRef, {
-        ...karateData,
-        attendance: (karateData.attendance || 0) + 1
-      }, { merge: true });
-      
-      loadSessions(selectedUser.id);
-      loadKarateData(selectedUser.id);
-      setShowAddSession(false);
-    } catch (error) {
-      console.error('Error adding session:', error);
-    }
-  };
-
-  const handleAddCompetition = async (competitionData) => {
-    try {
-      await addDoc(collection(db, 'karate_competitions'), {
-        ...competitionData,
-        participants: [],
-        results: {}
-      });
-      loadCompetitions();
-      setShowAddCompetition(false);
-    } catch (error) {
-      console.error('Error adding competition:', error);
-    }
-  };
-
   const calculateNextBelt = () => {
     if (!karateData) return null;
     
@@ -157,7 +80,7 @@ export default function Karate({ user }) {
     const attendance = karateData.attendance || 0;
     const required = REQUIRED_SESSIONS[currentBelt];
     
-    if (!required) return null; // Already black belt
+    if (!required) return null; // Déjà ceinture noire
     
     return {
       next: Object.keys(BELT_COLORS)[BELT_COLORS[currentBelt].order + 1],
@@ -215,13 +138,6 @@ export default function Karate({ user }) {
         )}
       </div>
 
-      {weeklyTheme && (
-        <div className="theme-banner">
-          <h3>📝 Thème de la semaine</h3>
-          <p>{weeklyTheme}</p>
-        </div>
-      )}
-
       {selectedUser && karateData && (
         <div className="karate-content">
           <div className="belt-section">
@@ -240,69 +156,6 @@ export default function Karate({ user }) {
                 </p>
               </div>
             )}
-          </div>
-
-          <div className="training-section">
-            <div className="section-header">
-              <h3>📊 Entraînements</h3>
-              {user?.role === 'parent' && (
-                <button onClick={() => setShowAddSession(true)}>
-                  ➕ Ajouter
-                </button>
-              )}
-            </div>
-            <div className="sessions-list">
-              {sessions.map(session => (
-                <div key={session.id} className="session-card">
-                  <div className="session-type">
-                    {session.type === 'regular' ? '🔄 Cours régulier' : '👤 Cours privé'}
-                  </div>
-                  <div className="session-date">
-                    {new Date(session.date).toLocaleDateString()}
-                  </div>
-                  {session.type === 'private' && (
-                    <div className="session-price">
-                      💰 {session.price}€
-                      <span className={`payment-status ${session.paid ? 'paid' : 'unpaid'}`}>
-                        {session.paid ? '✓ Payé' : '⏳ En attente'}
-                      </span>
-                    </div>
-                  )}
-                </div>
-              ))}
-            </div>
-          </div>
-
-          <div className="competitions-section">
-            <div className="section-header">
-              <h3>🏆 Compétitions</h3>
-              {user?.role === 'parent' && (
-                <button onClick={() => setShowAddCompetition(true)}>
-                  ➕ Ajouter
-                </button>
-              )}
-            </div>
-            <div className="competitions-list">
-              {competitions.map(competition => (
-                <div key={competition.id} className="competition-card">
-                  <h4>{competition.name}</h4>
-                  <div className="competition-details">
-                    <span>📅 {new Date(competition.date).toLocaleDateString()}</span>
-                    <span>📍 {competition.location}</span>
-                  </div>
-                  {competition.results[selectedUser.id] && (
-                    <div className="competition-results">
-                      {Object.entries(competition.results[selectedUser.id]).map(([category, result]) => (
-                        <div key={category} className="result-item">
-                          <span>{category}:</span>
-                          <span className="medal">{result}</span>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              ))}
-            </div>
           </div>
         </div>
       )}
