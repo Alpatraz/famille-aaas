@@ -4,7 +4,8 @@ import {
   sendPasswordResetEmail, 
   updatePassword,
   EmailAuthProvider,
-  reauthenticateWithCredential 
+  reauthenticateWithCredential,
+  signInWithEmailAndPassword 
 } from 'firebase/auth'
 import {
   collection, getDocs, setDoc, doc, addDoc, deleteDoc
@@ -18,6 +19,7 @@ export default function ProfileSettings() {
   const [resetStatus, setResetStatus] = useState({ loading: false, message: '', error: false })
   const [showPasswordModal, setShowPasswordModal] = useState(false)
   const [selectedUser, setSelectedUser] = useState(null)
+  const [email, setEmail] = useState('')
   const [currentPassword, setCurrentPassword] = useState('')
   const [newPassword, setNewPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
@@ -109,6 +111,7 @@ export default function ProfileSettings() {
       }
     } else if (method === 'direct') {
       setSelectedUser(user)
+      setEmail(user.email)
       setShowPasswordModal(true)
     }
 
@@ -130,13 +133,10 @@ export default function ProfileSettings() {
     try {
       setResetStatus({ loading: true, message: '', error: false })
       
-      // Re-authenticate user before changing password
-      const credential = EmailAuthProvider.credential(
-        auth.currentUser.email,
-        currentPassword
-      )
+      // First sign in with email/password
+      await signInWithEmailAndPassword(auth, email, currentPassword)
       
-      await reauthenticateWithCredential(auth.currentUser, credential)
+      // Then update the password
       await updatePassword(auth.currentUser, newPassword)
       
       setResetStatus({
