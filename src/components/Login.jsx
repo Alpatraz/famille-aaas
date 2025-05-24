@@ -14,13 +14,34 @@ export default function Login({ onLogin }) {
     e.preventDefault()
     setError(null)
     setLoading(true)
+    
     try {
       const userCredential = await signInWithEmailAndPassword(auth, email, password)
-      onLogin(userCredential.user)
+      const userDoc = await getDoc(doc(db, 'users', userCredential.user.uid))
+      
+      if (userDoc.exists()) {
+        const userData = userDoc.data()
+        onLogin({
+          ...userCredential.user,
+          role: userData.role || 'enfant',
+          color: userData.color || '#94a3b8',
+          avatar: userData.avatar || '👤'
+        })
+      } else {
+        onLogin(userCredential.user)
+      }
     } catch (err) {
-      setError('Email ou mot de passe incorrect')
+      console.error('Erreur de connexion:', err)
+      if (err.code === 'auth/wrong-password' || err.code === 'auth/user-not-found') {
+        setError('Email ou mot de passe incorrect')
+      } else if (err.code === 'auth/too-many-requests') {
+        setError('Trop de tentatives. Veuillez réessayer plus tard.')
+      } else {
+        setError('Une erreur est survenue lors de la connexion')
+      }
+    } finally {
+      setLoading(false)
     }
-    setLoading(false)
   }
 
   const handleResetPassword = async () => {
@@ -33,21 +54,19 @@ export default function Login({ onLogin }) {
     setError(null)
     
     try {
-      // Vérifie si l'utilisateur est un parent
-      const usersRef = doc(db, 'users', auth.currentUser?.uid || 'temp')
-      const userDoc = await getDoc(usersRef)
-      
-      if (userDoc.exists() && userDoc.data().role === 'parent') {
-        await sendPasswordResetEmail(auth, email)
-        setResetSent(true)
-      } else {
-        setError('Seuls les parents peuvent réinitialiser leur mot de passe')
-      }
+      await sendPasswordResetEmail(auth, email)
+      setResetSent(true)
+      setError(null)
     } catch (err) {
-      setError('Erreur lors de l\'envoi de l\'email de réinitialisation')
+      console.error('Erreur réinitialisation:', err)
+      if (err.code === 'auth/user-not-found') {
+        setError('Aucun compte trouvé avec cet email')
+      } else {
+        setError('Erreur lors de l\'envoi de l\'email de réinitialisation')
+      }
+    } finally {
+      setLoading(false)
     }
-    
-    setLoading(false)
   }
 
   return (
