@@ -6,6 +6,7 @@ import EventPopup from '../components/EventPopup'
 import Modal from '../components/Modal'
 import MealPlanner from '../components/MealPlanner'
 import Homework from '../components/Homework'
+import ShoppingList from '../components/ShoppingList'
 import { db } from '../firebase'
 import { collection, getDocs, doc, getDoc, addDoc, deleteDoc, updateDoc } from 'firebase/firestore'
 
@@ -157,6 +158,10 @@ export default function Dashboard({ user }) {
 
         <div className="dashboard-section">
           <Homework />
+        </div>
+
+        <div className="dashboard-section">
+          <ShoppingList />
         </div>
 
         <div className="dashboard-section">
