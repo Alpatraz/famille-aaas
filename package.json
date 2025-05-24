@@ -1,25 +1,6 @@
 {
-    "name": "famille-aaas",
-    "version": "1.0.0",
-    "scripts": {
-        "dev": "vite",
-        "build": "vite build"
-    },
-    "dependencies": {
-        "date-fns": "^4.1.0",
-        "firebase": "^11.7.3",
-        "react": "^18.2.0",
-        "react-beautiful-dnd": "^13.1.1",
-        "react-dnd": "^16.0.1",
-        "react-dnd-html5-backend": "^16.0.1",
-        "react-dom": "^18.2.0",
-        "react-router-dom": "^7.6.0",
-        "uuid": "^9.0.1",
-        "chart.js": "^4.4.1",
-        "react-chartjs-2": "^5.2.0"
-    },
-    "devDependencies": {
-        "@vitejs/plugin-react": "^4.4.1",
-        "vite": "^4.0.0"
-    }
+  "dependencies": {
+    "chart.js": "^4.4.1",
+    "react-chartjs-2": "^5.2.0"
+  }
 }
