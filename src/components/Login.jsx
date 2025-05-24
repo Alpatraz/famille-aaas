@@ -16,6 +16,11 @@ export default function Login({ onLogin }) {
     setLoading(true)
     
     try {
+      // Validate email and password before attempting login
+      if (!email || !password) {
+        throw new Error('Veuillez remplir tous les champs')
+      }
+
       const userCredential = await signInWithEmailAndPassword(auth, email, password)
       const userDoc = await getDoc(doc(db, 'users', userCredential.user.uid))
       
@@ -31,15 +36,31 @@ export default function Login({ onLogin }) {
         onLogin(userCredential.user)
       }
     } catch (err) {
-      console.error('Erreur de connexion:', err)
-      if (err.code === 'auth/wrong-password' || 
-          err.code === 'auth/user-not-found' || 
-          err.code === 'auth/invalid-credential') {
-        setError('Email ou mot de passe incorrect')
-      } else if (err.code === 'auth/too-many-requests') {
-        setError('Trop de tentatives. Veuillez réessayer plus tard.')
-      } else {
-        setError('Une erreur est survenue lors de la connexion')
+      console.error('Erreur de connexion détaillée:', err)
+      
+      // More detailed error handling
+      switch (err.code) {
+        case 'auth/invalid-credential':
+          setError('Email ou mot de passe incorrect')
+          break
+        case 'auth/wrong-password':
+          setError('Mot de passe incorrect')
+          break
+        case 'auth/user-not-found':
+          setError('Aucun compte trouvé avec cet email')
+          break
+        case 'auth/too-many-requests':
+          setError('Trop de tentatives. Veuillez réessayer plus tard.')
+          break
+        case 'auth/invalid-email':
+          setError('Format d\'email invalide')
+          break
+        default:
+          if (err.message) {
+            setError(err.message)
+          } else {
+            setError('Une erreur est survenue lors de la connexion')
+          }
       }
     } finally {
       setLoading(false)
@@ -60,9 +81,11 @@ export default function Login({ onLogin }) {
       setResetSent(true)
       setError(null)
     } catch (err) {
-      console.error('Erreur réinitialisation:', err)
+      console.error('Erreur réinitialisation détaillée:', err)
       if (err.code === 'auth/user-not-found') {
         setError('Aucun compte trouvé avec cet email')
+      } else if (err.code === 'auth/invalid-email') {
+        setError('Format d\'email invalide')
       } else {
         setError('Erreur lors de l\'envoi de l\'email de réinitialisation')
       }
