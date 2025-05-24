@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { db } from '../firebase';
-import { collection, addDoc, getDocs, deleteDoc, doc, updateDoc } from 'firebase/firestore';
+import { collection, addDoc, getDocs, deleteDoc, doc, updateDoc, setDoc, getDoc } from 'firebase/firestore';
 import './TodoManager.css';
 
 const DEFAULT_FOLDERS = {
@@ -47,15 +47,24 @@ export default function TodoManager() {
 
   const loadFolders = async () => {
     try {
+      // Create default folders if they don't exist
+      for (const [id, folderData] of Object.entries(DEFAULT_FOLDERS)) {
+        const folderRef = doc(db, 'todos', id);
+        const folderDoc = await getDoc(folderRef);
+        
+        if (!folderDoc.exists()) {
+          await setDoc(folderRef, folderData);
+        }
+      }
+
+      // Load all folders
       const snap = await getDocs(collection(db, 'todos'));
       const data = snap.docs.reduce((acc, doc) => {
         acc[doc.id] = { id: doc.id, ...doc.data() };
         return acc;
       }, {});
 
-      // Merge with default folders
-      const mergedFolders = { ...DEFAULT_FOLDERS, ...data };
-      setFolders(mergedFolders);
+      setFolders(data);
     } catch (error) {
       console.error('Error loading folders:', error);
     }
@@ -88,6 +97,19 @@ export default function TodoManager() {
     if (!newListName.trim() || !selectedFolder) return;
 
     try {
+      const folderRef = doc(db, 'todos', selectedFolder);
+      const folderDoc = await getDoc(folderRef);
+
+      // If folder doesn't exist, create it with default data
+      if (!folderDoc.exists()) {
+        const defaultData = DEFAULT_FOLDERS[selectedFolder] || {
+          name: 'New Folder',
+          description: '',
+          lists: []
+        };
+        await setDoc(folderRef, defaultData);
+      }
+
       const updatedFolder = {
         ...folders[selectedFolder],
         lists: [
@@ -100,7 +122,7 @@ export default function TodoManager() {
         ]
       };
 
-      await updateDoc(doc(db, 'todos', selectedFolder), updatedFolder);
+      await updateDoc(folderRef, updatedFolder);
       setFolders(prev => ({
         ...prev,
         [selectedFolder]: updatedFolder
