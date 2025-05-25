@@ -29,6 +29,11 @@ const WEEKDAYS = [
   'Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi', 'Dimanche'
 ];
 
+const HOURS = Array.from({ length: 14 }, (_, i) => {
+  const hour = i + 8; // Start at 8:00
+  return `${hour.toString().padStart(2, '0')}:00`;
+});
+
 export default function Karate({ user }) {
   const [selectedSection, setSelectedSection] = useState(null);
   const [karateUsers, setKarateUsers] = useState([]);
@@ -120,6 +125,19 @@ export default function Karate({ user }) {
             date: new Date().toISOString()
           }
         ];
+      }
+
+      // Handle private lessons scheduling
+      if (updatedData.hasPrivateLessons) {
+        if (!updatedData.privateLessonsSchedule) {
+          updatedData.privateLessonsSchedule = {
+            day: 'Lundi',
+            time: '17:00',
+            frequency: 'weekly'
+          };
+        }
+      } else {
+        delete updatedData.privateLessonsSchedule;
       }
 
       await updateDoc(karateUserRef, updatedData);
@@ -381,6 +399,40 @@ export default function Karate({ user }) {
                     <option value="weekly">Hebdomadaire</option>
                     <option value="biweekly">Bihebdomadaire</option>
                   </select>
+
+                  <div className="private-lesson-time">
+                    <label>Jour du cours privé</label>
+                    <select
+                      value={user.privateLessonsSchedule?.day || 'Lundi'}
+                      onChange={(e) => handleSaveProfile(user, {
+                        ...user,
+                        privateLessonsSchedule: {
+                          ...user.privateLessonsSchedule,
+                          day: e.target.value
+                        }
+                      })}
+                    >
+                      {WEEKDAYS.map(day => (
+                        <option key={day} value={day}>{day}</option>
+                      ))}
+                    </select>
+
+                    <label>Heure du cours privé</label>
+                    <select
+                      value={user.privateLessonsSchedule?.time || '17:00'}
+                      onChange={(e) => handleSaveProfile(user, {
+                        ...user,
+                        privateLessonsSchedule: {
+                          ...user.privateLessonsSchedule,
+                          time: e.target.value
+                        }
+                      })}
+                    >
+                      {HOURS.map(hour => (
+                        <option key={hour} value={hour}>{hour}</option>
+                      ))}
+                    </select>
+                  </div>
                 </div>
               )}
             </div>
