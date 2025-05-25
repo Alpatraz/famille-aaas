@@ -28,6 +28,7 @@ export default function ProfileSettings() {
   const [newRole, setNewRole] = useState('enfant')
   const [newAvatar, setNewAvatar] = useState('🙂')
   const [newColor, setNewColor] = useState('#cccccc')
+  const [newPracticesKarate, setPracticesKarate] = useState(false)
 
   const loadUsers = async () => {
     const snap = await getDocs(collection(db, 'users'))
@@ -62,6 +63,36 @@ export default function ProfileSettings() {
     const updated = editing[uid]
     if (updated) {
       await setDoc(doc(db, 'users', uid), updated, { merge: true })
+      
+      // If karate status changed, update karate_users collection
+      const user = users.find(u => u.uid === uid)
+      const karateStatusChanged = user.practicesKarate !== updated.practicesKarate
+      
+      if (karateStatusChanged) {
+        if (updated.practicesKarate) {
+          // Add to karate_users
+          await setDoc(doc(db, 'karate_users', uid), {
+            name: updated.displayName,
+            currentBelt: 'white',
+            attendedClasses: 0,
+            requiredClasses: 20,
+            beltHistory: [{
+              belt: 'white',
+              date: new Date().toISOString()
+            }],
+            katas: {
+              technique: [],
+              assiduite: [],
+              comprehension: [],
+              esprit: []
+            }
+          })
+        } else {
+          // Remove from karate_users
+          await deleteDoc(doc(db, 'karate_users', uid))
+        }
+      }
+      
       setEditing(prev => {
         const copy = { ...prev }
         delete copy[uid]
@@ -74,16 +105,41 @@ export default function ProfileSettings() {
 
   const handleCreateUser = async () => {
     if (!newName.trim()) return
-    await addDoc(collection(db, 'users'), {
+    
+    const userData = {
       displayName: newName.trim(),
       role: newRole,
       color: newColor,
-      avatar: newAvatar
-    })
+      avatar: newAvatar,
+      practicesKarate: newPracticesKarate
+    }
+    
+    const docRef = await addDoc(collection(db, 'users'), userData)
+    
+    if (newPracticesKarate) {
+      await setDoc(doc(db, 'karate_users', docRef.id), {
+        name: newName.trim(),
+        currentBelt: 'white',
+        attendedClasses: 0,
+        requiredClasses: 20,
+        beltHistory: [{
+          belt: 'white',
+          date: new Date().toISOString()
+        }],
+        katas: {
+          technique: [],
+          assiduite: [],
+          comprehension: [],
+          esprit: []
+        }
+      })
+    }
+    
     setNewName('')
     setNewRole('enfant')
     setNewColor('#cccccc')
     setNewAvatar('🙂')
+    setPracticesKarate(false)
     loadUsers()
   }
 
@@ -239,6 +295,15 @@ export default function ProfileSettings() {
               </select>
             </label>
 
+            <label className="checkbox-label">
+              <input
+                type="checkbox"
+                checked={editing[user.uid]?.practicesKarate ?? user.practicesKarate}
+                onChange={e => handleChange(user.uid, 'practicesKarate', e.target.checked)}
+              />
+              🥋 Pratique le karaté
+            </label>
+
             <button onClick={() => handleSave(user.uid)}>✅ Valider</button>
 
             {user.role === 'parent' && (
@@ -290,6 +355,14 @@ export default function ProfileSettings() {
           value={newColor}
           onChange={e => setNewColor(e.target.value)}
         />
+        <label className="checkbox-label">
+          <input
+            type="checkbox"
+            checked={newPracticesKarate}
+            onChange={e => setPracticesKarate(e.target.checked)}
+          />
+          🥋 Pratique le karaté
+        </label>
         <button onClick={handleCreateUser}>Créer</button>
       </div>
 

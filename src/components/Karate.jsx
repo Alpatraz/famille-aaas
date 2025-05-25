@@ -46,13 +46,16 @@ export default function Karate({ user }) {
 
   const loadData = async () => {
     try {
-      // Charger les utilisateurs
-      const usersSnap = await getDocs(collection(db, 'karate_users'));
-      const usersData = usersSnap.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
-      }));
-      setUsers(usersData);
+      // Load only karate users
+      const usersSnap = await getDocs(collection(db, 'users'));
+      const karateUsers = usersSnap.docs
+        .map(doc => ({
+          id: doc.id,
+          ...doc.data()
+        }))
+        .filter(user => user.practicesKarate);
+      
+      setUsers(karateUsers);
 
       // Charger les entraînements
       const trainingsSnap = await getDocs(collection(db, 'karate_trainings'));
