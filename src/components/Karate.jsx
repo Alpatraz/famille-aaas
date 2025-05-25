@@ -133,6 +133,8 @@ export default function Karate({ user }) {
     }
 
     try {
+      const classId = editingClass?.id || Date.now().toString();
+
       if (editingClass) {
         // Update existing class
         const updatedClasses = groupClasses.map(c => 
@@ -148,7 +150,7 @@ export default function Karate({ user }) {
         const q = query(
           eventsRef,
           where('type', '==', 'karate'),
-          where('classId', '==', editingClass.id)
+          where('classId', '==', classId)
         );
         const snapshot = await getDocs(q);
         
@@ -158,7 +160,6 @@ export default function Karate({ user }) {
         }
       } else {
         // Add new class
-        const classId = Date.now().toString();
         const newClassWithId = { ...classData, id: classId };
         const updatedClasses = [...groupClasses, newClassWithId];
         await setDoc(doc(db, 'karate_settings', 'schedules'), {
@@ -183,7 +184,7 @@ export default function Karate({ user }) {
           participants: classData.participants,
           recurring: true,
           day: classData.day,
-          classId: editingClass?.id || Date.now().toString()
+          classId: classId
         });
       }
 
