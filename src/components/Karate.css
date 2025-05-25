@@ -181,6 +181,175 @@
   color: #64748b;
 }
 
+/* Profile Settings Styles */
+.karate-profile-settings {
+  padding: 1rem;
+}
+
+.profile-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 1.5rem;
+}
+
+.profile-card {
+  background: #f8fafc;
+  border: 2px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 1.25rem;
+  transition: all 0.2s ease;
+}
+
+.profile-header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.profile-avatar {
+  font-size: 1.8rem;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: white;
+  border: 2px solid #e2e8f0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.profile-card h3 {
+  margin: 0;
+  font-size: 1.1rem;
+  color: #1e293b;
+}
+
+.belt-section,
+.training-section,
+.competition-section,
+.kata-section {
+  margin-bottom: 1.5rem;
+}
+
+.profile-card label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-size: 0.9rem;
+  color: #475569;
+}
+
+.profile-card select,
+.profile-card input[type="number"] {
+  width: 100%;
+  padding: 0.75rem;
+  border: 2px solid #e2e8f0;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  margin-bottom: 1rem;
+  background: white;
+  transition: all 0.2s ease;
+}
+
+.profile-card select:focus,
+.profile-card input:focus {
+  border-color: #3b82f6;
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-size: 0.95rem;
+  color: #475569;
+  cursor: pointer;
+  margin-bottom: 0.75rem;
+}
+
+.checkbox-label input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  border: 2px solid #e2e8f0;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.kata-category-edit {
+  background: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 1rem;
+  margin-bottom: 1rem;
+}
+
+.kata-category-edit h5 {
+  margin: 0 0 1rem;
+  font-size: 0.95rem;
+  color: #1e293b;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.kata-list-edit {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.kata-item-edit {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.kata-item-edit input {
+  flex: 1;
+  padding: 0.5rem;
+  border: 2px solid #e2e8f0;
+  border-radius: 6px;
+  font-size: 0.9rem;
+}
+
+.kata-item-edit select {
+  width: auto;
+  padding: 0.5rem;
+  margin: 0;
+}
+
+.delete-kata {
+  background: none;
+  border: none;
+  color: #ef4444;
+  cursor: pointer;
+  font-size: 1.2rem;
+  opacity: 0.7;
+  transition: opacity 0.2s;
+  padding: 0.4rem;
+}
+
+.delete-kata:hover {
+  opacity: 1;
+}
+
+.add-kata {
+  background: #f1f5f9;
+  border: 2px solid #e2e8f0;
+  padding: 0.5rem;
+  border-radius: 6px;
+  color: #475569;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: all 0.2s ease;
+}
+
+.add-kata:hover {
+  background: #e2e8f0;
+  transform: translateY(-1px);
+}
+
 @media (max-width: 768px) {
   .karate-header {
     flex-direction: column;
@@ -198,6 +367,19 @@
 
   .kata-categories {
     grid-template-columns: 1fr;
+  }
+
+  .profile-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .kata-item-edit {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .kata-item-edit select {
+    width: 100%;
   }
 
   .user-karate-card {

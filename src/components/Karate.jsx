@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { db } from '../firebase';
-import { collection, getDocs, doc, getDoc, query, where } from 'firebase/firestore';
+import { collection, getDocs, doc, getDoc, query, where, updateDoc } from 'firebase/firestore';
 import Modal from './Modal';
 import './Karate.css';
 
@@ -26,6 +26,7 @@ export default function Karate({ user }) {
   const [karateUsers, setKarateUsers] = useState([]);
   const [weeklyTheme, setWeeklyTheme] = useState('');
   const [loading, setLoading] = useState(true);
+  const [editingUser, setEditingUser] = useState(null);
 
   useEffect(() => {
     loadData();
@@ -33,7 +34,6 @@ export default function Karate({ user }) {
 
   const loadData = async () => {
     try {
-      // Load karate users
       const usersSnap = await getDocs(
         query(collection(db, 'users'), where('practicesKarate', '==', true))
       );
@@ -53,7 +53,6 @@ export default function Karate({ user }) {
       
       setKarateUsers(users);
 
-      // Load weekly theme
       const themeDoc = await getDoc(doc(db, 'karate_settings', 'weeklyTheme'));
       if (themeDoc.exists()) {
         setWeeklyTheme(themeDoc.data().theme);
@@ -69,6 +68,164 @@ export default function Karate({ user }) {
     if (!userData?.requiredClasses) return 0;
     return Math.min(100, (userData.attendedClasses / userData.requiredClasses) * 100);
   };
+
+  const handleSaveProfile = async (updatedData) => {
+    try {
+      const karateUserRef = doc(db, 'karate_users', editingUser.id);
+      
+      // Add new belt to history if it changed
+      if (updatedData.currentBelt !== editingUser.currentBelt) {
+        updatedData.beltHistory = [
+          ...(editingUser.beltHistory || []),
+          {
+            belt: updatedData.currentBelt,
+            date: new Date().toISOString()
+          }
+        ];
+      }
+
+      await updateDoc(karateUserRef, updatedData);
+      await loadData();
+      setEditingUser(null);
+    } catch (error) {
+      console.error('Error updating karate profile:', error);
+      alert('Erreur lors de la sauvegarde du profil');
+    }
+  };
+
+  const renderProfileSettings = () => (
+    <div className="karate-profile-settings">
+      <div className="profile-grid">
+        {karateUsers.map(user => (
+          <div key={user.id} className="profile-card">
+            <div className="profile-header">
+              <span className="profile-avatar">{user.avatar}</span>
+              <h3>{user.displayName}</h3>
+            </div>
+
+            <div className="belt-section">
+              <label>Ceinture actuelle</label>
+              <select
+                value={user.currentBelt}
+                onChange={(e) => handleSaveProfile({ ...user, currentBelt: e.target.value })}
+              >
+                {Object.entries(BELT_COLORS).map(([value, { name }]) => (
+                  <option key={value} value={value}>{name}</option>
+                ))}
+              </select>
+            </div>
+
+            <div className="training-section">
+              <label>Cours suivis</label>
+              <input
+                type="number"
+                value={user.attendedClasses || 0}
+                onChange={(e) => handleSaveProfile({ 
+                  ...user, 
+                  attendedClasses: parseInt(e.target.value) || 0 
+                })}
+                min="0"
+              />
+
+              <label>Cours requis pour la prochaine ceinture</label>
+              <input
+                type="number"
+                value={user.requiredClasses || 20}
+                onChange={(e) => handleSaveProfile({ 
+                  ...user, 
+                  requiredClasses: parseInt(e.target.value) || 20 
+                })}
+                min="1"
+              />
+            </div>
+
+            <div className="competition-section">
+              <label className="checkbox-label">
+                <input
+                  type="checkbox"
+                  checked={user.doesCompetition || false}
+                  onChange={(e) => handleSaveProfile({ 
+                    ...user, 
+                    doesCompetition: e.target.checked 
+                  })}
+                />
+                Fait de la compétition
+              </label>
+
+              <label className="checkbox-label">
+                <input
+                  type="checkbox"
+                  checked={user.hasPrivateLessons || false}
+                  onChange={(e) => handleSaveProfile({ 
+                    ...user, 
+                    hasPrivateLessons: e.target.checked 
+                  })}
+                />
+                Prend des cours privés
+              </label>
+            </div>
+
+            <div className="kata-section">
+              <h4>Kata</h4>
+              {Object.entries(KATA_CATEGORIES).map(([key, category]) => (
+                <div key={key} className="kata-category-edit">
+                  <h5>{category.icon} {category.name}</h5>
+                  <div className="kata-list-edit">
+                    {(user.katas?.[key] || []).map((kata, index) => (
+                      <div key={index} className="kata-item-edit">
+                        <input
+                          type="text"
+                          value={kata.name}
+                          onChange={(e) => {
+                            const updatedKatas = { ...user.katas };
+                            updatedKatas[key][index].name = e.target.value;
+                            handleSaveProfile({ ...user, katas: updatedKatas });
+                          }}
+                        />
+                        <select
+                          value={kata.level}
+                          onChange={(e) => {
+                            const updatedKatas = { ...user.katas };
+                            updatedKatas[key][index].level = parseInt(e.target.value);
+                            handleSaveProfile({ ...user, katas: updatedKatas });
+                          }}
+                        >
+                          {[1, 2, 3, 4, 5].map(level => (
+                            <option key={level} value={level}>Niveau {level}</option>
+                          ))}
+                        </select>
+                        <button
+                          onClick={() => {
+                            const updatedKatas = { ...user.katas };
+                            updatedKatas[key].splice(index, 1);
+                            handleSaveProfile({ ...user, katas: updatedKatas });
+                          }}
+                          className="delete-kata"
+                        >
+                          🗑️
+                        </button>
+                      </div>
+                    ))}
+                    <button
+                      onClick={() => {
+                        const updatedKatas = { ...user.katas };
+                        if (!updatedKatas[key]) updatedKatas[key] = [];
+                        updatedKatas[key].push({ name: '', level: 1 });
+                        handleSaveProfile({ ...user, katas: updatedKatas });
+                      }}
+                      className="add-kata"
+                    >
+                      + Ajouter un kata
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
 
   const renderProgressionContent = () => (
     <div className="progression-section">
@@ -150,15 +307,23 @@ export default function Karate({ user }) {
           >
             📊 Progression
           </button>
+          {user.role === 'parent' && (
+            <button 
+              className="section-button"
+              onClick={() => setSelectedSection('settings')}
+            >
+              ⚙️ Paramètres
+            </button>
+          )}
         </div>
       </div>
 
-      {selectedSection === 'progression' && (
+      {selectedSection && (
         <Modal
-          title="📊 Progression Karaté"
+          title={selectedSection === 'progression' ? '📊 Progression Karaté' : '⚙️ Paramètres Karaté'}
           onClose={() => setSelectedSection(null)}
         >
-          {renderProgressionContent()}
+          {selectedSection === 'progression' ? renderProgressionContent() : renderProfileSettings()}
         </Modal>
       )}
     </div>
