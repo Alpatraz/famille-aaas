@@ -39,19 +39,14 @@ const WEEKDAYS_MAP = {
   'Dimanche': 0
 };
 
-const HOURS = Array.from({ length: 14 }, (_, i) => {
-  const hour = i + 8; // Start at 8:00
-  return `${hour.toString().padStart(2, '0')}:00`;
-});
-
 export default function Karate({ user }) {
   const [selectedSection, setSelectedSection] = useState(null);
   const [karateUsers, setKarateUsers] = useState([]);
   const [weeklyTheme, setWeeklyTheme] = useState('');
   const [loading, setLoading] = useState(true);
   const [groupClasses, setGroupClasses] = useState([]);
-  const [attendance, setAttendance] = useState({});
-  const [editingSchedule, setEditingSchedule] = useState(false);
+  const [showClassList, setShowClassList] = useState(false);
+  const [showAddForm, setShowAddForm] = useState(false);
   const [editingClass, setEditingClass] = useState(null);
   const [newClass, setNewClass] = useState({
     name: '',
@@ -99,71 +94,10 @@ export default function Karate({ user }) {
         setGroupClasses(data.groupClasses || []);
       }
 
-      // Load attendance
-      const attendanceDoc = await getDoc(doc(db, 'karate_settings', 'attendance'));
-      if (attendanceDoc.exists()) {
-        setAttendance(attendanceDoc.data());
-      }
-
     } catch (error) {
       console.error('Error loading karate data:', error);
     } finally {
       setLoading(false);
-    }
-  };
-
-  const calculateProgress = (userData) => {
-    if (!userData?.requiredClasses) return 0;
-    const attended = userData.attendedClasses || 0;
-    return Math.min(100, (attended / userData.requiredClasses) * 100);
-  };
-
-  const handleSaveProfile = async (user, updatedData) => {
-    if (!user?.id) {
-      console.error('No user ID provided for profile update');
-      return;
-    }
-
-    try {
-      const karateUserRef = doc(db, 'karate_users', user.id);
-      
-      // Add new belt to history if it changed
-      if (updatedData.currentBelt !== user.currentBelt) {
-        updatedData.beltHistory = [
-          ...(user.beltHistory || []),
-          {
-            belt: updatedData.currentBelt,
-            date: new Date().toISOString()
-          }
-        ];
-      }
-
-      await updateDoc(karateUserRef, updatedData);
-      await loadData();
-    } catch (error) {
-      console.error('Error updating karate profile:', error);
-      alert('Erreur lors de la sauvegarde du profil');
-    }
-  };
-
-  const toggleParticipant = (userId) => {
-    const target = editingClass || newClass;
-    const setter = editingClass ? setEditingClass : setNewClass;
-    
-    setter(prev => ({
-      ...prev,
-      participants: prev.participants.includes(userId)
-        ? prev.participants.filter(id => id !== userId)
-        : [...prev.participants, userId]
-    }));
-  };
-
-  const handleNameChange = (e) => {
-    const value = e.target.value;
-    if (editingClass) {
-      setEditingClass(prev => ({ ...prev, name: value }));
-    } else {
-      setNewClass(prev => ({ ...prev, name: value }));
     }
   };
 
@@ -261,6 +195,7 @@ export default function Karate({ user }) {
         duration: 60,
         participants: []
       });
+      setShowAddForm(false);
     } catch (error) {
       console.error('Error managing class:', error);
       alert('Erreur lors de la gestion du cours');
@@ -269,9 +204,12 @@ export default function Karate({ user }) {
 
   const handleEditClass = (classInfo) => {
     setEditingClass(classInfo);
+    setShowAddForm(true);
   };
 
   const handleRemoveClass = async (classInfo) => {
+    if (!confirm('Êtes-vous sûr de vouloir supprimer ce cours ?')) return;
+
     try {
       // Remove from group classes
       const updatedClasses = groupClasses.filter(c => c.id !== classInfo.id);
@@ -298,274 +236,17 @@ export default function Karate({ user }) {
     }
   };
 
-  const renderScheduleSettings = () => (
-    <div className="schedule-settings">
-      <div className="section-header">
-        <h3>📅 Planning des cours</h3>
-        {user.role === 'parent' && (
-          <button onClick={() => setEditingSchedule(!editingSchedule)} className="edit-button">
-            {editingSchedule ? '💾 Enregistrer' : '✏️ Modifier'}
-          </button>
-        )}
-      </div>
-
-      <div className="add-form">
-        <input
-          type="text"
-          value={editingClass ? editingClass.name : newClass.name}
-          onChange={handleNameChange}
-          placeholder="Nom du cours"
-          className="class-name-input"
-        />
-        
-        <div className="class-time-inputs">
-          <select
-            value={editingClass ? editingClass.day : newClass.day}
-            onChange={e => editingClass 
-              ? setEditingClass({ ...editingClass, day: e.target.value })
-              : setNewClass({ ...newClass, day: e.target.value })
-            }
-            className="day-select"
-          >
-            {WEEKDAYS.map(day => (
-              <option key={day} value={day}>{day}</option>
-            ))}
-          </select>
-          
-          <input
-            type="time"
-            value={editingClass ? editingClass.time : newClass.time}
-            onChange={e => editingClass
-              ? setEditingClass({ ...editingClass, time: e.target.value })
-              : setNewClass({ ...newClass, time: e.target.value })
-            }
-            className="time-input"
-          />
-          
-          <input
-            type="number"
-            value={editingClass ? editingClass.duration : newClass.duration}
-            onChange={e => editingClass
-              ? setEditingClass({ ...editingClass, duration: parseInt(e.target.value) })
-              : setNewClass({ ...newClass, duration: parseInt(e.target.value) })
-            }
-            min="15"
-            max="180"
-            step="15"
-            placeholder="Durée (min)"
-            className="duration-input"
-          />
-        </div>
-
-        <div className="participant-selector">
-          {karateUsers.map(user => (
-            <div
-              key={user.id}
-              className={`participant-tag ${(editingClass || newClass).participants.includes(user.id) ? 'selected' : ''}`}
-              onClick={() => toggleParticipant(user.id)}
-            >
-              {user.avatar} {user.displayName}
-            </div>
-          ))}
-        </div>
-
-        <button onClick={handleAddClass} className="add-button">
-          {editingClass ? 'Modifier le cours' : 'Ajouter le cours'}
-        </button>
-      </div>
-
-      <div className="items-grid">
-        {groupClasses.map((classInfo) => (
-          <div key={classInfo.id} className="class-card">
-            <div className="class-header">
-              <h4>{classInfo.name}</h4>
-              <div className="class-time">
-                {classInfo.day} à {classInfo.time} ({classInfo.duration} min)
-              </div>
-            </div>
-            
-            <div className="participants-list">
-              {classInfo.participants.map(userId => {
-                const user = karateUsers.find(u => u.id === userId);
-                return user ? (
-                  <span key={userId} className="participant-tag">
-                    {user.avatar} {user.displayName}
-                  </span>
-                ) : null;
-              })}
-            </div>
-
-            {editingSchedule && (
-              <div className="class-actions">
-                <button onClick={() => handleEditClass(classInfo)} className="edit-button">
-                  ✏️ Modifier
-                </button>
-                <button onClick={() => handleRemoveClass(classInfo)} className="delete-button">
-                  🗑️ Supprimer
-                </button>
-              </div>
-            )}
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-
-  const renderProfileSettings = () => (
-    <div className="karate-profile-settings">
-      <div className="profile-grid">
-        {karateUsers.map(user => (
-          <div key={user.id} className="profile-card">
-            <div className="profile-header">
-              <span className="profile-avatar">{user.avatar}</span>
-              <h3>{user.displayName}</h3>
-            </div>
-
-            <div className="belt-section">
-              <label>Ceinture actuelle</label>
-              <select
-                value={user.currentBelt || 'white'}
-                onChange={(e) => handleSaveProfile(user, {
-                  ...user,
-                  currentBelt: e.target.value
-                })}
-              >
-                {Object.entries(BELT_COLORS).map(([value, { name }]) => (
-                  <option key={value} value={value}>{name}</option>
-                ))}
-              </select>
-            </div>
-
-            <div className="competition-section">
-              <label className="checkbox-label">
-                <input
-                  type="checkbox"
-                  checked={user.doesCompetition || false}
-                  onChange={(e) => handleSaveProfile(user, {
-                    ...user,
-                    doesCompetition: e.target.checked
-                  })}
-                />
-                Fait de la compétition
-              </label>
-
-              <label className="checkbox-label">
-                <input
-                  type="checkbox"
-                  checked={user.hasPrivateLessons || false}
-                  onChange={(e) => handleSaveProfile(user, {
-                    ...user,
-                    hasPrivateLessons: e.target.checked
-                  })}
-                />
-                Prend des cours privés
-              </label>
-
-              {user.hasPrivateLessons && (
-                <div className="private-lessons-schedule">
-                  <label>Fréquence des cours privés</label>
-                  <select
-                    value={user.privateLessonsFrequency || 'weekly'}
-                    onChange={(e) => handleSaveProfile(user, {
-                      ...user,
-                      privateLessonsFrequency: e.target.value
-                    })}
-                  >
-                    <option value="weekly">Hebdomadaire</option>
-                    <option value="biweekly">Bihebdomadaire</option>
-                  </select>
-
-                  <div className="private-lesson-time">
-                    <label>Jour du cours privé</label>
-                    <select
-                      value={user.privateLessonsSchedule?.day || 'Lundi'}
-                      onChange={(e) => handleSaveProfile(user, {
-                        ...user,
-                        privateLessonsSchedule: {
-                          ...user.privateLessonsSchedule,
-                          day: e.target.value
-                        }
-                      })}
-                    >
-                      {WEEKDAYS.map(day => (
-                        <option key={day} value={day}>{day}</option>
-                      ))}
-                    </select>
-
-                    <label>Heure du cours privé</label>
-                    <select
-                      value={user.privateLessonsSchedule?.time || '17:00'}
-                      onChange={(e) => handleSaveProfile(user, {
-                        ...user,
-                        privateLessonsSchedule: {
-                          ...user.privateLessonsSchedule,
-                          time: e.target.value
-                        }
-                      })}
-                    >
-                      {HOURS.map(hour => (
-                        <option key={hour} value={hour}>{hour}</option>
-                      ))}
-                    </select>
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-
-  const renderProgressionContent = () => (
-    <div className="progression-section">
-      {karateUsers.map(userData => (
-        <div key={userData.id} className="user-karate-card">
-          <div className="belt-info">
-            <div className="current-belt" style={{
-              backgroundColor: BELT_COLORS[userData.currentBelt]?.color || '#ffffff',
-              border: userData.currentBelt === 'white' ? '1px solid #ddd' : 'none',
-              color: ['white', 'white-yellow', 'yellow', 'yellow-orange'].includes(userData.currentBelt) ? '#1e293b' : '#ffffff'
-            }}>
-              <span>{userData.displayName} - {BELT_COLORS[userData.currentBelt]?.name}</span>
-            </div>
-            
-            <div className="belt-dates">
-              {userData.beltHistory?.map((history, index) => (
-                <div key={index} className="belt-date">
-                  {BELT_COLORS[history.belt]?.name}: {new Date(history.date).toLocaleDateString()}
-                </div>
-              ))}
-            </div>
-
-            <div className="progress-section">
-              <div className="progress-bar">
-                <div 
-                  className="progress-fill"
-                  style={{ width: `${calculateProgress(userData)}%` }}
-                />
-              </div>
-              <div className="progress-text">
-                {userData.attendedClasses || 0} / {userData.requiredClasses || 20} cours
-                {userData.requiredClasses && (
-                  <span className="remaining-classes">
-                    {` (${userData.requiredClasses - (userData.attendedClasses || 0)} cours restants)`}
-                  </span>
-                )}
-              </div>
-            </div>
-          </div>
-        </div>
-      ))}
-
-      {weeklyTheme && (
-        <div className="theme-section">
-          <h3>📝 Thème de la semaine</h3>
-          <p>{weeklyTheme}</p>
-        </div>
-      )}
-    </div>
-  );
+  const toggleParticipant = (userId) => {
+    const target = editingClass || newClass;
+    const setter = editingClass ? setEditingClass : setNewClass;
+    
+    setter(prev => ({
+      ...prev,
+      participants: prev.participants.includes(userId)
+        ? prev.participants.filter(id => id !== userId)
+        : [...prev.participants, userId]
+    }));
+  };
 
   if (loading) {
     return <div className="loading">Chargement...</div>;
@@ -575,45 +256,150 @@ export default function Karate({ user }) {
     <div className="karate-container">
       <div className="karate-header">
         <h2>🥋 Karaté</h2>
-        <div className="section-buttons">
+        <div className="meal-actions">
           <button 
-            className="section-button"
-            onClick={() => setSelectedSection('progression')}
+            className="add-meal-button"
+            onClick={() => setShowAddForm(true)}
           >
-            📊 Progression
+            ➕ Ajouter un cours
           </button>
           <button 
-            className="section-button"
-            onClick={() => setSelectedSection('schedule')}
+            className={`list-meal-button ${showClassList ? 'active' : ''}`}
+            onClick={() => setShowClassList(!showClassList)}
           >
-            📅 Planning
+            📋 Liste des cours
           </button>
-          {user.role === 'parent' && (
-            <button 
-              className="section-button"
-              onClick={() => setSelectedSection('settings')}
-            >
-              ⚙️ Paramètres
-            </button>
-          )}
         </div>
       </div>
 
-      {selectedSection && (
+      {(showAddForm || showClassList) && (
         <Modal
-          title={
-            selectedSection === 'progression' ? '📊 Progression Karaté' :
-            selectedSection === 'schedule' ? '📅 Planning des cours' :
-            '⚙️ Paramètres Karaté'
-          }
+          title={showAddForm ? (editingClass ? '✏️ Modifier un cours' : '➕ Ajouter un cours') : '📋 Liste des cours'}
           onClose={() => {
-            setSelectedSection(null);
+            setShowAddForm(false);
+            setShowClassList(false);
             setEditingClass(null);
           }}
         >
-          {selectedSection === 'progression' ? renderProgressionContent() :
-           selectedSection === 'schedule' ? renderScheduleSettings() :
-           renderProfileSettings()}
+          {showAddForm ? (
+            <div className="add-form">
+              <input
+                type="text"
+                value={editingClass ? editingClass.name : newClass.name}
+                onChange={(e) => {
+                  if (editingClass) {
+                    setEditingClass({ ...editingClass, name: e.target.value });
+                  } else {
+                    setNewClass({ ...newClass, name: e.target.value });
+                  }
+                }}
+                placeholder="Nom du cours"
+                className="class-name-input"
+              />
+              
+              <div className="class-time-inputs">
+                <select
+                  value={editingClass ? editingClass.day : newClass.day}
+                  onChange={(e) => {
+                    if (editingClass) {
+                      setEditingClass({ ...editingClass, day: e.target.value });
+                    } else {
+                      setNewClass({ ...newClass, day: e.target.value });
+                    }
+                  }}
+                  className="day-select"
+                >
+                  {WEEKDAYS.map(day => (
+                    <option key={day} value={day}>{day}</option>
+                  ))}
+                </select>
+                
+                <input
+                  type="time"
+                  value={editingClass ? editingClass.time : newClass.time}
+                  onChange={(e) => {
+                    if (editingClass) {
+                      setEditingClass({ ...editingClass, time: e.target.value });
+                    } else {
+                      setNewClass({ ...newClass, time: e.target.value });
+                    }
+                  }}
+                  className="time-input"
+                />
+                
+                <input
+                  type="number"
+                  value={editingClass ? editingClass.duration : newClass.duration}
+                  onChange={(e) => {
+                    if (editingClass) {
+                      setEditingClass({ ...editingClass, duration: parseInt(e.target.value) });
+                    } else {
+                      setNewClass({ ...newClass, duration: parseInt(e.target.value) });
+                    }
+                  }}
+                  min="15"
+                  max="180"
+                  step="15"
+                  placeholder="Durée (min)"
+                  className="duration-input"
+                />
+              </div>
+
+              <div className="participant-selector">
+                {karateUsers.map(user => (
+                  <div
+                    key={user.id}
+                    className={`participant-tag ${(editingClass || newClass).participants.includes(user.id) ? 'selected' : ''}`}
+                    onClick={() => toggleParticipant(user.id)}
+                  >
+                    {user.avatar} {user.displayName}
+                  </div>
+                ))}
+              </div>
+
+              <div className="form-actions">
+                <button onClick={handleAddClass} className="submit-button">
+                  {editingClass ? 'Modifier' : 'Ajouter'}
+                </button>
+                <button
+                  onClick={() => {
+                    setShowAddForm(false);
+                    setEditingClass(null);
+                  }}
+                  className="cancel-button"
+                >
+                  Annuler
+                </button>
+              </div>
+            </div>
+          ) : (
+            <div className="meals-categories">
+              <div className="meals-category">
+                <h4>📅 Tous les cours</h4>
+                {groupClasses.map((classInfo) => (
+                  <div key={classInfo.id} className="meal-list-item">
+                    <span className="meal-name">
+                      {classInfo.name} - {classInfo.day} à {classInfo.time} ({classInfo.duration} min)
+                    </span>
+                    <div className="meal-actions">
+                      <button
+                        onClick={() => handleEditClass(classInfo)}
+                        className="meal-action-button edit"
+                      >
+                        ✏️
+                      </button>
+                      <button
+                        onClick={() => handleRemoveClass(classInfo)}
+                        className="meal-action-button delete"
+                      >
+                        🗑️
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </Modal>
       )}
     </div>
