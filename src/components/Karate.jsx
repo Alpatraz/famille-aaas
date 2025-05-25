@@ -5,13 +5,24 @@ import Modal from './Modal';
 import './Karate.css';
 
 const BELT_COLORS = {
-  white: { name: 'Blanche', color: '#ffffff', order: 0 },
-  yellow: { name: 'Jaune', color: '#ffd700', order: 1 },
-  orange: { name: 'Orange', color: '#ffa500', order: 2 },
-  green: { name: 'Verte', color: '#228b22', order: 3 },
-  blue: { name: 'Bleue', color: '#0000ff', order: 4 },
-  brown: { name: 'Marron', color: '#8b4513', order: 5 },
-  black: { name: 'Noire', color: '#000000', order: 6 }
+  'white': { name: 'Blanche', color: '#ffffff', order: 0 },
+  'white-yellow': { name: 'Blanche / Jaune', color: '#fff5b3', order: 1 },
+  'yellow': { name: 'Jaune', color: '#ffd700', order: 2 },
+  'yellow-orange': { name: 'Jaune / Orange', color: '#ffb347', order: 3 },
+  'orange': { name: 'Orange', color: '#ffa500', order: 4 },
+  'orange-purple': { name: 'Orange / Mauve', color: '#d8a0df', order: 5 },
+  'purple': { name: 'Mauve', color: '#800080', order: 6 },
+  'purple-green': { name: 'Mauve / Verte', color: '#50c878', order: 7 },
+  'green': { name: 'Verte', color: '#228b22', order: 8 },
+  'green-blue': { name: 'Verte / Bleue', color: '#0096c7', order: 9 },
+  'blue': { name: 'Bleue', color: '#0000ff', order: 10 },
+  'blue-brown': { name: 'Bleue / Brune', color: '#a0522d', order: 11 },
+  'brown': { name: 'Brune', color: '#8b4513', order: 12 },
+  'brown-black': { name: 'Brune / Noire', color: '#3a3a3a', order: 13 },
+  'black': { name: 'Noire', color: '#000000', order: 14 },
+  'black-1': { name: 'Noire 1ère Dan', color: '#000000', order: 15 },
+  'black-2': { name: 'Noire 2ème Dan', color: '#000000', order: 16 },
+  'black-3': { name: 'Noire 3ème Dan', color: '#000000', order: 17 }
 };
 
 export default function Karate({ user }) {
@@ -176,7 +187,7 @@ export default function Karate({ user }) {
             <div className="current-belt" style={{
               backgroundColor: BELT_COLORS[userData.currentBelt]?.color || '#ffffff',
               border: userData.currentBelt === 'white' ? '1px solid #ddd' : 'none',
-              color: userData.currentBelt === 'white' ? '#1e293b' : '#ffffff'
+              color: ['white', 'white-yellow', 'yellow', 'yellow-orange'].includes(userData.currentBelt) ? '#1e293b' : '#ffffff'
             }}>
               <span>{userData.displayName} - {BELT_COLORS[userData.currentBelt]?.name}</span>
             </div>
