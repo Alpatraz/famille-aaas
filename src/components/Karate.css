@@ -1,71 +1,59 @@
-/* Add these styles to the existing Karate.css */
-
-.schedule-settings {
-  display: flex;
-  flex-direction: column;
-  gap: 1.5rem;
+.karate-container {
+  height: 100%;
 }
 
-.section-header {
+.karate-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
   margin-bottom: 1rem;
+  flex-wrap: wrap;
+  gap: 0.75rem;
 }
 
-.section-header h3 {
+.karate-header h2 {
   margin: 0;
-  font-size: 1.1rem;
+  font-size: 1rem;
   color: #1e293b;
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 0.4rem;
 }
 
-.add-form {
+.section-buttons {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.section-button {
   background: #f8fafc;
   border: 2px solid #e2e8f0;
-  border-radius: 12px;
-  padding: 1.25rem;
+  padding: 0.4rem 0.75rem;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  color: #475569;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.section-button:hover {
+  background: #f1f5f9;
+  transform: translateY(-1px);
+  border-color: #cbd5e1;
+}
+
+/* Progress Section */
+.progression-section {
   display: flex;
   flex-direction: column;
   gap: 1rem;
-  margin-bottom: 1rem;
 }
 
-.class-name-input {
-  width: 100%;
-  padding: 0.75rem;
-  border: 2px solid #e2e8f0;
-  border-radius: 8px;
-  font-size: 0.95rem;
-  transition: all 0.2s ease;
-}
-
-.class-time-inputs {
-  display: grid;
-  grid-template-columns: 1fr 1fr 1fr;
-  gap: 1rem;
-}
-
-.day-select,
-.time-input,
-.duration-input {
-  padding: 0.75rem;
-  border: 2px solid #e2e8f0;
-  border-radius: 8px;
-  font-size: 0.95rem;
-  background: white;
-  transition: all 0.2s ease;
-}
-
-.items-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  gap: 1rem;
-}
-
-.class-card {
+.user-karate-card {
   background: #f8fafc;
   border: 2px solid #e2e8f0;
   border-radius: 12px;
@@ -73,122 +61,245 @@
   transition: all 0.2s ease;
 }
 
-.class-card:hover {
+.user-karate-card:hover {
   transform: translateY(-2px);
   border-color: #cbd5e1;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
 }
 
-.class-header {
+.belt-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.current-belt {
+  padding: 0.75rem;
+  border-radius: 10px;
+  font-weight: 500;
+  text-align: center;
+  font-size: 0.95rem;
+}
+
+.belt-dates {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  font-size: 0.85rem;
+  color: #64748b;
+}
+
+.belt-date {
+  padding: 0.4rem;
+  background: white;
+  border-radius: 6px;
+}
+
+.progress-section {
+  margin-top: 0.5rem;
+}
+
+.progress-bar {
+  height: 8px;
+  background: #e2e8f0;
+  border-radius: 4px;
+  overflow: hidden;
+  margin-bottom: 0.5rem;
+}
+
+.progress-fill {
+  height: 100%;
+  background: #3b82f6;
+  transition: width 0.3s ease;
+}
+
+.progress-text {
+  font-size: 0.85rem;
+  color: #64748b;
+  display: flex;
+  justify-content: space-between;
+}
+
+.remaining-classes {
+  color: #94a3b8;
+}
+
+.theme-section {
+  background: #f0f9ff;
+  border: 2px solid #bae6fd;
+  border-radius: 12px;
+  padding: 1rem;
+}
+
+.theme-section h3 {
+  margin: 0 0 0.75rem;
+  font-size: 1rem;
+  color: #0369a1;
+}
+
+.theme-section p {
+  margin: 0;
+  font-size: 0.95rem;
+  color: #0c4a6e;
+  line-height: 1.5;
+}
+
+/* Profile Settings */
+.karate-profile-settings {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.profile-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1rem;
+}
+
+.profile-card {
+  background: #f8fafc;
+  border: 2px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 1rem;
+  transition: all 0.2s ease;
+}
+
+.profile-card:hover {
+  transform: translateY(-2px);
+  border-color: #cbd5e1;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.profile-header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
   margin-bottom: 1rem;
 }
 
-.class-header h4 {
-  margin: 0 0 0.5rem;
+.profile-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: white;
+  border: 2px solid #e2e8f0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+}
+
+.profile-header h3 {
+  margin: 0;
   font-size: 1rem;
   color: #1e293b;
 }
 
-.class-time {
+.belt-section,
+.competition-section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.belt-section label,
+.competition-section label {
   font-size: 0.9rem;
-  color: #64748b;
-}
-
-.participants-list {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem;
-  margin-bottom: 1rem;
-}
-
-.participant-tag {
-  background: #f1f5f9;
-  padding: 0.4rem 0.8rem;
-  border-radius: 20px;
-  font-size: 0.85rem;
   color: #475569;
-  display: flex;
-  align-items: center;
-  gap: 0.4rem;
+  font-weight: 500;
 }
 
-.delete-button {
+.belt-section select,
+.competition-section select {
   width: 100%;
   padding: 0.6rem;
-  background: #fee2e2;
-  color: #991b1b;
-  border: none;
+  border: 2px solid #e2e8f0;
   border-radius: 8px;
   font-size: 0.9rem;
+  background: white;
+  color: #1e293b;
   cursor: pointer;
   transition: all 0.2s ease;
+}
+
+.checkbox-label {
   display: flex;
   align-items: center;
-  justify-content: center;
-  gap: 0.4rem;
-}
-
-.delete-button:hover {
-  background: #fecaca;
-  transform: translateY(-1px);
-}
-
-.edit-button {
-  background: #f8fafc;
-  border: 2px solid #e2e8f0;
-  padding: 0.6rem 1rem;
-  border-radius: 8px;
+  gap: 0.5rem;
   font-size: 0.9rem;
   color: #475569;
   cursor: pointer;
-  transition: all 0.2s ease;
-  display: flex;
-  align-items: center;
-  gap: 0.4rem;
 }
 
-.edit-button:hover {
-  background: #f1f5f9;
-  transform: translateY(-1px);
-  border-color: #cbd5e1;
-}
-
-.add-button {
-  background: #3b82f6;
-  color: white;
-  border: none;
-  padding: 0.75rem;
-  border-radius: 8px;
-  font-size: 0.95rem;
-  font-weight: 500;
+.checkbox-label input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  border: 2px solid #e2e8f0;
+  border-radius: 4px;
   cursor: pointer;
-  transition: all 0.2s ease;
 }
 
-.add-button:hover {
-  background: #2563eb;
-  transform: translateY(-1px);
+.private-lessons-schedule {
+  padding: 0.75rem;
+  background: #f1f5f9;
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
 }
 
 @media (max-width: 768px) {
-  .class-time-inputs {
+  .karate-header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .section-buttons {
+    flex-direction: column;
+  }
+
+  .section-button {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .profile-grid {
     grid-template-columns: 1fr;
   }
 
-  .items-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .add-form {
-    padding: 1rem;
-  }
-
-  .class-card {
+  .profile-card {
     padding: 0.75rem;
   }
 
-  .participant-tag {
+  .private-lessons-schedule {
+    padding: 0.5rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .karate-header h2 {
+    font-size: 0.95rem;
+  }
+
+  .section-button {
     font-size: 0.8rem;
-    padding: 0.3rem 0.6rem;
+    padding: 0.35rem 0.6rem;
+  }
+
+  .profile-card {
+    padding: 0.5rem;
+  }
+
+  .profile-avatar {
+    width: 32px;
+    height: 32px;
+    font-size: 1.2rem;
+  }
+
+  .belt-section select,
+  .competition-section select {
+    padding: 0.5rem;
+    font-size: 0.85rem;
   }
 }
