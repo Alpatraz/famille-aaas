@@ -40,7 +40,8 @@ const WEEKDAYS_MAP = {
 };
 
 export default function Karate({ user }) {
-  const [selectedSection, setSelectedSection] = useState(null);
+  const [activeTab, setActiveTab] = useState('progression');
+  const [showSettings, setShowSettings] = useState(false);
   const [karateUsers, setKarateUsers] = useState([]);
   const [weeklyTheme, setWeeklyTheme] = useState('');
   const [loading, setLoading] = useState(true);
@@ -262,165 +263,263 @@ export default function Karate({ user }) {
     <div className="karate-container">
       <div className="karate-header">
         <h2>🥋 Karaté</h2>
-        <div className="meal-actions">
+        <div className="section-buttons">
           <button 
-            className="add-meal-button"
-            onClick={() => setShowAddForm(true)}
+            className={`section-button ${activeTab === 'progression' ? 'active' : ''}`}
+            onClick={() => setActiveTab('progression')}
           >
-            ➕ Ajouter un cours
+            📈 Progression
           </button>
           <button 
-            className={`list-meal-button ${showClassList ? 'active' : ''}`}
-            onClick={() => setShowClassList(!showClassList)}
+            className={`section-button ${activeTab === 'cours' ? 'active' : ''}`}
+            onClick={() => setActiveTab('cours')}
           >
-            📋 Liste des cours
+            📚 Cours
+          </button>
+          <button 
+            className={`section-button ${activeTab === 'competition' ? 'active' : ''}`}
+            onClick={() => setActiveTab('competition')}
+          >
+            🏆 Compétition
+          </button>
+          <button 
+            className="section-button settings"
+            onClick={() => setShowSettings(true)}
+          >
+            ⚙️
           </button>
         </div>
       </div>
 
-      {(showAddForm || showClassList) && (
-        <Modal
-          title={showAddForm ? (editingClass ? '✏️ Modifier un cours' : '➕ Ajouter un cours') : '📋 Liste des cours'}
-          onClose={() => {
-            setShowAddForm(false);
-            setShowClassList(false);
-            setEditingClass(null);
-            setNewClass({
-              name: '',
-              day: 'Lundi',
-              time: '17:00',
-              duration: 60,
-              participants: []
-            });
-          }}
-        >
-          {showAddForm ? (
-            <div className="add-form">
-              <input
-                type="text"
-                value={editingClass ? editingClass.name : newClass.name}
-                onChange={(e) => {
-                  const value = e.target.value;
-                  if (editingClass) {
-                    setEditingClass(prev => ({ ...prev, name: value }));
-                  } else {
-                    setNewClass(prev => ({ ...prev, name: value }));
-                  }
-                }}
-                placeholder="Nom du cours"
-                className="class-name-input"
-              />
-              
-              <div className="class-time-inputs">
-                <select
-                  value={editingClass ? editingClass.day : newClass.day}
-                  onChange={(e) => {
-                    if (editingClass) {
-                      setEditingClass({ ...editingClass, day: e.target.value });
-                    } else {
-                      setNewClass({ ...newClass, day: e.target.value });
-                    }
+      {activeTab === 'progression' && (
+        <div className="progression-section">
+          {karateUsers.map(user => (
+            <div key={user.id} className="user-karate-card">
+              <div className="belt-info">
+                <div 
+                  className="current-belt"
+                  style={{ 
+                    backgroundColor: BELT_COLORS[user.currentBelt]?.color || '#fff',
+                    color: ['white', 'white-yellow'].includes(user.currentBelt) ? '#000' : '#fff'
                   }}
-                  className="day-select"
                 >
-                  {WEEKDAYS.map(day => (
-                    <option key={day} value={day}>{day}</option>
-                  ))}
-                </select>
-                
-                <input
-                  type="time"
-                  value={editingClass ? editingClass.time : newClass.time}
-                  onChange={(e) => {
-                    if (editingClass) {
-                      setEditingClass({ ...editingClass, time: e.target.value });
-                    } else {
-                      setNewClass({ ...newClass, time: e.target.value });
-                    }
-                  }}
-                  className="time-input"
-                />
-                
-                <input
-                  type="number"
-                  value={editingClass ? editingClass.duration : newClass.duration}
-                  onChange={(e) => {
-                    if (editingClass) {
-                      setEditingClass({ ...editingClass, duration: parseInt(e.target.value) });
-                    } else {
-                      setNewClass({ ...newClass, duration: parseInt(e.target.value) });
-                    }
-                  }}
-                  min="15"
-                  max="180"
-                  step="15"
-                  placeholder="Durée (min)"
-                  className="duration-input"
-                />
-              </div>
-
-              <div className="participant-selector">
-                {karateUsers.map(user => (
-                  <div
-                    key={user.id}
-                    className={`participant-tag ${(editingClass || newClass).participants.includes(user.id) ? 'selected' : ''}`}
-                    onClick={() => toggleParticipant(user.id)}
-                  >
-                    {user.avatar} {user.displayName}
+                  {user.avatar} {user.displayName} - Ceinture {BELT_COLORS[user.currentBelt]?.name}
+                </div>
+                <div className="progress-section">
+                  <div className="progress-bar">
+                    <div 
+                      className="progress-fill"
+                      style={{ 
+                        width: `${(user.attendedClasses / user.requiredClasses) * 100}%`
+                      }}
+                    />
                   </div>
-                ))}
-              </div>
-
-              <div className="form-actions">
-                <button onClick={handleAddClass} className="submit-button">
-                  {editingClass ? 'Modifier' : 'Ajouter'}
-                </button>
-                <button
-                  onClick={() => {
-                    setShowAddForm(false);
-                    setEditingClass(null);
-                    setNewClass({
-                      name: '',
-                      day: 'Lundi',
-                      time: '17:00',
-                      duration: 60,
-                      participants: []
-                    });
-                  }}
-                  className="cancel-button"
-                >
-                  Annuler
-                </button>
-              </div>
-            </div>
-          ) : (
-            <div className="meals-categories">
-              <div className="meals-category">
-                <h4>📅 Tous les cours</h4>
-                {groupClasses.map((classInfo) => (
-                  <div key={classInfo.id} className="meal-list-item">
-                    <span className="meal-name">
-                      {classInfo.name} - {classInfo.day} à {classInfo.time} ({classInfo.duration} min)
+                  <div className="progress-text">
+                    <span>{user.attendedClasses} cours effectués</span>
+                    <span className="remaining-classes">
+                      {Math.max(0, user.requiredClasses - user.attendedClasses)} cours restants
                     </span>
-                    <div className="meal-actions">
-                      <button
-                        onClick={() => handleEditClass(classInfo)}
-                        className="meal-action-button edit"
-                      >
-                        ✏️
-                      </button>
-                      <button
-                        onClick={() => handleRemoveClass(classInfo)}
-                        className="meal-action-button delete"
-                      >
-                        🗑️
-                      </button>
-                    </div>
                   </div>
-                ))}
+                </div>
               </div>
             </div>
+          ))}
+        </div>
+      )}
+
+      {activeTab === 'cours' && (
+        <div className="classes-section">
+          <div className="section-actions">
+            <button 
+              className="add-button"
+              onClick={() => setShowAddForm(true)}
+            >
+              ➕ Ajouter un cours
+            </button>
+            <button 
+              className={`list-button ${showClassList ? 'active' : ''}`}
+              onClick={() => setShowClassList(!showClassList)}
+            >
+              📋 Liste des cours
+            </button>
+          </div>
+
+          {(showAddForm || showClassList) && (
+            <Modal
+              title={showAddForm ? (editingClass ? '✏️ Modifier un cours' : '➕ Ajouter un cours') : '📋 Liste des cours'}
+              onClose={() => {
+                setShowAddForm(false);
+                setShowClassList(false);
+                setEditingClass(null);
+                setNewClass({
+                  name: '',
+                  day: 'Lundi',
+                  time: '17:00',
+                  duration: 60,
+                  participants: []
+                });
+              }}
+            >
+              {showAddForm ? (
+                <div className="add-form">
+                  <input
+                    type="text"
+                    value={editingClass ? editingClass.name : newClass.name}
+                    onChange={(e) => {
+                      const value = e.target.value;
+                      if (editingClass) {
+                        setEditingClass(prev => ({ ...prev, name: value }));
+                      } else {
+                        setNewClass(prev => ({ ...prev, name: value }));
+                      }
+                    }}
+                    placeholder="Nom du cours"
+                    className="class-name-input"
+                  />
+                  
+                  <div className="class-time-inputs">
+                    <select
+                      value={editingClass ? editingClass.day : newClass.day}
+                      onChange={(e) => {
+                        if (editingClass) {
+                          setEditingClass({ ...editingClass, day: e.target.value });
+                        } else {
+                          setNewClass({ ...newClass, day: e.target.value });
+                        }
+                      }}
+                      className="day-select"
+                    >
+                      {WEEKDAYS.map(day => (
+                        <option key={day} value={day}>{day}</option>
+                      ))}
+                    </select>
+                    
+                    <input
+                      type="time"
+                      value={editingClass ? editingClass.time : newClass.time}
+                      onChange={(e) => {
+                        if (editingClass) {
+                          setEditingClass({ ...editingClass, time: e.target.value });
+                        } else {
+                          setNewClass({ ...newClass, time: e.target.value });
+                        }
+                      }}
+                      className="time-input"
+                    />
+                    
+                    <input
+                      type="number"
+                      value={editingClass ? editingClass.duration : newClass.duration}
+                      onChange={(e) => {
+                        if (editingClass) {
+                          setEditingClass({ ...editingClass, duration: parseInt(e.target.value) });
+                        } else {
+                          setNewClass({ ...newClass, duration: parseInt(e.target.value) });
+                        }
+                      }}
+                      min="15"
+                      max="180"
+                      step="15"
+                      placeholder="Durée (min)"
+                      className="duration-input"
+                    />
+                  </div>
+
+                  <div className="participant-selector">
+                    {karateUsers.map(user => (
+                      <div
+                        key={user.id}
+                        className={`participant-tag ${(editingClass || newClass).participants.includes(user.id) ? 'selected' : ''}`}
+                        onClick={() => toggleParticipant(user.id)}
+                      >
+                        {user.avatar} {user.displayName}
+                      </div>
+                    ))}
+                  </div>
+
+                  <div className="form-actions">
+                    <button onClick={handleAddClass} className="submit-button">
+                      {editingClass ? 'Modifier' : 'Ajouter'}
+                    </button>
+                    <button
+                      onClick={() => {
+                        setShowAddForm(false);
+                        setEditingClass(null);
+                        setNewClass({
+                          name: '',
+                          day: 'Lundi',
+                          time: '17:00',
+                          duration: 60,
+                          participants: []
+                        });
+                      }}
+                      className="cancel-button"
+                    >
+                      Annuler
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <div className="meals-categories">
+                  <div className="meals-category">
+                    <h4>📅 Tous les cours</h4>
+                    {groupClasses.map((classInfo) => (
+                      <div key={classInfo.id} className="meal-list-item">
+                        <span className="meal-name">
+                          {classInfo.name} - {classInfo.day} à {classInfo.time} ({classInfo.duration} min)
+                        </span>
+                        <div className="meal-actions">
+                          <button
+                            onClick={() => handleEditClass(classInfo)}
+                            className="meal-action-button edit"
+                          >
+                            ✏️
+                          </button>
+                          <button
+                            onClick={() => handleRemoveClass(classInfo)}
+                            className="meal-action-button delete"
+                          >
+                            🗑️
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </Modal>
           )}
+        </div>
+      )}
+
+      {activeTab === 'competition' && (
+        <div className="competition-section">
+          <h3>🏆 Compétitions à venir</h3>
+          <p>Aucune compétition planifiée pour le moment.</p>
+        </div>
+      )}
+
+      {showSettings && (
+        <Modal
+          title="⚙️ Paramètres Karaté"
+          onClose={() => setShowSettings(false)}
+        >
+          <div className="karate-settings">
+            <h3>Thème de la semaine</h3>
+            <textarea
+              value={weeklyTheme}
+              onChange={(e) => setWeeklyTheme(e.target.value)}
+              placeholder="Entrez le thème de la semaine..."
+            />
+            <button onClick={async () => {
+              await setDoc(doc(db, 'karate_settings', 'weeklyTheme'), {
+                theme: weeklyTheme
+              });
+              setShowSettings(false);
+            }}>
+              Enregistrer
+            </button>
+          </div>
         </Modal>
       )}
     </div>
