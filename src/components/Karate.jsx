@@ -144,6 +144,14 @@ export default function Karate({ user }) {
     }));
   };
 
+  const handleNameChange = (e) => {
+    const value = e.target.value;
+    setNewClass(prev => ({
+      ...prev,
+      name: value
+    }));
+  };
+
   const handleAddClass = async () => {
     if (!newClass.name.trim()) {
       alert('Veuillez donner un nom au cours');
@@ -236,7 +244,7 @@ export default function Karate({ user }) {
         <input
           type="text"
           value={newClass.name}
-          onChange={e => setNewClass({ ...newClass, name: e.target.value })}
+          onChange={handleNameChange}
           placeholder="Nom du cours"
           className="class-name-input"
         />
