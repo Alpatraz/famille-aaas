@@ -138,7 +138,7 @@ export default function Karate({ user }) {
       if (editingClass) {
         // Update existing class
         const updatedClasses = groupClasses.map(c => 
-          c.id === editingClass.id ? { ...classData } : c
+          c.id === editingClass.id ? { ...classData, id: editingClass.id } : c
         );
         await setDoc(doc(db, 'karate_settings', 'schedules'), {
           groupClasses: updatedClasses
@@ -280,6 +280,13 @@ export default function Karate({ user }) {
             setShowAddForm(false);
             setShowClassList(false);
             setEditingClass(null);
+            setNewClass({
+              name: '',
+              day: 'Lundi',
+              time: '17:00',
+              duration: 60,
+              participants: []
+            });
           }}
         >
           {showAddForm ? (
@@ -288,10 +295,11 @@ export default function Karate({ user }) {
                 type="text"
                 value={editingClass ? editingClass.name : newClass.name}
                 onChange={(e) => {
+                  const value = e.target.value;
                   if (editingClass) {
-                    setEditingClass({ ...editingClass, name: e.target.value });
+                    setEditingClass(prev => ({ ...prev, name: value }));
                   } else {
-                    setNewClass({ ...newClass, name: e.target.value });
+                    setNewClass(prev => ({ ...prev, name: value }));
                   }
                 }}
                 placeholder="Nom du cours"
@@ -366,6 +374,13 @@ export default function Karate({ user }) {
                   onClick={() => {
                     setShowAddForm(false);
                     setEditingClass(null);
+                    setNewClass({
+                      name: '',
+                      day: 'Lundi',
+                      time: '17:00',
+                      duration: 60,
+                      participants: []
+                    });
                   }}
                   className="cancel-button"
                 >
