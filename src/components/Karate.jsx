@@ -52,6 +52,7 @@ export default function Karate({ user }) {
   const [groupClasses, setGroupClasses] = useState([]);
   const [attendance, setAttendance] = useState({});
   const [editingSchedule, setEditingSchedule] = useState(false);
+  const [editingClass, setEditingClass] = useState(null);
   const [newClass, setNewClass] = useState({
     name: '',
     day: 'Lundi',
@@ -146,7 +147,10 @@ export default function Karate({ user }) {
   };
 
   const toggleParticipant = (userId) => {
-    setNewClass(prev => ({
+    const target = editingClass || newClass;
+    const setter = editingClass ? setEditingClass : setNewClass;
+    
+    setter(prev => ({
       ...prev,
       participants: prev.participants.includes(userId)
         ? prev.participants.filter(id => id !== userId)
@@ -156,10 +160,11 @@ export default function Karate({ user }) {
 
   const handleNameChange = (e) => {
     const value = e.target.value;
-    setNewClass(prev => ({
-      ...prev,
-      name: value
-    }));
+    if (editingClass) {
+      setEditingClass(prev => ({ ...prev, name: value }));
+    } else {
+      setNewClass(prev => ({ ...prev, name: value }));
+    }
   };
 
   const getNextDayDate = (targetDay) => {
@@ -177,44 +182,78 @@ export default function Karate({ user }) {
     return nextDate;
   };
 
+  const getNextFourWeeks = (startDate) => {
+    return Array.from({ length: 4 }, (_, i) => {
+      const date = new Date(startDate);
+      date.setDate(date.getDate() + (i * 7));
+      return date;
+    });
+  };
+
   const handleAddClass = async () => {
-    if (!newClass.name.trim()) {
+    const classData = editingClass || newClass;
+    
+    if (!classData.name.trim()) {
       alert('Veuillez donner un nom au cours');
       return;
     }
 
     try {
-      // Add to group classes
-      const updatedClasses = [...groupClasses, { ...newClass }];
-      await setDoc(doc(db, 'karate_settings', 'schedules'), {
-        groupClasses: updatedClasses
-      });
-      setGroupClasses(updatedClasses);
+      if (editingClass) {
+        // Update existing class
+        const updatedClasses = groupClasses.map(c => 
+          c.id === editingClass.id ? { ...classData } : c
+        );
+        await setDoc(doc(db, 'karate_settings', 'schedules'), {
+          groupClasses: updatedClasses
+        });
+        setGroupClasses(updatedClasses);
 
-      // Add to calendar
-      const nextDate = getNextDayDate(newClass.day);
-      nextDate.setHours(parseInt(newClass.time.split(':')[0]), parseInt(newClass.time.split(':')[1]), 0);
+        // Update calendar events
+        const eventsRef = collection(db, 'events');
+        const q = query(
+          eventsRef,
+          where('type', '==', 'karate'),
+          where('classId', '==', editingClass.id)
+        );
+        const snapshot = await getDocs(q);
+        
+        // Delete old events
+        for (const doc of snapshot.docs) {
+          await deleteDoc(doc.ref);
+        }
+      } else {
+        // Add new class
+        const classId = Date.now().toString();
+        const newClassWithId = { ...classData, id: classId };
+        const updatedClasses = [...groupClasses, newClassWithId];
+        await setDoc(doc(db, 'karate_settings', 'schedules'), {
+          groupClasses: updatedClasses
+        });
+        setGroupClasses(updatedClasses);
+      }
 
-      const participants = newClass.participants.map(id => {
-        const user = karateUsers.find(u => u.id === id);
-        return {
-          id,
-          name: user?.displayName || '',
-          avatar: user?.avatar || '👤'
-        };
-      });
+      // Add recurring events to calendar
+      const nextDate = getNextDayDate(classData.day);
+      const nextFourWeeks = getNextFourWeeks(nextDate);
 
-      await addDoc(collection(db, 'events'), {
-        title: `🥋 ${newClass.name}`,
-        date: nextDate.toISOString().split('T')[0],
-        startTime: newClass.time,
-        duration: newClass.duration,
-        type: 'karate',
-        participants: newClass.participants,
-        recurring: true,
-        day: newClass.day
-      });
+      for (const date of nextFourWeeks) {
+        date.setHours(parseInt(classData.time.split(':')[0]), parseInt(classData.time.split(':')[1]), 0);
 
+        await addDoc(collection(db, 'events'), {
+          title: `🥋 ${classData.name}`,
+          date: date.toISOString().split('T')[0],
+          startTime: classData.time,
+          duration: classData.duration,
+          type: 'karate',
+          participants: classData.participants,
+          recurring: true,
+          day: classData.day,
+          classId: editingClass?.id || Date.now().toString()
+        });
+      }
+
+      setEditingClass(null);
       setNewClass({
         name: '',
         day: 'Lundi',
@@ -223,28 +262,33 @@ export default function Karate({ user }) {
         participants: []
       });
     } catch (error) {
-      console.error('Error adding class:', error);
-      alert('Erreur lors de l\'ajout du cours');
+      console.error('Error managing class:', error);
+      alert('Erreur lors de la gestion du cours');
     }
   };
 
-  const handleRemoveClass = async (index) => {
+  const handleEditClass = (classInfo) => {
+    setEditingClass(classInfo);
+  };
+
+  const handleRemoveClass = async (classInfo) => {
     try {
-      const updatedClasses = groupClasses.filter((_, i) => i !== index);
+      // Remove from group classes
+      const updatedClasses = groupClasses.filter(c => c.id !== classInfo.id);
       await setDoc(doc(db, 'karate_settings', 'schedules'), {
         groupClasses: updatedClasses
       });
       setGroupClasses(updatedClasses);
 
       // Remove from calendar
-      const removedClass = groupClasses[index];
       const eventsRef = collection(db, 'events');
       const q = query(
         eventsRef,
         where('type', '==', 'karate'),
-        where('title', '==', `🥋 ${removedClass.name}`)
+        where('classId', '==', classInfo.id)
       );
       const snapshot = await getDocs(q);
+      
       for (const doc of snapshot.docs) {
         await deleteDoc(doc.ref);
       }
@@ -268,7 +312,7 @@ export default function Karate({ user }) {
       <div className="add-form">
         <input
           type="text"
-          value={newClass.name}
+          value={editingClass ? editingClass.name : newClass.name}
           onChange={handleNameChange}
           placeholder="Nom du cours"
           className="class-name-input"
@@ -276,8 +320,11 @@ export default function Karate({ user }) {
         
         <div className="class-time-inputs">
           <select
-            value={newClass.day}
-            onChange={e => setNewClass({ ...newClass, day: e.target.value })}
+            value={editingClass ? editingClass.day : newClass.day}
+            onChange={e => editingClass 
+              ? setEditingClass({ ...editingClass, day: e.target.value })
+              : setNewClass({ ...newClass, day: e.target.value })
+            }
             className="day-select"
           >
             {WEEKDAYS.map(day => (
@@ -287,15 +334,21 @@ export default function Karate({ user }) {
           
           <input
             type="time"
-            value={newClass.time}
-            onChange={e => setNewClass({ ...newClass, time: e.target.value })}
+            value={editingClass ? editingClass.time : newClass.time}
+            onChange={e => editingClass
+              ? setEditingClass({ ...editingClass, time: e.target.value })
+              : setNewClass({ ...newClass, time: e.target.value })
+            }
             className="time-input"
           />
           
           <input
             type="number"
-            value={newClass.duration}
-            onChange={e => setNewClass({ ...newClass, duration: parseInt(e.target.value) })}
+            value={editingClass ? editingClass.duration : newClass.duration}
+            onChange={e => editingClass
+              ? setEditingClass({ ...editingClass, duration: parseInt(e.target.value) })
+              : setNewClass({ ...newClass, duration: parseInt(e.target.value) })
+            }
             min="15"
             max="180"
             step="15"
@@ -308,7 +361,7 @@ export default function Karate({ user }) {
           {karateUsers.map(user => (
             <div
               key={user.id}
-              className={`participant-tag ${newClass.participants.includes(user.id) ? 'selected' : ''}`}
+              className={`participant-tag ${(editingClass || newClass).participants.includes(user.id) ? 'selected' : ''}`}
               onClick={() => toggleParticipant(user.id)}
             >
               {user.avatar} {user.displayName}
@@ -317,13 +370,13 @@ export default function Karate({ user }) {
         </div>
 
         <button onClick={handleAddClass} className="add-button">
-          Ajouter le cours
+          {editingClass ? 'Modifier le cours' : 'Ajouter le cours'}
         </button>
       </div>
 
       <div className="items-grid">
-        {groupClasses.map((classInfo, index) => (
-          <div key={index} className="class-card">
+        {groupClasses.map((classInfo) => (
+          <div key={classInfo.id} className="class-card">
             <div className="class-header">
               <h4>{classInfo.name}</h4>
               <div className="class-time">
@@ -343,9 +396,14 @@ export default function Karate({ user }) {
             </div>
 
             {editingSchedule && (
-              <button onClick={() => handleRemoveClass(index)} className="delete-button">
-                🗑️ Supprimer
-              </button>
+              <div className="class-actions">
+                <button onClick={() => handleEditClass(classInfo)} className="edit-button">
+                  ✏️ Modifier
+                </button>
+                <button onClick={() => handleRemoveClass(classInfo)} className="delete-button">
+                  🗑️ Supprimer
+                </button>
+              </div>
             )}
           </div>
         ))}
@@ -548,7 +606,10 @@ export default function Karate({ user }) {
             selectedSection === 'schedule' ? '📅 Planning des cours' :
             '⚙️ Paramètres Karaté'
           }
-          onClose={() => setSelectedSection(null)}
+          onClose={() => {
+            setSelectedSection(null);
+            setEditingClass(null);
+          }}
         >
           {selectedSection === 'progression' ? renderProgressionContent() :
            selectedSection === 'schedule' ? renderScheduleSettings() :
