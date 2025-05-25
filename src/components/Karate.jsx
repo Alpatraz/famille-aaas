@@ -22,8 +22,14 @@ const BELT_COLORS = {
   'black': { name: 'Noire', color: '#000000', order: 14 }
 };
 
+const SECTIONS = {
+  progression: { name: 'Progression', icon: '📈' },
+  cours: { name: 'Cours', icon: '📚' },
+  competition: { name: 'Compétition', icon: '🏆' }
+};
+
 export default function Karate({ user }) {
-  const [activeTab, setActiveTab] = useState('progression');
+  const [activeSection, setActiveSection] = useState(null);
   const [showSettings, setShowSettings] = useState(false);
   const [karateUsers, setKarateUsers] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -35,7 +41,6 @@ export default function Karate({ user }) {
 
   const loadData = async () => {
     try {
-      // Load karate users
       const usersSnap = await getDocs(
         query(collection(db, 'users'), where('practicesKarate', '==', true))
       );
@@ -82,28 +87,10 @@ export default function Karate({ user }) {
   return (
     <div className="karate-container">
       <div className="karate-header">
-        <h2>🥋 Karaté</h2>
-        <div className="section-buttons">
+        <div className="header-content">
+          <h2>🥋 Karaté</h2>
           <button 
-            className={`section-button ${activeTab === 'progression' ? 'active' : ''}`}
-            onClick={() => setActiveTab('progression')}
-          >
-            📈 Progression
-          </button>
-          <button 
-            className={`section-button ${activeTab === 'cours' ? 'active' : ''}`}
-            onClick={() => setActiveTab('cours')}
-          >
-            📚 Cours
-          </button>
-          <button 
-            className={`section-button ${activeTab === 'competition' ? 'active' : ''}`}
-            onClick={() => setActiveTab('competition')}
-          >
-            🏆 Compétition
-          </button>
-          <button 
-            className="section-button settings"
+            className="settings-button"
             onClick={() => setShowSettings(true)}
           >
             ⚙️
@@ -111,40 +98,74 @@ export default function Karate({ user }) {
         </div>
       </div>
 
-      {activeTab === 'progression' && (
-        <div className="progression-section">
-          {karateUsers.map(user => (
-            <div key={user.id} className="user-karate-card">
-              <div className="belt-info">
-                <div 
-                  className="current-belt"
-                  style={{ 
-                    backgroundColor: BELT_COLORS[user.currentBelt]?.color || '#fff',
-                    color: ['white', 'white-yellow'].includes(user.currentBelt) ? '#000' : '#fff'
-                  }}
-                >
-                  {user.avatar} {user.displayName} - Ceinture {BELT_COLORS[user.currentBelt]?.name}
-                </div>
-                <div className="progress-section">
-                  <div className="progress-bar">
+      <div className="sections-grid">
+        {Object.entries(SECTIONS).map(([id, section]) => (
+          <div
+            key={id}
+            className="section-folder"
+            onClick={() => setActiveSection(id)}
+          >
+            <div className="folder-icon">{section.icon}</div>
+            <span className="folder-name">{section.name}</span>
+          </div>
+        ))}
+      </div>
+
+      {activeSection && (
+        <Modal
+          title={`${SECTIONS[activeSection].icon} ${SECTIONS[activeSection].name}`}
+          onClose={() => setActiveSection(null)}
+        >
+          {activeSection === 'progression' && (
+            <div className="progression-section">
+              {karateUsers.map(user => (
+                <div key={user.id} className="user-karate-card">
+                  <div className="belt-info">
                     <div 
-                      className="progress-fill"
+                      className="current-belt"
                       style={{ 
-                        width: `${(user.attendedClasses / user.requiredClasses) * 100}%`
+                        backgroundColor: BELT_COLORS[user.currentBelt]?.color || '#fff',
+                        color: ['white', 'white-yellow'].includes(user.currentBelt) ? '#000' : '#fff'
                       }}
-                    />
-                  </div>
-                  <div className="progress-text">
-                    <span>{user.attendedClasses} cours effectués</span>
-                    <span className="remaining-classes">
-                      {Math.max(0, user.requiredClasses - user.attendedClasses)} cours restants
-                    </span>
+                    >
+                      {user.avatar} {user.displayName} - Ceinture {BELT_COLORS[user.currentBelt]?.name}
+                    </div>
+                    <div className="progress-section">
+                      <div className="progress-bar">
+                        <div 
+                          className="progress-fill"
+                          style={{ 
+                            width: `${(user.attendedClasses / user.requiredClasses) * 100}%`
+                          }}
+                        />
+                      </div>
+                      <div className="progress-text">
+                        <span>{user.attendedClasses} cours effectués</span>
+                        <span className="remaining-classes">
+                          {Math.max(0, user.requiredClasses - user.attendedClasses)} cours restants
+                        </span>
+                      </div>
+                    </div>
                   </div>
                 </div>
-              </div>
+              ))}
             </div>
-          ))}
-        </div>
+          )}
+
+          {activeSection === 'cours' && (
+            <div className="courses-section">
+              <h3>Liste des cours à venir</h3>
+              <p>Fonctionnalité en développement</p>
+            </div>
+          )}
+
+          {activeSection === 'competition' && (
+            <div className="competition-section">
+              <h3>Compétitions</h3>
+              <p>Fonctionnalité en développement</p>
+            </div>
+          )}
+        </Modal>
       )}
 
       {showSettings && (
