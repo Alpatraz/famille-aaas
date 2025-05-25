@@ -7,8 +7,6 @@
   justify-content: space-between;
   align-items: center;
   margin-bottom: 1rem;
-  flex-wrap: wrap;
-  gap: 0.75rem;
 }
 
 .karate-header h2 {
@@ -23,7 +21,7 @@
 .section-buttons {
   display: flex;
   gap: 0.5rem;
-  flex-wrap: wrap;
+  align-items: center;
 }
 
 .section-button {
@@ -46,7 +44,17 @@
   border-color: #cbd5e1;
 }
 
-/* Schedule Settings */
+.section-button.settings {
+  margin-left: 0.5rem;
+  padding: 0.4rem;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+}
+
 .schedule-settings {
   display: flex;
   flex-direction: column;
@@ -252,7 +260,6 @@
   transform: translateY(-1px);
 }
 
-/* Progress Section */
 .progression-section {
   display: flex;
   flex-direction: column;
@@ -350,7 +357,6 @@
   line-height: 1.5;
 }
 
-/* Profile Settings */
 .karate-profile-settings {
   display: flex;
   flex-direction: column;
@@ -468,6 +474,11 @@
   .section-button {
     width: 100%;
     justify-content: center;
+  }
+
+  .section-button.settings {
+    width: 32px;
+    margin-left: auto;
   }
 
   .class-time-inputs {
