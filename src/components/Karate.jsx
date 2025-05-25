@@ -40,7 +40,6 @@ export default function Karate({ user }) {
   const [weeklyTheme, setWeeklyTheme] = useState('');
   const [loading, setLoading] = useState(true);
   const [groupClasses, setGroupClasses] = useState([]);
-  const [privateClasses, setPrivateClasses] = useState([]);
   const [attendance, setAttendance] = useState({});
   const [editingSchedule, setEditingSchedule] = useState(false);
   const [newClass, setNewClass] = useState({
@@ -85,7 +84,6 @@ export default function Karate({ user }) {
       if (schedulesDoc.exists()) {
         const data = schedulesDoc.data();
         setGroupClasses(data.groupClasses || []);
-        setPrivateClasses(data.privateClasses || []);
       }
 
       // Load attendance
@@ -127,19 +125,6 @@ export default function Karate({ user }) {
         ];
       }
 
-      // Handle private lessons scheduling
-      if (updatedData.hasPrivateLessons) {
-        if (!updatedData.privateLessonsSchedule) {
-          updatedData.privateLessonsSchedule = {
-            day: 'Lundi',
-            time: '17:00',
-            frequency: 'weekly'
-          };
-        }
-      } else {
-        delete updatedData.privateLessonsSchedule;
-      }
-
       await updateDoc(karateUserRef, updatedData);
       await loadData();
     } catch (error) {
@@ -151,8 +136,7 @@ export default function Karate({ user }) {
   const handleSaveSchedule = async () => {
     try {
       await setDoc(doc(db, 'karate_settings', 'schedules'), {
-        groupClasses,
-        privateClasses
+        groupClasses
       });
       setEditingSchedule(false);
       await loadData();
@@ -162,21 +146,13 @@ export default function Karate({ user }) {
     }
   };
 
-  const handleAddClass = (type) => {
-    if (type === 'group') {
-      setGroupClasses([...groupClasses, { ...newClass }]);
-    } else {
-      setPrivateClasses([...privateClasses, { ...newClass }]);
-    }
+  const handleAddClass = () => {
+    setGroupClasses([...groupClasses, { ...newClass }]);
     setNewClass({ day: 'Lundi', time: '17:00', participants: [] });
   };
 
-  const handleRemoveClass = (type, index) => {
-    if (type === 'group') {
-      setGroupClasses(groupClasses.filter((_, i) => i !== index));
-    } else {
-      setPrivateClasses(privateClasses.filter((_, i) => i !== index));
-    }
+  const handleRemoveClass = (index) => {
+    setGroupClasses(groupClasses.filter((_, i) => i !== index));
   };
 
   const renderScheduleSettings = () => (
@@ -199,7 +175,7 @@ export default function Karate({ user }) {
               })}
             </div>
             {editingSchedule && (
-              <button onClick={() => handleRemoveClass('group', index)}>
+              <button onClick={() => handleRemoveClass(index)}>
                 🗑️
               </button>
             )}
@@ -238,71 +214,7 @@ export default function Karate({ user }) {
                 </label>
               ))}
             </div>
-            <button onClick={() => handleAddClass('group')}>
-              Ajouter
-            </button>
-          </div>
-        )}
-      </div>
-
-      <div className="schedule-section">
-        <h4>Cours privés</h4>
-        {privateClasses.map((classInfo, index) => (
-          <div key={index} className="class-item private">
-            <span>{classInfo.day} à {classInfo.time}</span>
-            <div className="participants">
-              {classInfo.participants.map(userId => {
-                const user = karateUsers.find(u => u.id === userId);
-                return user ? (
-                  <span key={userId} className="participant-tag">
-                    {user.avatar} {user.displayName}
-                  </span>
-                ) : null;
-              })}
-            </div>
-            {editingSchedule && (
-              <button onClick={() => handleRemoveClass('private', index)}>
-                🗑️
-              </button>
-            )}
-          </div>
-        ))}
-
-        {editingSchedule && (
-          <div className="add-class-form">
-            <select
-              value={newClass.day}
-              onChange={e => setNewClass({ ...newClass, day: e.target.value })}
-            >
-              {WEEKDAYS.map(day => (
-                <option key={day} value={day}>{day}</option>
-              ))}
-            </select>
-            <input
-              type="time"
-              value={newClass.time}
-              onChange={e => setNewClass({ ...newClass, time: e.target.value })}
-            />
-            <div className="participant-selector">
-              {karateUsers
-                .filter(user => user.hasPrivateLessons)
-                .map(user => (
-                  <label key={user.id} className="participant-option">
-                    <input
-                      type="checkbox"
-                      checked={newClass.participants.includes(user.id)}
-                      onChange={e => {
-                        const participants = e.target.checked
-                          ? [...newClass.participants, user.id]
-                          : newClass.participants.filter(id => id !== user.id);
-                        setNewClass({ ...newClass, participants });
-                      }}
-                    />
-                    {user.avatar} {user.displayName}
-                  </label>
-                ))}
-            </div>
-            <button onClick={() => handleAddClass('private')}>
+            <button onClick={handleAddClass}>
               Ajouter
             </button>
           </div>
