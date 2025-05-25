@@ -10,21 +10,26 @@
   justify-content: center;
   align-items: center;
   z-index: 1000;
-  padding: 0;
+  padding: 1rem;
 }
 
 .modal-content {
   background: white;
-  width: 100%;
-  height: 100vh;
-  max-width: none;
-  max-height: none;
-  border-radius: 0;
+  border-radius: 16px;
+  width: 95%;
+  max-width: 800px;
+  max-height: 90vh;
   position: relative;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
   display: flex;
   flex-direction: column;
-  animation: modalSlideIn 0.3s ease;
+  animation: modalSlideIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
   overflow: hidden;
+  will-change: transform;
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  perspective: 1000px;
+  transform-style: preserve-3d;
 }
 
 .modal-header {
@@ -38,6 +43,7 @@
   background: white;
   z-index: 10;
   flex-shrink: 0;
+  transform: translateZ(0);
 }
 
 .modal-header h2 {
@@ -62,6 +68,8 @@
   justify-content: center;
   border-radius: 50%;
   transition: all 0.2s ease;
+  flex-shrink: 0;
+  transform: translateZ(0);
 }
 
 .modal-close:hover {
@@ -75,15 +83,37 @@
   padding: 1.25rem;
   -webkit-overflow-scrolling: touch;
   overscroll-behavior: contain;
+  transform: translateZ(0);
 }
 
 @keyframes modalSlideIn {
   from {
     opacity: 0;
-    transform: translateY(20px);
+    transform: translateY(20px) translateZ(0);
   }
   to {
     opacity: 1;
-    transform: translateY(0);
+    transform: translateY(0) translateZ(0);
+  }
+}
+
+@media (max-width: 768px) {
+  .modal-overlay {
+    padding: 0;
+  }
+
+  .modal-content {
+    width: 100%;
+    height: 100vh;
+    max-height: 100vh;
+    border-radius: 0;
+  }
+
+  .modal-header {
+    padding: 1rem;
+  }
+
+  .modal-body {
+    padding: 1rem;
   }
 }
