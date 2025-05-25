@@ -3,65 +3,60 @@
   font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
 }
 
-.dashboard {
-  padding: 1rem;
-  background-color: #f9fafb;
-}
-
-.title {
-  text-align: center;
-  margin-bottom: 2rem;
-}
-
-.grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-  gap: 1.5rem;
-}
-
-.card {
-  background: white;
-  border-radius: 1rem;
-  padding: 1rem;
-  box-shadow: 0 0 12px rgba(0, 0, 0, 0.1);
-}
-
-.full-width {
-  grid-column: span 2;
-}
-
-.calendar-priority {
-  border-left: 8px solid #3f51b5;
-  background: #f0f4ff;
-}
-
-.nav-container {
-  display: flex;
-  gap: 1.25rem;
-  padding: 1rem;
-  flex-wrap: wrap;
-  justify-content: center;
-  margin-bottom: 1rem;
-}
-
-.nav-button {
-  background: #f8fafc;
-  border: 1px solid #e2e8f0;
-  padding: 0.75rem 1.25rem;
-  border-radius: 12px;
-  text-decoration: none;
-  color: #4a5568;
-  transition: all 0.2s ease;
-  font-weight: 500;
+/* Form styles */
+input[type="text"],
+input[type="email"],
+input[type="password"],
+input[type="number"],
+input[type="date"],
+input[type="time"],
+input[type="url"],
+input[type="search"],
+textarea,
+select {
+  width: 100%;
+  padding: 0.75rem;
+  border: 2px solid #e2e8f0;
+  border-radius: 10px;
   font-size: 0.95rem;
-  white-space: nowrap;
+  color: #1e293b;
+  background: white;
+  transition: all 0.2s ease;
   font-family: inherit;
 }
 
-.nav-button:hover {
+input:focus,
+textarea:focus,
+select:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: #94a3b8;
+}
+
+input:disabled,
+textarea:disabled,
+select:disabled {
   background: #f1f5f9;
-  transform: translateY(-1px);
-  color: #2d3748;
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+/* Button styles */
+button {
+  font-family: inherit;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+button:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
 }
 
 /* Login styles */
@@ -84,19 +79,11 @@
   margin-bottom: 1rem;
 }
 
-.form-group input {
-  width: 100%;
-  padding: 0.75rem;
-  border: 2px solid #e2e8f0;
-  border-radius: 8px;
-  font-size: 1rem;
-  transition: all 0.2s ease;
-}
-
-.form-group input:focus {
-  border-color: #3b82f6;
-  outline: none;
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+.form-group label {
+  display: block;
+  margin-bottom: 0.5rem;
+  color: #475569;
+  font-weight: 500;
 }
 
 .login-container button {
@@ -160,6 +147,36 @@
   text-align: center;
 }
 
+/* Navigation */
+.nav-container {
+  display: flex;
+  gap: 1.25rem;
+  padding: 1rem;
+  flex-wrap: wrap;
+  justify-content: center;
+  margin-bottom: 1rem;
+}
+
+.nav-button {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  padding: 0.75rem 1.25rem;
+  border-radius: 12px;
+  text-decoration: none;
+  color: #4a5568;
+  transition: all 0.2s ease;
+  font-weight: 500;
+  font-size: 0.95rem;
+  white-space: nowrap;
+  font-family: inherit;
+}
+
+.nav-button:hover {
+  background: #f1f5f9;
+  transform: translateY(-1px);
+  color: #2d3748;
+}
+
 @media (max-width: 768px) {
   .nav-container {
     flex-direction: column;
@@ -170,5 +187,35 @@
   .nav-button {
     text-align: center;
     width: 100%;
+  }
+
+  input[type="text"],
+  input[type="email"],
+  input[type="password"],
+  input[type="number"],
+  input[type="date"],
+  input[type="time"],
+  input[type="url"],
+  input[type="search"],
+  textarea,
+  select {
+    padding: 0.6rem;
+    font-size: 0.9rem;
+  }
+}
+
+@media (max-width: 480px) {
+  input[type="text"],
+  input[type="email"],
+  input[type="password"],
+  input[type="number"],
+  input[type="date"],
+  input[type="time"],
+  input[type="url"],
+  input[type="search"],
+  textarea,
+  select {
+    padding: 0.5rem;
+    font-size: 0.85rem;
   }
 }
