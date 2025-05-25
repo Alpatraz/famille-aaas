@@ -29,6 +29,16 @@ const WEEKDAYS = [
   'Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi', 'Dimanche'
 ];
 
+const WEEKDAYS_MAP = {
+  'Lundi': 1,
+  'Mardi': 2,
+  'Mercredi': 3,
+  'Jeudi': 4,
+  'Vendredi': 5,
+  'Samedi': 6,
+  'Dimanche': 0
+};
+
 const HOURS = Array.from({ length: 14 }, (_, i) => {
   const hour = i + 8; // Start at 8:00
   return `${hour.toString().padStart(2, '0')}:00`;
@@ -152,6 +162,21 @@ export default function Karate({ user }) {
     }));
   };
 
+  const getNextDayDate = (targetDay) => {
+    const today = new Date();
+    const targetDayNum = WEEKDAYS_MAP[targetDay];
+    const todayNum = today.getDay();
+    
+    let daysToAdd = targetDayNum - todayNum;
+    if (daysToAdd <= 0) {
+      daysToAdd += 7;
+    }
+    
+    const nextDate = new Date(today);
+    nextDate.setDate(today.getDate() + daysToAdd);
+    return nextDate;
+  };
+
   const handleAddClass = async () => {
     if (!newClass.name.trim()) {
       alert('Veuillez donner un nom au cours');
@@ -167,8 +192,8 @@ export default function Karate({ user }) {
       setGroupClasses(updatedClasses);
 
       // Add to calendar
-      const startDate = new Date();
-      startDate.setHours(parseInt(newClass.time.split(':')[0]), parseInt(newClass.time.split(':')[1]), 0);
+      const nextDate = getNextDayDate(newClass.day);
+      nextDate.setHours(parseInt(newClass.time.split(':')[0]), parseInt(newClass.time.split(':')[1]), 0);
 
       const participants = newClass.participants.map(id => {
         const user = karateUsers.find(u => u.id === id);
@@ -181,7 +206,7 @@ export default function Karate({ user }) {
 
       await addDoc(collection(db, 'events'), {
         title: `🥋 ${newClass.name}`,
-        date: startDate.toISOString().split('T')[0],
+        date: nextDate.toISOString().split('T')[0],
         startTime: newClass.time,
         duration: newClass.duration,
         type: 'karate',
