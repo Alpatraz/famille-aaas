@@ -350,6 +350,39 @@
   transform: translateY(-1px);
 }
 
+.participant-selector {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin: 0.75rem 0;
+}
+
+.participant-tag {
+  background: #f8fafc;
+  border: 2px solid #e2e8f0;
+  padding: 0.5rem 0.75rem;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  color: #475569;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.participant-tag:hover {
+  background: #f1f5f9;
+  transform: translateY(-1px);
+  border-color: #cbd5e1;
+}
+
+.participant-tag.selected {
+  background: #e0f2fe;
+  border-color: #0ea5e9;
+  color: #0369a1;
+}
+
 @media (max-width: 768px) {
   .karate-header {
     flex-direction: column;
@@ -384,5 +417,10 @@
 
   .user-karate-card {
     padding: 1rem;
+  }
+
+  .participant-tag {
+    font-size: 0.85rem;
+    padding: 0.4rem 0.6rem;
   }
 }

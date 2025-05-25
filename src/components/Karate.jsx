@@ -135,6 +135,15 @@ export default function Karate({ user }) {
     }
   };
 
+  const toggleParticipant = (userId) => {
+    setNewClass(prev => ({
+      ...prev,
+      participants: prev.participants.includes(userId)
+        ? prev.participants.filter(id => id !== userId)
+        : [...prev.participants, userId]
+    }));
+  };
+
   const handleAddClass = async () => {
     if (!newClass.name.trim()) {
       alert('Veuillez donner un nom au cours');
@@ -264,21 +273,13 @@ export default function Karate({ user }) {
 
         <div className="participant-selector">
           {karateUsers.map(user => (
-            <label key={user.id} className="participant-option">
-              <input
-                type="checkbox"
-                checked={newClass.participants.includes(user.id)}
-                onChange={e => {
-                  const participants = e.target.checked
-                    ? [...newClass.participants, user.id]
-                    : newClass.participants.filter(id => id !== user.id);
-                  setNewClass({ ...newClass, participants });
-                }}
-              />
-              <span className="participant-name">
-                {user.avatar} {user.displayName}
-              </span>
-            </label>
+            <div
+              key={user.id}
+              className={`participant-tag ${newClass.participants.includes(user.id) ? 'selected' : ''}`}
+              onClick={() => toggleParticipant(user.id)}
+            >
+              {user.avatar} {user.displayName}
+            </div>
           ))}
         </div>
 
