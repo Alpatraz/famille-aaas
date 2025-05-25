@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { db } from '../firebase';
-import { collection, getDocs, doc, getDoc, query, where, updateDoc, setDoc } from 'firebase/firestore';
+import { collection, getDocs, doc, getDoc, query, where, updateDoc, setDoc, addDoc, deleteDoc } from 'firebase/firestore';
 import Modal from './Modal';
 import './Karate.css';
 
@@ -46,6 +46,7 @@ export default function Karate({ user }) {
     name: '',
     day: 'Lundi',
     time: '17:00',
+    duration: 60,
     participants: []
   });
 
@@ -134,45 +135,169 @@ export default function Karate({ user }) {
     }
   };
 
-  const handleSaveSchedule = async () => {
-    try {
-      await setDoc(doc(db, 'karate_settings', 'schedules'), {
-        groupClasses
-      });
-      setEditingSchedule(false);
-      await loadData();
-    } catch (error) {
-      console.error('Error saving schedule:', error);
-      alert('Erreur lors de la sauvegarde du planning');
-    }
-  };
-
-  const handleAddClass = () => {
+  const handleAddClass = async () => {
     if (!newClass.name.trim()) {
       alert('Veuillez donner un nom au cours');
       return;
     }
-    setGroupClasses([...groupClasses, { ...newClass }]);
-    setNewClass({ name: '', day: 'Lundi', time: '17:00', participants: [] });
+
+    try {
+      // Add to group classes
+      const updatedClasses = [...groupClasses, { ...newClass }];
+      await setDoc(doc(db, 'karate_settings', 'schedules'), {
+        groupClasses: updatedClasses
+      });
+      setGroupClasses(updatedClasses);
+
+      // Add to calendar
+      const startDate = new Date();
+      startDate.setHours(parseInt(newClass.time.split(':')[0]), parseInt(newClass.time.split(':')[1]), 0);
+
+      const participants = newClass.participants.map(id => {
+        const user = karateUsers.find(u => u.id === id);
+        return {
+          id,
+          name: user?.displayName || '',
+          avatar: user?.avatar || '👤'
+        };
+      });
+
+      await addDoc(collection(db, 'events'), {
+        title: `🥋 ${newClass.name}`,
+        date: startDate.toISOString().split('T')[0],
+        startTime: newClass.time,
+        duration: newClass.duration,
+        type: 'karate',
+        participants: newClass.participants,
+        recurring: true,
+        day: newClass.day
+      });
+
+      setNewClass({
+        name: '',
+        day: 'Lundi',
+        time: '17:00',
+        duration: 60,
+        participants: []
+      });
+    } catch (error) {
+      console.error('Error adding class:', error);
+      alert('Erreur lors de l\'ajout du cours');
+    }
   };
 
-  const handleRemoveClass = (index) => {
-    setGroupClasses(groupClasses.filter((_, i) => i !== index));
+  const handleRemoveClass = async (index) => {
+    try {
+      const updatedClasses = groupClasses.filter((_, i) => i !== index);
+      await setDoc(doc(db, 'karate_settings', 'schedules'), {
+        groupClasses: updatedClasses
+      });
+      setGroupClasses(updatedClasses);
+
+      // Remove from calendar
+      const removedClass = groupClasses[index];
+      const eventsRef = collection(db, 'events');
+      const q = query(
+        eventsRef,
+        where('type', '==', 'karate'),
+        where('title', '==', `🥋 ${removedClass.name}`)
+      );
+      const snapshot = await getDocs(q);
+      for (const doc of snapshot.docs) {
+        await deleteDoc(doc.ref);
+      }
+    } catch (error) {
+      console.error('Error removing class:', error);
+      alert('Erreur lors de la suppression du cours');
+    }
   };
 
   const renderScheduleSettings = () => (
     <div className="schedule-settings">
-      <h3>📅 Planning des cours</h3>
-      
-      <div className="schedule-section">
-        <h4>Cours de groupe</h4>
+      <div className="section-header">
+        <h3>📅 Planning des cours</h3>
+        {user.role === 'parent' && (
+          <button onClick={() => setEditingSchedule(!editingSchedule)} className="edit-button">
+            {editingSchedule ? '💾 Enregistrer' : '✏️ Modifier'}
+          </button>
+        )}
+      </div>
+
+      <div className="add-form">
+        <input
+          type="text"
+          value={newClass.name}
+          onChange={e => setNewClass({ ...newClass, name: e.target.value })}
+          placeholder="Nom du cours"
+          className="class-name-input"
+        />
+        
+        <div className="class-time-inputs">
+          <select
+            value={newClass.day}
+            onChange={e => setNewClass({ ...newClass, day: e.target.value })}
+            className="day-select"
+          >
+            {WEEKDAYS.map(day => (
+              <option key={day} value={day}>{day}</option>
+            ))}
+          </select>
+          
+          <input
+            type="time"
+            value={newClass.time}
+            onChange={e => setNewClass({ ...newClass, time: e.target.value })}
+            className="time-input"
+          />
+          
+          <input
+            type="number"
+            value={newClass.duration}
+            onChange={e => setNewClass({ ...newClass, duration: parseInt(e.target.value) })}
+            min="15"
+            max="180"
+            step="15"
+            placeholder="Durée (min)"
+            className="duration-input"
+          />
+        </div>
+
+        <div className="participant-selector">
+          {karateUsers.map(user => (
+            <label key={user.id} className="participant-option">
+              <input
+                type="checkbox"
+                checked={newClass.participants.includes(user.id)}
+                onChange={e => {
+                  const participants = e.target.checked
+                    ? [...newClass.participants, user.id]
+                    : newClass.participants.filter(id => id !== user.id);
+                  setNewClass({ ...newClass, participants });
+                }}
+              />
+              <span className="participant-name">
+                {user.avatar} {user.displayName}
+              </span>
+            </label>
+          ))}
+        </div>
+
+        <button onClick={handleAddClass} className="add-button">
+          Ajouter le cours
+        </button>
+      </div>
+
+      <div className="items-grid">
         {groupClasses.map((classInfo, index) => (
-          <div key={index} className="class-item">
+          <div key={index} className="class-card">
             <div className="class-header">
-              <span className="class-name">{classInfo.name}</span>
-              <span className="class-time">{classInfo.day} à {classInfo.time}</span>
+              <h4>{classInfo.name}</h4>
+              <div className="class-time">
+                {classInfo.day} à {classInfo.time} ({classInfo.duration} min)
+              </div>
             </div>
-            <div className="participants">
+            
+            <div className="participants-list">
               {classInfo.participants.map(userId => {
                 const user = karateUsers.find(u => u.id === userId);
                 return user ? (
@@ -182,90 +307,15 @@ export default function Karate({ user }) {
                 ) : null;
               })}
             </div>
+
             {editingSchedule && (
-              <button onClick={() => handleRemoveClass(index)} className="remove-class">
-                🗑️
+              <button onClick={() => handleRemoveClass(index)} className="delete-button">
+                🗑️ Supprimer
               </button>
             )}
           </div>
         ))}
-
-        {editingSchedule && (
-          <div className="add-class-form">
-            <input
-              type="text"
-              value={newClass.name}
-              onChange={e => setNewClass({ ...newClass, name: e.target.value })}
-              placeholder="Nom du cours"
-              className="class-name-input"
-            />
-            <div className="class-time-inputs">
-              <select
-                value={newClass.day}
-                onChange={e => setNewClass({ ...newClass, day: e.target.value })}
-                className="day-select"
-              >
-                {WEEKDAYS.map(day => (
-                  <option key={day} value={day}>{day}</option>
-                ))}
-              </select>
-              <input
-                type="time"
-                value={newClass.time}
-                onChange={e => setNewClass({ ...newClass, time: e.target.value })}
-                className="time-input"
-              />
-            </div>
-            <div className="participant-selector">
-              {karateUsers.map(user => (
-                <label key={user.id} className="participant-option">
-                  <input
-                    type="checkbox"
-                    checked={newClass.participants.includes(user.id)}
-                    onChange={e => {
-                      const participants = e.target.checked
-                        ? [...newClass.participants, user.id]
-                        : newClass.participants.filter(id => id !== user.id);
-                      setNewClass({ ...newClass, participants });
-                    }}
-                  />
-                  <span className="participant-name">
-                    {user.avatar} {user.displayName}
-                  </span>
-                </label>
-              ))}
-            </div>
-            <button onClick={handleAddClass} className="add-class-button">
-              Ajouter le cours
-            </button>
-          </div>
-        )}
       </div>
-
-      {user.role === 'parent' && (
-        <div className="schedule-actions">
-          {editingSchedule ? (
-            <>
-              <button onClick={handleSaveSchedule} className="save-button">
-                💾 Enregistrer
-              </button>
-              <button
-                onClick={() => setEditingSchedule(false)}
-                className="cancel-button"
-              >
-                ❌ Annuler
-              </button>
-            </>
-          ) : (
-            <button
-              onClick={() => setEditingSchedule(true)}
-              className="edit-button"
-            >
-              ✏️ Modifier
-            </button>
-          )}
-        </div>
-      )}
     </div>
   );
 
