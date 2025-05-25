@@ -145,10 +145,9 @@ export default function Karate({ user }) {
   };
 
   const handleNameChange = (e) => {
-    const value = e.target.value;
     setNewClass(prev => ({
       ...prev,
-      name: value
+      name: e.target.value
     }));
   };
 
