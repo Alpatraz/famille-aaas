@@ -43,6 +43,7 @@ export default function Karate({ user }) {
   const [attendance, setAttendance] = useState({});
   const [editingSchedule, setEditingSchedule] = useState(false);
   const [newClass, setNewClass] = useState({
+    name: '',
     day: 'Lundi',
     time: '17:00',
     participants: []
@@ -147,8 +148,12 @@ export default function Karate({ user }) {
   };
 
   const handleAddClass = () => {
+    if (!newClass.name.trim()) {
+      alert('Veuillez donner un nom au cours');
+      return;
+    }
     setGroupClasses([...groupClasses, { ...newClass }]);
-    setNewClass({ day: 'Lundi', time: '17:00', participants: [] });
+    setNewClass({ name: '', day: 'Lundi', time: '17:00', participants: [] });
   };
 
   const handleRemoveClass = (index) => {
@@ -163,7 +168,10 @@ export default function Karate({ user }) {
         <h4>Cours de groupe</h4>
         {groupClasses.map((classInfo, index) => (
           <div key={index} className="class-item">
-            <span>{classInfo.day} à {classInfo.time}</span>
+            <div className="class-header">
+              <span className="class-name">{classInfo.name}</span>
+              <span className="class-time">{classInfo.day} à {classInfo.time}</span>
+            </div>
             <div className="participants">
               {classInfo.participants.map(userId => {
                 const user = karateUsers.find(u => u.id === userId);
@@ -175,7 +183,7 @@ export default function Karate({ user }) {
               })}
             </div>
             {editingSchedule && (
-              <button onClick={() => handleRemoveClass(index)}>
+              <button onClick={() => handleRemoveClass(index)} className="remove-class">
                 🗑️
               </button>
             )}
@@ -184,19 +192,30 @@ export default function Karate({ user }) {
 
         {editingSchedule && (
           <div className="add-class-form">
-            <select
-              value={newClass.day}
-              onChange={e => setNewClass({ ...newClass, day: e.target.value })}
-            >
-              {WEEKDAYS.map(day => (
-                <option key={day} value={day}>{day}</option>
-              ))}
-            </select>
             <input
-              type="time"
-              value={newClass.time}
-              onChange={e => setNewClass({ ...newClass, time: e.target.value })}
+              type="text"
+              value={newClass.name}
+              onChange={e => setNewClass({ ...newClass, name: e.target.value })}
+              placeholder="Nom du cours"
+              className="class-name-input"
             />
+            <div className="class-time-inputs">
+              <select
+                value={newClass.day}
+                onChange={e => setNewClass({ ...newClass, day: e.target.value })}
+                className="day-select"
+              >
+                {WEEKDAYS.map(day => (
+                  <option key={day} value={day}>{day}</option>
+                ))}
+              </select>
+              <input
+                type="time"
+                value={newClass.time}
+                onChange={e => setNewClass({ ...newClass, time: e.target.value })}
+                className="time-input"
+              />
+            </div>
             <div className="participant-selector">
               {karateUsers.map(user => (
                 <label key={user.id} className="participant-option">
@@ -210,12 +229,14 @@ export default function Karate({ user }) {
                       setNewClass({ ...newClass, participants });
                     }}
                   />
-                  {user.avatar} {user.displayName}
+                  <span className="participant-name">
+                    {user.avatar} {user.displayName}
+                  </span>
                 </label>
               ))}
             </div>
-            <button onClick={handleAddClass}>
-              Ajouter
+            <button onClick={handleAddClass} className="add-class-button">
+              Ajouter le cours
             </button>
           </div>
         )}
