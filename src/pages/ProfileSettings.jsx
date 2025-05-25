@@ -66,13 +66,14 @@ export default function ProfileSettings() {
       
       // If karate status changed, update karate_users collection
       const user = users.find(u => u.uid === uid)
-      const karateStatusChanged = user.practicesKarate !== updated.practicesKarate
+      const karateStatusChanged = user && updated.practicesKarate !== undefined && 
+        user.practicesKarate !== updated.practicesKarate
       
       if (karateStatusChanged) {
         if (updated.practicesKarate) {
-          // Add to karate_users
-          await setDoc(doc(db, 'karate_users', uid), {
-            name: updated.displayName,
+          // Add to karate_users with guaranteed non-undefined values
+          const karateUserData = {
+            name: updated.displayName || user.displayName, // Use existing name as fallback
             currentBelt: 'white',
             attendedClasses: 0,
             requiredClasses: 20,
@@ -86,7 +87,8 @@ export default function ProfileSettings() {
               comprehension: [],
               esprit: []
             }
-          })
+          }
+          await setDoc(doc(db, 'karate_users', uid), karateUserData)
         } else {
           // Remove from karate_users
           await deleteDoc(doc(db, 'karate_users', uid))
