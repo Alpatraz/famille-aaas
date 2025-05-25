@@ -5,34 +5,24 @@ import './TodoManager.css';
 
 const DEFAULT_FOLDERS = {
   'shopping': {
-    name: '🛒 Liste de courses',
-    icon: '🛒',
-    description: 'Courses, favoris, types et magasins',
-    lists: []
+    name: 'Courses',
+    icon: '🛒'
   },
   'home': {
-    name: '🏠 Maison',
-    icon: '🏠',
-    description: 'Tâches à faire à la maison',
-    lists: []
+    name: 'Maison',
+    icon: '🏠'
   },
   'vacation': {
-    name: '✈️ Vacances',
-    icon: '✈️',
-    description: 'Idées de voyages et activités',
-    lists: []
+    name: 'Vacances',
+    icon: '✈️'
   },
   'projects': {
-    name: '📋 Projets',
-    icon: '📋',
-    description: 'Projets personnels et familiaux',
-    lists: []
+    name: 'Projets',
+    icon: '📋'
   },
   'events': {
-    name: '🎉 Événements',
-    icon: '🎉',
-    description: 'Planification d\'événements',
-    lists: []
+    name: 'Événements',
+    icon: '🎉'
   }
 };
 
