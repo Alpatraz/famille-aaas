@@ -56,20 +56,12 @@
   border-color: #cbd5e1;
 }
 
-.folder-card h3 {
-  margin: 0;
+.folder-name {
   font-size: 0.8rem;
   color: #475569;
   font-weight: 500;
 }
 
-.folder-stats {
-  font-size: 0.7rem;
-  color: #94a3b8;
-  margin-top: 0.2rem;
-}
-
-.new-folder-form,
 .new-list-form {
   background: #f8fafc;
   border: 2px solid #e2e8f0;
@@ -78,7 +70,6 @@
   margin-bottom: 0.75rem;
 }
 
-.new-folder-form input,
 .new-list-form input {
   width: 100%;
   padding: 0.5rem;
@@ -141,6 +132,22 @@
 .back-button:hover {
   background: #f1f5f9;
   transform: translateX(-2px);
+}
+
+.add-button {
+  background: #3b82f6;
+  color: white;
+  border: none;
+  padding: 0.4rem 0.75rem;
+  border-radius: 6px;
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.add-button:hover {
+  background: #2563eb;
+  transform: translateY(-1px);
 }
 
 .lists-grid {
@@ -234,23 +241,18 @@
 
 @media (max-width: 768px) {
   .folders-grid {
-    grid-template-columns: repeat(auto-fill, minmax(70px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(50px, 1fr));
     gap: 0.5rem;
   }
 
   .folder-icon {
-    width: 60px;
-    height: 60px;
-    font-size: 1.5rem;
-    margin-bottom: 0.3rem;
+    width: 40px;
+    height: 40px;
+    font-size: 1.2rem;
   }
 
-  .folder-card h3 {
-    font-size: 0.75rem;
-  }
-
-  .folder-stats {
-    font-size: 0.65rem;
+  .folder-name {
+    font-size: 0.7rem;
   }
 
   .lists-grid {
@@ -263,17 +265,5 @@
 
   .add-item-form button {
     width: 100%;
-  }
-
-  .list-card {
-    padding: 0.5rem;
-  }
-
-  .list-card h4 {
-    font-size: 0.8rem;
-  }
-
-  .list-stats {
-    font-size: 0.65rem;
   }
 }
