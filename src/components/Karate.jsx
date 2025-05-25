@@ -69,14 +69,19 @@ export default function Karate({ user }) {
     return Math.min(100, (userData.attendedClasses / userData.requiredClasses) * 100);
   };
 
-  const handleSaveProfile = async (updatedData) => {
+  const handleSaveProfile = async (user, updatedData) => {
+    if (!user?.id) {
+      console.error('No user ID provided for profile update');
+      return;
+    }
+
     try {
-      const karateUserRef = doc(db, 'karate_users', editingUser.id);
+      const karateUserRef = doc(db, 'karate_users', user.id);
       
       // Add new belt to history if it changed
-      if (updatedData.currentBelt !== editingUser.currentBelt) {
+      if (updatedData.currentBelt !== user.currentBelt) {
         updatedData.beltHistory = [
-          ...(editingUser.beltHistory || []),
+          ...(user.beltHistory || []),
           {
             belt: updatedData.currentBelt,
             date: new Date().toISOString()
@@ -107,7 +112,7 @@ export default function Karate({ user }) {
               <label>Ceinture actuelle</label>
               <select
                 value={user.currentBelt}
-                onChange={(e) => handleSaveProfile({ ...user, currentBelt: e.target.value })}
+                onChange={(e) => handleSaveProfile(user, { ...user, currentBelt: e.target.value })}
               >
                 {Object.entries(BELT_COLORS).map(([value, { name }]) => (
                   <option key={value} value={value}>{name}</option>
@@ -120,7 +125,7 @@ export default function Karate({ user }) {
               <input
                 type="number"
                 value={user.attendedClasses || 0}
-                onChange={(e) => handleSaveProfile({ 
+                onChange={(e) => handleSaveProfile(user, { 
                   ...user, 
                   attendedClasses: parseInt(e.target.value) || 0 
                 })}
@@ -131,7 +136,7 @@ export default function Karate({ user }) {
               <input
                 type="number"
                 value={user.requiredClasses || 20}
-                onChange={(e) => handleSaveProfile({ 
+                onChange={(e) => handleSaveProfile(user, { 
                   ...user, 
                   requiredClasses: parseInt(e.target.value) || 20 
                 })}
@@ -144,7 +149,7 @@ export default function Karate({ user }) {
                 <input
                   type="checkbox"
                   checked={user.doesCompetition || false}
-                  onChange={(e) => handleSaveProfile({ 
+                  onChange={(e) => handleSaveProfile(user, { 
                     ...user, 
                     doesCompetition: e.target.checked 
                   })}
@@ -156,7 +161,7 @@ export default function Karate({ user }) {
                 <input
                   type="checkbox"
                   checked={user.hasPrivateLessons || false}
-                  onChange={(e) => handleSaveProfile({ 
+                  onChange={(e) => handleSaveProfile(user, { 
                     ...user, 
                     hasPrivateLessons: e.target.checked 
                   })}
@@ -179,7 +184,7 @@ export default function Karate({ user }) {
                           onChange={(e) => {
                             const updatedKatas = { ...user.katas };
                             updatedKatas[key][index].name = e.target.value;
-                            handleSaveProfile({ ...user, katas: updatedKatas });
+                            handleSaveProfile(user, { ...user, katas: updatedKatas });
                           }}
                         />
                         <select
@@ -187,7 +192,7 @@ export default function Karate({ user }) {
                           onChange={(e) => {
                             const updatedKatas = { ...user.katas };
                             updatedKatas[key][index].level = parseInt(e.target.value);
-                            handleSaveProfile({ ...user, katas: updatedKatas });
+                            handleSaveProfile(user, { ...user, katas: updatedKatas });
                           }}
                         >
                           {[1, 2, 3, 4, 5].map(level => (
@@ -198,7 +203,7 @@ export default function Karate({ user }) {
                           onClick={() => {
                             const updatedKatas = { ...user.katas };
                             updatedKatas[key].splice(index, 1);
-                            handleSaveProfile({ ...user, katas: updatedKatas });
+                            handleSaveProfile(user, { ...user, katas: updatedKatas });
                           }}
                           className="delete-kata"
                         >
@@ -211,7 +216,7 @@ export default function Karate({ user }) {
                         const updatedKatas = { ...user.katas };
                         if (!updatedKatas[key]) updatedKatas[key] = [];
                         updatedKatas[key].push({ name: '', level: 1 });
-                        handleSaveProfile({ ...user, katas: updatedKatas });
+                        handleSaveProfile(user, { ...user, katas: updatedKatas });
                       }}
                       className="add-kata"
                     >
