@@ -1,20 +1,8 @@
 import { useState, useEffect } from 'react';
 import { db } from '../firebase';
-import { collection, getDocs, doc, getDoc, setDoc, addDoc, updateDoc } from 'firebase/firestore';
-import {
-  Chart as ChartJS,
-  CategoryScale,
-  LinearScale,
-  BarElement,
-  Title,
-  Tooltip,
-  Legend
-} from 'chart.js';
-import { Bar } from 'react-chartjs-2';
+import { collection, getDocs, doc, getDoc, query, where } from 'firebase/firestore';
 import Modal from './Modal';
 import './Karate.css';
-
-ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
 
 const BELT_COLORS = {
   white: { name: 'Blanche', color: '#ffffff', order: 0 },
@@ -27,18 +15,17 @@ const BELT_COLORS = {
 };
 
 const KATA_CATEGORIES = {
-  technique: 'Technique',
-  assiduite: 'Assiduité',
-  comprehension: 'Compréhension',
-  esprit: 'Esprit karaté'
+  technique: { name: 'Technique', icon: '🥋' },
+  assiduite: { name: 'Assiduité', icon: '⏰' },
+  comprehension: { name: 'Compréhension', icon: '🧠' },
+  esprit: { name: 'Esprit karaté', icon: '🌟' }
 };
 
 export default function Karate({ user }) {
   const [selectedSection, setSelectedSection] = useState(null);
-  const [users, setUsers] = useState([]);
-  const [trainings, setTrainings] = useState([]);
-  const [competitions, setCompetitions] = useState([]);
+  const [karateUsers, setKarateUsers] = useState([]);
   const [weeklyTheme, setWeeklyTheme] = useState('');
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     loadData();
@@ -46,40 +33,35 @@ export default function Karate({ user }) {
 
   const loadData = async () => {
     try {
-      // Load only karate users
-      const usersSnap = await getDocs(collection(db, 'users'));
-      const karateUsers = usersSnap.docs
-        .map(doc => ({
-          id: doc.id,
-          ...doc.data()
-        }))
-        .filter(user => user.practicesKarate);
+      // Load karate users
+      const usersSnap = await getDocs(
+        query(collection(db, 'users'), where('practicesKarate', '==', true))
+      );
       
-      setUsers(karateUsers);
+      const users = [];
+      for (const userDoc of usersSnap.docs) {
+        const userData = userDoc.data();
+        const karateData = await getDoc(doc(db, 'karate_users', userDoc.id));
+        
+        users.push({
+          id: userDoc.id,
+          displayName: userData.displayName,
+          avatar: userData.avatar,
+          ...karateData.data()
+        });
+      }
+      
+      setKarateUsers(users);
 
-      // Charger les entraînements
-      const trainingsSnap = await getDocs(collection(db, 'karate_trainings'));
-      const trainingsData = trainingsSnap.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
-      }));
-      setTrainings(trainingsData);
-
-      // Charger les compétitions
-      const competitionsSnap = await getDocs(collection(db, 'karate_competitions'));
-      const competitionsData = competitionsSnap.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
-      }));
-      setCompetitions(competitionsData);
-
-      // Charger le thème de la semaine
+      // Load weekly theme
       const themeDoc = await getDoc(doc(db, 'karate_settings', 'weeklyTheme'));
       if (themeDoc.exists()) {
         setWeeklyTheme(themeDoc.data().theme);
       }
     } catch (error) {
       console.error('Error loading karate data:', error);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -90,55 +72,59 @@ export default function Karate({ user }) {
 
   const renderProgressionContent = () => (
     <div className="progression-section">
-      <div className="users-grid">
-        {users.map(userData => (
-          <div key={userData.id} className="user-karate-card">
-            <div className="belt-info">
-              <div className="current-belt" style={{
-                backgroundColor: BELT_COLORS[userData.currentBelt]?.color,
-                border: userData.currentBelt === 'white' ? '1px solid #ddd' : 'none'
-              }}>
-                <span>{userData.name} - {BELT_COLORS[userData.currentBelt]?.name}</span>
-              </div>
-              
-              <div className="belt-dates">
-                {userData.beltHistory?.map(history => (
-                  <div key={history.belt} className="belt-date">
-                    {BELT_COLORS[history.belt]?.name}: {new Date(history.date).toLocaleDateString()}
-                  </div>
-                ))}
-              </div>
-
-              <div className="progress-section">
-                <div className="progress-bar">
-                  <div 
-                    className="progress-fill"
-                    style={{ width: `${calculateProgress(userData)}%` }}
-                  />
+      {karateUsers.map(userData => (
+        <div key={userData.id} className="user-karate-card">
+          <div className="belt-info">
+            <div className="current-belt" style={{
+              backgroundColor: BELT_COLORS[userData.currentBelt]?.color || '#ffffff',
+              border: userData.currentBelt === 'white' ? '1px solid #ddd' : 'none',
+              color: userData.currentBelt === 'white' ? '#1e293b' : '#ffffff'
+            }}>
+              <span>{userData.displayName} - {BELT_COLORS[userData.currentBelt]?.name}</span>
+            </div>
+            
+            <div className="belt-dates">
+              {userData.beltHistory?.map((history, index) => (
+                <div key={index} className="belt-date">
+                  {BELT_COLORS[history.belt]?.name}: {new Date(history.date).toLocaleDateString()}
                 </div>
-                <div className="progress-text">
-                  {userData.attendedClasses} / {userData.requiredClasses} cours
-                </div>
-              </div>
+              ))}
+            </div>
 
-              <div className="kata-categories">
-                {Object.entries(KATA_CATEGORIES).map(([key, name]) => (
-                  <div key={key} className="kata-category">
-                    <h4>{name}</h4>
-                    <div className="kata-list">
-                      {userData.katas?.[key]?.map(kata => (
-                        <div key={kata.name} className="kata-item">
-                          {kata.name} - {kata.level}/5
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                ))}
+            <div className="progress-section">
+              <div className="progress-bar">
+                <div 
+                  className="progress-fill"
+                  style={{ width: `${calculateProgress(userData)}%` }}
+                />
+              </div>
+              <div className="progress-text">
+                {userData.attendedClasses || 0} / {userData.requiredClasses || 20} cours
+                {userData.requiredClasses && (
+                  <span className="remaining-classes">
+                    {` (${userData.requiredClasses - (userData.attendedClasses || 0)} cours restants)`}
+                  </span>
+                )}
               </div>
             </div>
+
+            <div className="kata-categories">
+              {Object.entries(KATA_CATEGORIES).map(([key, category]) => (
+                <div key={key} className="kata-category">
+                  <h4>{category.icon} {category.name}</h4>
+                  <div className="kata-list">
+                    {userData.katas?.[key]?.map((kata, index) => (
+                      <div key={index} className="kata-item">
+                        {kata.name} - Niveau {kata.level}/5
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
-        ))}
-      </div>
+        </div>
+      ))}
 
       {weeklyTheme && (
         <div className="theme-section">
@@ -149,120 +135,9 @@ export default function Karate({ user }) {
     </div>
   );
 
-  const renderTrainingsContent = () => (
-    <div className="trainings-section">
-      <div className="training-calendar">
-        <h3>Cours réguliers</h3>
-        <div className="regular-classes">
-          <div className="class-item">
-            <span>Lundi 18h30 - 20h00</span>
-            <span>Cours général</span>
-          </div>
-          <div className="class-item">
-            <span>Jeudi 18h30 - 20h00</span>
-            <span>Cours technique</span>
-          </div>
-        </div>
-
-        <h3>Cours privés</h3>
-        <div className="private-classes">
-          {trainings
-            .filter(t => t.type === 'private')
-            .map(training => (
-              <div key={training.id} className="private-class">
-                <div className="class-info">
-                  <span>{new Date(training.date).toLocaleDateString()}</span>
-                  <span>{training.time}</span>
-                  <span>{training.instructor}</span>
-                </div>
-                <div className="class-status">
-                  <span className={`payment-status ${training.paid ? 'paid' : 'unpaid'}`}>
-                    {training.paid ? 'Payé' : 'Non payé'}
-                  </span>
-                  <span className="price">{training.price}€</span>
-                </div>
-              </div>
-            ))}
-        </div>
-
-        <div className="attendance-chart">
-          <Bar
-            data={{
-              labels: users.map(u => u.name),
-              datasets: [{
-                label: 'Présences',
-                data: users.map(u => u.attendedClasses),
-                backgroundColor: '#4CAF50'
-              }]
-            }}
-            options={{
-              responsive: true,
-              plugins: {
-                legend: { position: 'top' },
-                title: { display: true, text: 'Suivi des présences' }
-              }
-            }}
-          />
-        </div>
-      </div>
-    </div>
-  );
-
-  const renderCompetitionsContent = () => (
-    <div className="competitions-section">
-      <div className="competitions-list">
-        <h3>Compétitions à venir</h3>
-        {competitions
-          .filter(c => new Date(c.date) > new Date())
-          .map(competition => (
-            <div key={competition.id} className="competition-card">
-              <div className="competition-header">
-                <h4>{competition.name}</h4>
-                <span className="competition-date">
-                  {new Date(competition.date).toLocaleDateString()}
-                </span>
-              </div>
-              <div className="competition-details">
-                <p>📍 {competition.location}</p>
-                <p>🏆 Catégories: {competition.categories.join(', ')}</p>
-                <div className="participants">
-                  <h5>Participants:</h5>
-                  {competition.participants?.map(p => (
-                    <div key={p.name} className="participant">
-                      <span>{p.name}</span>
-                      <span>{p.categories.join(', ')}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-          ))}
-
-        <h3>Résultats passés</h3>
-        {competitions
-          .filter(c => new Date(c.date) <= new Date() && c.results)
-          .map(competition => (
-            <div key={competition.id} className="competition-card past">
-              <div className="competition-header">
-                <h4>{competition.name}</h4>
-                <span className="competition-date">
-                  {new Date(competition.date).toLocaleDateString()}
-                </span>
-              </div>
-              <div className="competition-results">
-                {competition.results.map((result, i) => (
-                  <div key={i} className="result-item">
-                    <span>{result.participant}</span>
-                    <span>{result.category}</span>
-                    <span className="medal">{result.position}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          ))}
-      </div>
-    </div>
-  );
+  if (loading) {
+    return <div className="loading">Chargement...</div>;
+  }
 
   return (
     <div className="karate-container">
@@ -275,45 +150,15 @@ export default function Karate({ user }) {
           >
             📊 Progression
           </button>
-          <button 
-            className="section-button"
-            onClick={() => setSelectedSection('trainings')}
-          >
-            🎯 Entraînements
-          </button>
-          <button 
-            className="section-button"
-            onClick={() => setSelectedSection('competitions')}
-          >
-            🏆 Compétitions
-          </button>
         </div>
       </div>
 
       {selectedSection === 'progression' && (
         <Modal
-          title="📊 Progression"
+          title="📊 Progression Karaté"
           onClose={() => setSelectedSection(null)}
         >
           {renderProgressionContent()}
-        </Modal>
-      )}
-
-      {selectedSection === 'trainings' && (
-        <Modal
-          title="🎯 Entraînements"
-          onClose={() => setSelectedSection(null)}
-        >
-          {renderTrainingsContent()}
-        </Modal>
-      )}
-
-      {selectedSection === 'competitions' && (
-        <Modal
-          title="🏆 Compétitions"
-          onClose={() => setSelectedSection(null)}
-        >
-          {renderCompetitionsContent()}
         </Modal>
       )}
     </div>
