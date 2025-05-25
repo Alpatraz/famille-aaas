@@ -14,13 +14,6 @@ const BELT_COLORS = {
   black: { name: 'Noire', color: '#000000', order: 6 }
 };
 
-const KATA_CATEGORIES = {
-  technique: { name: 'Technique', icon: '🥋' },
-  assiduite: { name: 'Assiduité', icon: '⏰' },
-  comprehension: { name: 'Compréhension', icon: '🧠' },
-  esprit: { name: 'Esprit karaté', icon: '🌟' }
-};
-
 export default function Karate({ user }) {
   const [selectedSection, setSelectedSection] = useState(null);
   const [karateUsers, setKarateUsers] = useState([]);
@@ -169,63 +162,6 @@ export default function Karate({ user }) {
                 Prend des cours privés
               </label>
             </div>
-
-            <div className="kata-section">
-              <h4>Kata</h4>
-              {Object.entries(KATA_CATEGORIES).map(([key, category]) => (
-                <div key={key} className="kata-category-edit">
-                  <h5>{category.icon} {category.name}</h5>
-                  <div className="kata-list-edit">
-                    {(user.katas?.[key] || []).map((kata, index) => (
-                      <div key={index} className="kata-item-edit">
-                        <input
-                          type="text"
-                          value={kata.name}
-                          onChange={(e) => {
-                            const updatedKatas = { ...user.katas };
-                            updatedKatas[key][index].name = e.target.value;
-                            handleSaveProfile(user, { ...user, katas: updatedKatas });
-                          }}
-                        />
-                        <select
-                          value={kata.level}
-                          onChange={(e) => {
-                            const updatedKatas = { ...user.katas };
-                            updatedKatas[key][index].level = parseInt(e.target.value);
-                            handleSaveProfile(user, { ...user, katas: updatedKatas });
-                          }}
-                        >
-                          {[1, 2, 3, 4, 5].map(level => (
-                            <option key={level} value={level}>Niveau {level}</option>
-                          ))}
-                        </select>
-                        <button
-                          onClick={() => {
-                            const updatedKatas = { ...user.katas };
-                            updatedKatas[key].splice(index, 1);
-                            handleSaveProfile(user, { ...user, katas: updatedKatas });
-                          }}
-                          className="delete-kata"
-                        >
-                          🗑️
-                        </button>
-                      </div>
-                    ))}
-                    <button
-                      onClick={() => {
-                        const updatedKatas = { ...user.katas };
-                        if (!updatedKatas[key]) updatedKatas[key] = [];
-                        updatedKatas[key].push({ name: '', level: 1 });
-                        handleSaveProfile(user, { ...user, katas: updatedKatas });
-                      }}
-                      className="add-kata"
-                    >
-                      + Ajouter un kata
-                    </button>
-                  </div>
-                </div>
-              ))}
-            </div>
           </div>
         ))}
       </div>
@@ -268,21 +204,6 @@ export default function Karate({ user }) {
                   </span>
                 )}
               </div>
-            </div>
-
-            <div className="kata-categories">
-              {Object.entries(KATA_CATEGORIES).map(([key, category]) => (
-                <div key={key} className="kata-category">
-                  <h4>{category.icon} {category.name}</h4>
-                  <div className="kata-list">
-                    {userData.katas?.[key]?.map((kata, index) => (
-                      <div key={index} className="kata-item">
-                        {kata.name} - Niveau {kata.level}/5
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              ))}
             </div>
           </div>
         </div>
