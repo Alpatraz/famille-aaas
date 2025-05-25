@@ -117,11 +117,15 @@ export default function Karate({ user }) {
   };
 
   const getNextFourWeeks = (startDate) => {
-    return Array.from({ length: 4 }, (_, i) => {
-      const date = new Date(startDate);
-      date.setDate(date.getDate() + (i * 7));
-      return date;
-    });
+    const dates = [];
+    const date = new Date(startDate);
+    
+    for (let i = 0; i < 52; i++) { // Generate events for a full year
+      dates.push(new Date(date));
+      date.setDate(date.getDate() + 7);
+    }
+    
+    return dates;
   };
 
   const handleAddClass = async () => {
@@ -145,7 +149,7 @@ export default function Karate({ user }) {
         });
         setGroupClasses(updatedClasses);
 
-        // Update calendar events
+        // Delete old calendar events
         const eventsRef = collection(db, 'events');
         const q = query(
           eventsRef,
@@ -154,7 +158,6 @@ export default function Karate({ user }) {
         );
         const snapshot = await getDocs(q);
         
-        // Delete old events
         for (const doc of snapshot.docs) {
           await deleteDoc(doc.ref);
         }
@@ -170,15 +173,17 @@ export default function Karate({ user }) {
 
       // Add recurring events to calendar
       const nextDate = getNextDayDate(classData.day);
-      const nextFourWeeks = getNextFourWeeks(nextDate);
+      const nextDates = getNextFourWeeks(nextDate);
 
-      for (const date of nextFourWeeks) {
-        date.setHours(parseInt(classData.time.split(':')[0]), parseInt(classData.time.split(':')[1]), 0);
+      for (const date of nextDates) {
+        const [hours, minutes] = classData.time.split(':');
+        date.setHours(parseInt(hours), parseInt(minutes), 0, 0);
 
         await addDoc(collection(db, 'events'), {
           title: `🥋 ${classData.name}`,
           date: date.toISOString().split('T')[0],
           startTime: classData.time,
+          endDate: new Date(date.getTime() + classData.duration * 60000).toISOString(),
           duration: classData.duration,
           type: 'karate',
           participants: classData.participants,
