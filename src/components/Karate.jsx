@@ -63,6 +63,21 @@ const SECTIONS = {
   competition: { name: 'Compétition', icon: '🏆' }
 };
 
+const DAYS = [
+  { id: 'monday', name: 'Lundi' },
+  { id: 'tuesday', name: 'Mardi' },
+  { id: 'wednesday', name: 'Mercredi' },
+  { id: 'thursday', name: 'Jeudi' },
+  { id: 'friday', name: 'Vendredi' },
+  { id: 'saturday', name: 'Samedi' },
+  { id: 'sunday', name: 'Dimanche' }
+];
+
+const RECURRENCE = [
+  { id: 'weekly', name: 'Hebdomadaire' },
+  { id: 'biweekly', name: 'Bihebdomadaire' }
+];
+
 export default function Karate({ user }) {
   const [activeSection, setActiveSection] = useState(null);
   const [showSettings, setShowSettings] = useState(false);
@@ -71,6 +86,13 @@ export default function Karate({ user }) {
   const [editingUser, setEditingUser] = useState(null);
   const [selectedUser, setSelectedUser] = useState(null);
   const [editingBeltDate, setEditingBeltDate] = useState(null);
+  const [showPrivateLessons, setShowPrivateLessons] = useState(false);
+  const [privateLessonForm, setPrivateLessonForm] = useState({
+    day: '',
+    time: '',
+    recurrence: 'weekly',
+    nextDate: new Date().toISOString().split('T')[0]
+  });
 
   useEffect(() => {
     loadData();
@@ -141,6 +163,42 @@ export default function Karate({ user }) {
     } catch (error) {
       console.error('Error saving belt date:', error);
       alert('Erreur lors de la sauvegarde de la date');
+    }
+  };
+
+  const handleSavePrivateLesson = async (userId) => {
+    try {
+      const userRef = doc(db, 'karate_users', userId);
+      const userDoc = await getDoc(userRef);
+      const userData = userDoc.data() || {};
+
+      const nextDates = [];
+      let currentDate = new Date(privateLessonForm.nextDate);
+      const increment = privateLessonForm.recurrence === 'weekly' ? 7 : 14;
+
+      for (let i = 0; i < 12; i++) {
+        nextDates.push(currentDate.toISOString().split('T')[0]);
+        currentDate.setDate(currentDate.getDate() + increment);
+      }
+
+      await updateDoc(userRef, {
+        privateLessons: {
+          ...userData.privateLessons,
+          enabled: true,
+          schedule: {
+            day: privateLessonForm.day,
+            time: privateLessonForm.time,
+            recurrence: privateLessonForm.recurrence,
+            nextDates
+          }
+        }
+      });
+
+      await loadData();
+      setShowPrivateLessons(false);
+    } catch (error) {
+      console.error('Error saving private lesson:', error);
+      alert('Erreur lors de la sauvegarde du cours privé');
     }
   };
 
@@ -224,6 +282,122 @@ export default function Karate({ user }) {
     );
   };
 
+  const renderPrivateLessonsModal = () => (
+    <Modal
+      title="🥋 Cours privés"
+      onClose={() => setShowPrivateLessons(false)}
+    >
+      <div className="private-lessons-form">
+        <div className="form-group">
+          <label>Jour de la semaine</label>
+          <select
+            value={privateLessonForm.day}
+            onChange={(e) => setPrivateLessonForm(prev => ({
+              ...prev,
+              day: e.target.value
+            }))}
+          >
+            <option value="">Sélectionner un jour</option>
+            {DAYS.map(day => (
+              <option key={day.id} value={day.id}>
+                {day.name}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        <div className="form-group">
+          <label>Heure du cours</label>
+          <input
+            type="time"
+            value={privateLessonForm.time}
+            onChange={(e) => setPrivateLessonForm(prev => ({
+              ...prev,
+              time: e.target.value
+            }))}
+          />
+        </div>
+
+        <div className="form-group">
+          <label>Récurrence</label>
+          <select
+            value={privateLessonForm.recurrence}
+            onChange={(e) => setPrivateLessonForm(prev => ({
+              ...prev,
+              recurrence: e.target.value
+            }))}
+          >
+            {RECURRENCE.map(option => (
+              <option key={option.id} value={option.id}>
+                {option.name}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        <div className="form-group">
+          <label>Date du prochain cours</label>
+          <input
+            type="date"
+            value={privateLessonForm.nextDate}
+            onChange={(e) => setPrivateLessonForm(prev => ({
+              ...prev,
+              nextDate: e.target.value
+            }))}
+          />
+        </div>
+
+        <div className="form-actions">
+          <button 
+            className="save-button"
+            onClick={() => handleSavePrivateLesson(selectedUser?.id)}
+            disabled={!privateLessonForm.day || !privateLessonForm.time}
+          >
+            Enregistrer
+          </button>
+          <button 
+            className="cancel-button"
+            onClick={() => setShowPrivateLessons(false)}
+          >
+            Annuler
+          </button>
+        </div>
+      </div>
+    </Modal>
+  );
+
+  const renderUserCard = (user) => (
+    <div className="user-karate-card">
+      <div className="belt-info">
+        <div 
+          className={`current-belt ${BELT_COLORS[user.currentBelt]?.topColor ? 'split' : ''}`}
+          style={renderBeltStyle(user.currentBelt)}
+        >
+          {user.avatar} {user.displayName}
+          <div className="belt-name">
+            Ceinture {BELT_COLORS[user.currentBelt]?.name}
+          </div>
+        </div>
+        {user.privateLessons?.enabled && (
+          <div className="private-lessons-info">
+            <p>Cours privés : {DAYS.find(d => d.id === user.privateLessons.schedule.day)?.name} à {user.privateLessons.schedule.time}</p>
+            <p>Récurrence : {RECURRENCE.find(r => r.id === user.privateLessons.schedule.recurrence)?.name}</p>
+            <p>Prochain cours : {new Date(user.privateLessons.schedule.nextDates[0]).toLocaleDateString()}</p>
+          </div>
+        )}
+        <button 
+          className="private-lessons-button"
+          onClick={() => {
+            setSelectedUser(user);
+            setShowPrivateLessons(true);
+          }}
+        >
+          📅 Gérer les cours privés
+        </button>
+      </div>
+    </div>
+  );
+
   if (loading) {
     return <div className="loading">Chargement...</div>;
   }
@@ -265,25 +439,7 @@ export default function Karate({ user }) {
         >
           {!selectedUser ? (
             <div className="users-grid">
-              {karateUsers.map(user => (
-                <div 
-                  key={user.id} 
-                  className="user-karate-card"
-                  onClick={() => setSelectedUser(user)}
-                >
-                  <div className="belt-info">
-                    <div 
-                      className={`current-belt ${BELT_COLORS[user.currentBelt]?.topColor ? 'split' : ''}`}
-                      style={renderBeltStyle(user.currentBelt)}
-                    >
-                      {user.avatar} {user.displayName}
-                      <div className="belt-name">
-                        Ceinture {BELT_COLORS[user.currentBelt]?.name}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              ))}
+              {karateUsers.map(user => renderUserCard(user))}
             </div>
           ) : (
             <div className="user-details">
@@ -409,6 +565,8 @@ export default function Karate({ user }) {
           </div>
         </Modal>
       )}
+
+      {showPrivateLessons && renderPrivateLessonsModal()}
     </div>
   );
 }
