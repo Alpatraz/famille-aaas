@@ -5,9 +5,11 @@ import Modal from './Modal';
 import './TodoManager.css';
 
 const SECTIONS = {
-  'tasks': { name: 'Tâches', icon: '✅' },
-  'rewards': { name: 'Récompenses', icon: '🎁' },
-  'consequences': { name: 'Conséquences', icon: '⚠️' }
+  'daily': { name: 'Quotidien', icon: '📅' },
+  'weekly': { name: 'Hebdomadaire', icon: '📆' },
+  'monthly': { name: 'Mensuel', icon: '📊' },
+  'shopping': { name: 'Courses', icon: '🛒' },
+  'projects': { name: 'Projets', icon: '📋' }
 };
 
 export default function TodoManager() {
