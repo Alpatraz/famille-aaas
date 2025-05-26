@@ -140,7 +140,9 @@ export default function Karate({ user }) {
     <div className="karate-container">
       <div className="karate-header">
         <div className="header-content">
-          <h2>🥋 Karaté</h2>
+          <div className="title-section">
+            <h2>🥋 Karaté</h2>
+          </div>
           <div className="section-buttons">
             <button 
               className={`section-button ${activeTab === 'progression' ? 'active' : ''}`}
