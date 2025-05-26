@@ -144,6 +144,20 @@ export default function Karate({ user }) {
     }
   };
 
+  const renderBeltStyle = (beltId) => {
+    const belt = BELT_COLORS[beltId];
+    if (belt.topColor && belt.bottomColor) {
+      return {
+        '--top-color': belt.topColor,
+        '--bottom-color': belt.bottomColor
+      };
+    }
+    return {
+      backgroundColor: belt.color,
+      color: ['white', 'white-yellow'].includes(beltId) ? '#000' : '#fff'
+    };
+  };
+
   const renderUserProgression = (user) => {
     const sortedBelts = Object.entries(BELT_COLORS)
       .sort(([,a], [,b]) => a.order - b.order);
@@ -165,13 +179,7 @@ export default function Karate({ user }) {
                 <div 
                   key={beltId} 
                   className={`belt-entry ${isCurrent ? 'current' : ''} ${isSplitBelt ? 'split' : ''}`}
-                  style={isSplitBelt ? {
-                    '--top-color': belt.topColor,
-                    '--bottom-color': belt.bottomColor
-                  } : {
-                    backgroundColor: belt.color,
-                    color: ['white', 'white-yellow'].includes(beltId) ? '#000' : '#fff'
-                  }}
+                  style={renderBeltStyle(beltId)}
                 >
                   <span className="belt-name">{belt.name}</span>
                   {editingBeltDate === beltId ? (
@@ -205,13 +213,7 @@ export default function Karate({ user }) {
                 <div 
                   key={beltId}
                   className={`next-belt ${isSplitBelt ? 'split' : ''}`}
-                  style={isSplitBelt ? {
-                    '--top-color': belt.topColor,
-                    '--bottom-color': belt.bottomColor
-                  } : {
-                    backgroundColor: belt.color,
-                    color: ['white', 'white-yellow'].includes(beltId) ? '#000' : '#fff'
-                  }}
+                  style={renderBeltStyle(beltId)}
                 >
                   {belt.name}
                 </div>
@@ -271,11 +273,8 @@ export default function Karate({ user }) {
                 >
                   <div className="belt-info">
                     <div 
-                      className="current-belt"
-                      style={{ 
-                        backgroundColor: BELT_COLORS[user.currentBelt]?.color || '#fff',
-                        color: ['white', 'white-yellow'].includes(user.currentBelt) ? '#000' : '#fff'
-                      }}
+                      className={`current-belt ${BELT_COLORS[user.currentBelt]?.topColor ? 'split' : ''}`}
+                      style={renderBeltStyle(user.currentBelt)}
                     >
                       {user.avatar} {user.displayName}
                       <div className="belt-name">
