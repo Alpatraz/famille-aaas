@@ -6,19 +6,54 @@ import './Karate.css';
 
 const BELT_COLORS = {
   'white': { name: 'Blanche', color: '#ffffff', order: 0 },
-  'white-yellow': { name: 'Blanche / Jaune', color: '#fff5b3', order: 1 },
+  'white-yellow': { 
+    name: 'Blanche / Jaune', 
+    topColor: '#ffffff',
+    bottomColor: '#ffd700',
+    order: 1 
+  },
   'yellow': { name: 'Jaune', color: '#ffd700', order: 2 },
-  'yellow-orange': { name: 'Jaune / Orange', color: '#ffb347', order: 3 },
+  'yellow-orange': { 
+    name: 'Jaune / Orange',
+    topColor: '#ffd700',
+    bottomColor: '#ffa500',
+    order: 3 
+  },
   'orange': { name: 'Orange', color: '#ffa500', order: 4 },
-  'orange-purple': { name: 'Orange / Mauve', color: '#d8a0df', order: 5 },
+  'orange-purple': { 
+    name: 'Orange / Mauve',
+    topColor: '#ffa500',
+    bottomColor: '#800080',
+    order: 5 
+  },
   'purple': { name: 'Mauve', color: '#800080', order: 6 },
-  'purple-green': { name: 'Mauve / Verte', color: '#50c878', order: 7 },
+  'purple-green': { 
+    name: 'Mauve / Verte',
+    topColor: '#800080',
+    bottomColor: '#228b22',
+    order: 7 
+  },
   'green': { name: 'Verte', color: '#228b22', order: 8 },
-  'green-blue': { name: 'Verte / Bleue', color: '#0096c7', order: 9 },
+  'green-blue': { 
+    name: 'Verte / Bleue',
+    topColor: '#228b22',
+    bottomColor: '#0000ff',
+    order: 9 
+  },
   'blue': { name: 'Bleue', color: '#0000ff', order: 10 },
-  'blue-brown': { name: 'Bleue / Brune', color: '#a0522d', order: 11 },
+  'blue-brown': { 
+    name: 'Bleue / Brune',
+    topColor: '#0000ff',
+    bottomColor: '#8b4513',
+    order: 11 
+  },
   'brown': { name: 'Brune', color: '#8b4513', order: 12 },
-  'brown-black': { name: 'Brune / Noire', color: '#3a3a3a', order: 13 },
+  'brown-black': { 
+    name: 'Brune / Noire',
+    topColor: '#8b4513',
+    bottomColor: '#000000',
+    order: 13 
+  },
   'black': { name: 'Noire', color: '#000000', order: 14 }
 };
 
@@ -123,13 +158,17 @@ export default function Karate({ user }) {
             const beltHistory = user.beltHistory?.find(h => h.belt === beltId);
             const isPast = belt.order < currentBeltOrder;
             const isCurrent = beltId === user.currentBelt;
+            const isSplitBelt = belt.topColor && belt.bottomColor;
 
             if (isPast || isCurrent) {
               return (
                 <div 
                   key={beltId} 
-                  className={`belt-entry ${isCurrent ? 'current' : ''}`}
-                  style={{
+                  className={`belt-entry ${isCurrent ? 'current' : ''} ${isSplitBelt ? 'split' : ''}`}
+                  style={isSplitBelt ? {
+                    '--top-color': belt.topColor,
+                    '--bottom-color': belt.bottomColor
+                  } : {
                     backgroundColor: belt.color,
                     color: ['white', 'white-yellow'].includes(beltId) ? '#000' : '#fff'
                   }}
@@ -160,18 +199,24 @@ export default function Karate({ user }) {
           <h3>Prochaines ceintures</h3>
           {sortedBelts
             .filter(([beltId, belt]) => belt.order > currentBeltOrder)
-            .map(([beltId, belt]) => (
-              <div 
-                key={beltId}
-                className="next-belt"
-                style={{
-                  backgroundColor: belt.color,
-                  color: ['white', 'white-yellow'].includes(beltId) ? '#000' : '#fff'
-                }}
-              >
-                {belt.name}
-              </div>
-            ))}
+            .map(([beltId, belt]) => {
+              const isSplitBelt = belt.topColor && belt.bottomColor;
+              return (
+                <div 
+                  key={beltId}
+                  className={`next-belt ${isSplitBelt ? 'split' : ''}`}
+                  style={isSplitBelt ? {
+                    '--top-color': belt.topColor,
+                    '--bottom-color': belt.bottomColor
+                  } : {
+                    backgroundColor: belt.color,
+                    color: ['white', 'white-yellow'].includes(beltId) ? '#000' : '#fff'
+                  }}
+                >
+                  {belt.name}
+                </div>
+              );
+            })}
         </div>
       </div>
     );
