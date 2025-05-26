@@ -5,11 +5,10 @@ import Modal from './Modal';
 import './TodoManager.css';
 
 const SECTIONS = {
-  'daily': { name: 'Quotidien', icon: '📅' },
-  'weekly': { name: 'Hebdomadaire', icon: '📆' },
-  'monthly': { name: 'Mensuel', icon: '📊' },
-  'shopping': { name: 'Courses', icon: '🛒' },
-  'projects': { name: 'Projets', icon: '📋' }
+  'vacances': { name: 'Vacances', icon: '🏖️' },
+  'courses': { name: 'Courses', icon: '🛒' },
+  'maison': { name: 'Maison', icon: '🏠' },
+  'idees': { name: 'Idées', icon: '💡' }
 };
 
 export default function TodoManager() {
@@ -313,6 +312,18 @@ export default function TodoManager() {
               </div>
             </div>
           )}
+        </Modal>
+      )}
+
+      {showSettings && (
+        <Modal
+          title="⚙️ Paramètres"
+          onClose={() => setShowSettings(false)}
+        >
+          <div className="settings-content">
+            <h3>Gestion des catégories</h3>
+            <p>Vous pouvez personnaliser les catégories et leurs paramètres ici.</p>
+          </div>
         </Modal>
       )}
     </div>
