@@ -527,6 +527,111 @@
   gap: 0.75rem;
 }
 
+.users-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 1rem;
+}
+
+.user-progression {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+  padding: 1rem;
+}
+
+.belt-history {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.belt-entry {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+}
+
+.belt-entry.current {
+  border: 2px solid #3b82f6;
+  transform: scale(1.02);
+}
+
+.belt-name {
+  font-weight: 500;
+}
+
+.belt-date {
+  cursor: pointer;
+  padding: 0.4rem 0.8rem;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.2);
+  font-size: 0.9rem;
+}
+
+.date-editor {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.date-editor input {
+  padding: 0.4rem;
+  border-radius: 6px;
+  border: none;
+  font-size: 0.9rem;
+}
+
+.date-editor button {
+  background: rgba(255, 255, 255, 0.2);
+  border: none;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.2rem;
+}
+
+.next-belts {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.next-belt {
+  padding: 1rem;
+  border-radius: 8px;
+  text-align: center;
+  font-weight: 500;
+  opacity: 0.7;
+}
+
+.back-button {
+  margin-bottom: 1rem;
+  background: #f8fafc;
+  border: none;
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 0.95rem;
+  color: #475569;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.back-button:hover {
+  background: #f1f5f9;
+  transform: translateX(-2px);
+}
+
 @media (max-width: 768px) {
   .karate-header {
     flex-direction: column;
@@ -561,6 +666,19 @@
 
   .private-lessons-schedule {
     padding: 0.5rem;
+  }
+
+  .users-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .belt-entry {
+    padding: 0.75rem;
+  }
+
+  .belt-date {
+    padding: 0.3rem 0.6rem;
+    font-size: 0.85rem;
   }
 }
 
@@ -604,6 +722,21 @@
   .belt-section select,
   .competition-section select {
     padding: 0.5rem;
+    font-size: 0.85rem;
+  }
+
+  .belt-entry {
+    padding: 0.5rem;
+    font-size: 0.9rem;
+  }
+
+  .belt-date {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.8rem;
+  }
+
+  .date-editor input {
+    padding: 0.3rem;
     font-size: 0.85rem;
   }
 }
