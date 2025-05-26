@@ -34,6 +34,8 @@ export default function Karate({ user }) {
   const [karateUsers, setKarateUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [editingUser, setEditingUser] = useState(null);
+  const [selectedUser, setSelectedUser] = useState(null);
+  const [editingBeltDate, setEditingBeltDate] = useState(null);
 
   useEffect(() => {
     loadData();
@@ -80,6 +82,101 @@ export default function Karate({ user }) {
     }
   };
 
+  const handleSaveBeltDate = async (userId, beltColor, date) => {
+    try {
+      const userRef = doc(db, 'karate_users', userId);
+      const userDoc = await getDoc(userRef);
+      const userData = userDoc.data();
+
+      const updatedBeltHistory = [...(userData.beltHistory || [])];
+      const existingIndex = updatedBeltHistory.findIndex(b => b.belt === beltColor);
+
+      if (existingIndex !== -1) {
+        updatedBeltHistory[existingIndex].date = date;
+      } else {
+        updatedBeltHistory.push({ belt: beltColor, date });
+      }
+
+      await updateDoc(userRef, {
+        beltHistory: updatedBeltHistory
+      });
+
+      await loadData();
+      setEditingBeltDate(null);
+    } catch (error) {
+      console.error('Error saving belt date:', error);
+      alert('Erreur lors de la sauvegarde de la date');
+    }
+  };
+
+  const renderUserProgression = (user) => {
+    const sortedBelts = Object.entries(BELT_COLORS)
+      .sort(([,a], [,b]) => a.order - b.order);
+
+    const currentBeltOrder = BELT_COLORS[user.currentBelt]?.order || 0;
+    
+    return (
+      <div className="user-progression">
+        <div className="belt-history">
+          <h3>Historique des ceintures</h3>
+          {sortedBelts.map(([beltId, belt]) => {
+            const beltHistory = user.beltHistory?.find(h => h.belt === beltId);
+            const isPast = belt.order < currentBeltOrder;
+            const isCurrent = beltId === user.currentBelt;
+
+            if (isPast || isCurrent) {
+              return (
+                <div 
+                  key={beltId} 
+                  className={`belt-entry ${isCurrent ? 'current' : ''}`}
+                  style={{
+                    backgroundColor: belt.color,
+                    color: ['white', 'white-yellow'].includes(beltId) ? '#000' : '#fff'
+                  }}
+                >
+                  <span className="belt-name">{belt.name}</span>
+                  {editingBeltDate === beltId ? (
+                    <div className="date-editor">
+                      <input
+                        type="date"
+                        defaultValue={beltHistory?.date || ''}
+                        onChange={(e) => handleSaveBeltDate(user.id, beltId, e.target.value)}
+                      />
+                      <button onClick={() => setEditingBeltDate(null)}>✓</button>
+                    </div>
+                  ) : (
+                    <div className="belt-date" onClick={() => setEditingBeltDate(beltId)}>
+                      {beltHistory?.date ? new Date(beltHistory.date).toLocaleDateString() : '+ Ajouter date'}
+                    </div>
+                  )}
+                </div>
+              );
+            }
+            return null;
+          })}
+        </div>
+
+        <div className="next-belts">
+          <h3>Prochaines ceintures</h3>
+          {sortedBelts
+            .filter(([beltId, belt]) => belt.order > currentBeltOrder)
+            .map(([beltId, belt]) => (
+              <div 
+                key={beltId}
+                className="next-belt"
+                style={{
+                  backgroundColor: belt.color,
+                  color: ['white', 'white-yellow'].includes(beltId) ? '#000' : '#fff'
+                }}
+              >
+                {belt.name}
+              </div>
+            ))}
+        </div>
+      </div>
+    );
+  };
+
   if (loading) {
     return <div className="loading">Chargement...</div>;
   }
@@ -111,15 +208,22 @@ export default function Karate({ user }) {
         ))}
       </div>
 
-      {activeSection && (
+      {activeSection === 'progression' && (
         <Modal
           title={`${SECTIONS[activeSection].icon} ${SECTIONS[activeSection].name}`}
-          onClose={() => setActiveSection(null)}
+          onClose={() => {
+            setActiveSection(null);
+            setSelectedUser(null);
+          }}
         >
-          {activeSection === 'progression' && (
-            <div className="progression-section">
+          {!selectedUser ? (
+            <div className="users-grid">
               {karateUsers.map(user => (
-                <div key={user.id} className="user-karate-card">
+                <div 
+                  key={user.id} 
+                  className="user-karate-card"
+                  onClick={() => setSelectedUser(user)}
+                >
                   <div className="belt-info">
                     <div 
                       className="current-belt"
@@ -128,41 +232,24 @@ export default function Karate({ user }) {
                         color: ['white', 'white-yellow'].includes(user.currentBelt) ? '#000' : '#fff'
                       }}
                     >
-                      {user.avatar} {user.displayName} - Ceinture {BELT_COLORS[user.currentBelt]?.name}
-                    </div>
-                    <div className="progress-section">
-                      <div className="progress-bar">
-                        <div 
-                          className="progress-fill"
-                          style={{ 
-                            width: `${(user.attendedClasses / user.requiredClasses) * 100}%`
-                          }}
-                        />
-                      </div>
-                      <div className="progress-text">
-                        <span>{user.attendedClasses} cours effectués</span>
-                        <span className="remaining-classes">
-                          {Math.max(0, user.requiredClasses - user.attendedClasses)} cours restants
-                        </span>
+                      {user.avatar} {user.displayName}
+                      <div className="belt-name">
+                        Ceinture {BELT_COLORS[user.currentBelt]?.name}
                       </div>
                     </div>
                   </div>
                 </div>
               ))}
             </div>
-          )}
-
-          {activeSection === 'cours' && (
-            <div className="courses-section">
-              <h3>Liste des cours à venir</h3>
-              <p>Fonctionnalité en développement</p>
-            </div>
-          )}
-
-          {activeSection === 'competition' && (
-            <div className="competition-section">
-              <h3>Compétitions</h3>
-              <p>Fonctionnalité en développement</p>
+          ) : (
+            <div className="user-details">
+              <button 
+                className="back-button"
+                onClick={() => setSelectedUser(null)}
+              >
+                ← Retour
+              </button>
+              {renderUserProgression(selectedUser)}
             </div>
           )}
         </Modal>
@@ -199,7 +286,7 @@ export default function Karate({ user }) {
                             ...(user.beltHistory || []),
                             {
                               belt: newBelt,
-                              date: new Date().toISOString()
+                              date: new Date().toISOString().split('T')[0]
                             }
                           ]
                         }));
