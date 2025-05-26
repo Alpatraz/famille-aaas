@@ -191,8 +191,9 @@ export default function Karate({ user }) {
                       value={editingUser?.id === user.id ? editingUser.currentBelt : user.currentBelt}
                       onChange={(e) => {
                         const newBelt = e.target.value;
-                        setEditingUser({
-                          ...user,
+                        setEditingUser(prev => ({
+                          ...(prev || user),
+                          id: user.id,
                           currentBelt: newBelt,
                           beltHistory: [
                             ...(user.beltHistory || []),
@@ -201,7 +202,7 @@ export default function Karate({ user }) {
                               date: new Date().toISOString()
                             }
                           ]
-                        });
+                        }));
                       }}
                     >
                       {Object.entries(BELT_COLORS).map(([value, { name }]) => (
@@ -219,10 +220,11 @@ export default function Karate({ user }) {
                         type="checkbox"
                         checked={editingUser?.id === user.id ? editingUser.competition : user.competition}
                         onChange={(e) => {
-                          setEditingUser({
-                            ...user,
+                          setEditingUser(prev => ({
+                            ...(prev || user),
+                            id: user.id,
                             competition: e.target.checked
-                          });
+                          }));
                         }}
                       />
                       Participe aux compétitions
@@ -236,10 +238,11 @@ export default function Karate({ user }) {
                         type="checkbox"
                         checked={editingUser?.id === user.id ? editingUser.privateLessons : user.privateLessons}
                         onChange={(e) => {
-                          setEditingUser({
-                            ...user,
+                          setEditingUser(prev => ({
+                            ...(prev || user),
+                            id: user.id,
                             privateLessons: e.target.checked
-                          });
+                          }));
                         }}
                       />
                       Prend des cours privés
