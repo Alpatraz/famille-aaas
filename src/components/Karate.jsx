@@ -5,31 +5,41 @@ import Modal from './Modal';
 import './Karate.css';
 
 const BELT_COLORS = {
-  'white': { name: 'Blanche', color: '#ffffff', order: 0 },
-  'yellow': { name: 'Jaune', color: '#ffd700', order: 1 },
-  'orange': { name: 'Orange', color: '#ffa500', order: 2 },
-  'green': { name: 'Verte', color: '#228b22', order: 3 },
-  'blue': { name: 'Bleue', color: '#0000ff', order: 4 },
-  'brown': { name: 'Brune', color: '#8b4513', order: 5 },
-  'black': { name: 'Noire', color: '#000000', order: 6 }
+  'white': { name: 'Blanche', color: '#ffffff', textColor: '#000000' },
+  'yellow': { name: 'Jaune', color: '#ffd700', textColor: '#000000' },
+  'orange': { name: 'Orange', color: '#ffa500', textColor: '#000000' },
+  'green': { name: 'Verte', color: '#228b22', textColor: '#ffffff' },
+  'blue': { name: 'Bleue', color: '#0000ff', textColor: '#ffffff' },
+  'brown': { name: 'Brune', color: '#8b4513', textColor: '#ffffff' },
+  'black': { name: 'Noire', color: '#000000', textColor: '#ffffff' },
+  'yellow-orange': { 
+    name: 'Jaune-Orange', 
+    colors: ['#ffd700', '#ffa500'],
+    textColor: '#000000'
+  },
+  'orange-green': { 
+    name: 'Orange-Verte', 
+    colors: ['#ffa500', '#228b22'],
+    textColor: '#000000'
+  },
+  'green-blue': { 
+    name: 'Verte-Bleue', 
+    colors: ['#228b22', '#0000ff'],
+    textColor: '#ffffff'
+  },
+  'blue-brown': { 
+    name: 'Bleue-Brune', 
+    colors: ['#0000ff', '#8b4513'],
+    textColor: '#ffffff'
+  }
 };
 
 export default function Karate({ user }) {
   const [activeTab, setActiveTab] = useState('progression');
   const [karateUsers, setKarateUsers] = useState([]);
-  const [courses, setCourses] = useState([]);
-  const [competitions, setCompetitions] = useState([]);
-  const [loading, setLoading] = useState(true);
   const [selectedUser, setSelectedUser] = useState(null);
-  const [showSettings, setShowSettings] = useState(false);
-  const [newCourse, setNewCourse] = useState({
-    name: '',
-    day: 'lundi',
-    time: '',
-    duration: 60,
-    type: 'group',
-    participants: []
-  });
+  const [editingBeltDate, setEditingBeltDate] = useState(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     loadKarateData();
@@ -37,33 +47,24 @@ export default function Karate({ user }) {
 
   const loadKarateData = async () => {
     try {
-      // Load users with karate enabled
       const usersSnap = await getDocs(query(
         collection(db, 'users'), 
         where('practicesKarate', '==', true)
       ));
-      const usersData = usersSnap.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
-      }));
+      
+      const usersData = [];
+      for (const userDoc of usersSnap.docs) {
+        const karateData = await getDoc(doc(db, 'karate_users', userDoc.id));
+        if (karateData.exists()) {
+          usersData.push({
+            id: userDoc.id,
+            ...userDoc.data(),
+            ...karateData.data()
+          });
+        }
+      }
+      
       setKarateUsers(usersData);
-
-      // Load courses
-      const coursesSnap = await getDocs(collection(db, 'karate_courses'));
-      const coursesData = coursesSnap.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
-      }));
-      setCourses(coursesData);
-
-      // Load competitions
-      const competitionsSnap = await getDocs(collection(db, 'karate_competitions'));
-      const competitionsData = competitionsSnap.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
-      }));
-      setCompetitions(competitionsData);
-
       setLoading(false);
     } catch (error) {
       console.error('Error loading karate data:', error);
@@ -71,12 +72,63 @@ export default function Karate({ user }) {
     }
   };
 
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setNewCourse(prev => ({
-      ...prev,
-      [name]: value
-    }));
+  const handleBeltDateChange = async (userId, beltColor, date) => {
+    try {
+      const userRef = doc(db, 'karate_users', userId);
+      const userDoc = await getDoc(userRef);
+      
+      if (userDoc.exists()) {
+        const beltHistory = userDoc.data().beltHistory || [];
+        const updatedHistory = beltHistory.map(entry => 
+          entry.belt === beltColor ? { ...entry, date } : entry
+        );
+        
+        await updateDoc(userRef, { beltHistory: updatedHistory });
+        await loadKarateData();
+      }
+      
+      setEditingBeltDate(null);
+    } catch (error) {
+      console.error('Error updating belt date:', error);
+    }
+  };
+
+  const renderBelt = (belt, date) => {
+    const beltData = BELT_COLORS[belt];
+    if (!beltData) return null;
+
+    const style = beltData.colors ? {
+      background: `linear-gradient(to bottom, ${beltData.colors[0]} 50%, ${beltData.colors[1]} 50%)`,
+      color: beltData.textColor
+    } : {
+      background: beltData.color,
+      color: beltData.textColor
+    };
+
+    return (
+      <div className="belt-entry" style={style}>
+        <span className="belt-name">{beltData.name}</span>
+        {date && (
+          editingBeltDate === `${belt}-${date}` ? (
+            <div className="date-editor">
+              <input
+                type="date"
+                defaultValue={date}
+                onChange={(e) => handleBeltDateChange(selectedUser.id, belt, e.target.value)}
+              />
+              <button onClick={() => setEditingBeltDate(null)}>✓</button>
+            </div>
+          ) : (
+            <span 
+              className="belt-date"
+              onClick={() => setEditingBeltDate(`${belt}-${date}`)}
+            >
+              {new Date(date).toLocaleDateString()}
+            </span>
+          )
+        )}
+      </div>
+    );
   };
 
   if (loading) {
@@ -85,166 +137,33 @@ export default function Karate({ user }) {
 
   return (
     <div className="karate-container">
-      <div className="karate-header">
-        <div className="header-content">
-          <h2>🥋 Karaté</h2>
-          {user.role === 'parent' && (
-            <button 
-              className="settings-button"
-              onClick={() => setShowSettings(true)}
-            >
-              ⚙️
-            </button>
-          )}
-        </div>
-        <div className="tabs">
-          <button 
-            className={`tab ${activeTab === 'progression' ? 'active' : ''}`}
-            onClick={() => setActiveTab('progression')}
+      <div className="users-grid">
+        {karateUsers.map(karateUser => (
+          <div 
+            key={karateUser.id} 
+            className="user-karate-card"
+            onClick={() => setSelectedUser(karateUser)}
           >
-            📈 Progression
-          </button>
-          <button 
-            className={`tab ${activeTab === 'cours' ? 'active' : ''}`}
-            onClick={() => setActiveTab('cours')}
-          >
-            📚 Cours
-          </button>
-          <button 
-            className={`tab ${activeTab === 'competitions' ? 'active' : ''}`}
-            onClick={() => setActiveTab('competitions')}
-          >
-            🏆 Compétitions
-          </button>
-        </div>
-      </div>
-
-      {activeTab === 'progression' && (
-        <div className="progression-section">
-          <div className="users-grid">
-            {karateUsers.map(karateUser => (
-              <div 
-                key={karateUser.id} 
-                className="user-karate-card"
-                onClick={() => setSelectedUser(karateUser)}
-              >
-                <div className="belt-info">
+            <div className="belt-info">
+              {renderBelt(karateUser.currentBelt)}
+              <div className="progress-section">
+                <div className="progress-bar">
                   <div 
-                    className="current-belt"
-                    style={{
-                      background: BELT_COLORS[karateUser.currentBelt]?.color || '#fff',
-                      color: karateUser.currentBelt === 'white' ? '#000' : '#fff'
+                    className="progress-fill"
+                    style={{ 
+                      width: `${(karateUser.attendedClasses / karateUser.requiredClasses) * 100}%` 
                     }}
-                  >
-                    {karateUser.displayName} - {BELT_COLORS[karateUser.currentBelt]?.name}
-                  </div>
-                  <div className="progress-section">
-                    <div className="progress-bar">
-                      <div 
-                        className="progress-fill"
-                        style={{ 
-                          width: `${(karateUser.attendedClasses / karateUser.requiredClasses) * 100}%` 
-                        }}
-                      />
-                    </div>
-                    <div className="progress-text">
-                      <span>{karateUser.attendedClasses} cours effectués</span>
-                      <span className="remaining-classes">
-                        {karateUser.requiredClasses - karateUser.attendedClasses} restants
-                      </span>
-                    </div>
-                  </div>
+                  />
+                </div>
+                <div className="progress-text">
+                  <span>{karateUser.displayName}</span>
+                  <span>{karateUser.attendedClasses} / {karateUser.requiredClasses} cours</span>
                 </div>
               </div>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {activeTab === 'cours' && (
-        <div className="courses-section">
-          {user.role === 'parent' && (
-            <div className="add-form">
-              <input
-                type="text"
-                name="name"
-                value={newCourse.name}
-                onChange={handleInputChange}
-                placeholder="Nom du cours"
-                className="class-name-input"
-              />
-              <div className="class-time-inputs">
-                <select
-                  name="day"
-                  value={newCourse.day}
-                  onChange={handleInputChange}
-                  className="day-select"
-                >
-                  <option value="lundi">Lundi</option>
-                  <option value="mardi">Mardi</option>
-                  <option value="mercredi">Mercredi</option>
-                  <option value="jeudi">Jeudi</option>
-                  <option value="vendredi">Vendredi</option>
-                  <option value="samedi">Samedi</option>
-                  <option value="dimanche">Dimanche</option>
-                </select>
-                <input
-                  type="time"
-                  name="time"
-                  value={newCourse.time}
-                  onChange={handleInputChange}
-                  className="time-input"
-                />
-                <input
-                  type="number"
-                  name="duration"
-                  value={newCourse.duration}
-                  onChange={handleInputChange}
-                  min="30"
-                  max="180"
-                  step="15"
-                  className="duration-input"
-                />
-              </div>
-              <button className="add-button">
-                Ajouter le cours
-              </button>
             </div>
-          )}
-
-          <div className="items-grid">
-            {courses.map(course => (
-              <div key={course.id} className="class-card">
-                <div className="class-header">
-                  <h4>{course.name}</h4>
-                  <div className="class-time">
-                    {course.day} à {course.time} ({course.duration} min)
-                  </div>
-                </div>
-                <div className="participants-list">
-                  {course.participants?.map(participant => (
-                    <span key={participant.id} className="participant-tag">
-                      {participant.name}
-                    </span>
-                  ))}
-                </div>
-                {user.role === 'parent' && (
-                  <button className="delete-button">
-                    🗑️ Supprimer
-                  </button>
-                )}
-              </div>
-            ))}
           </div>
-        </div>
-      )}
-
-      {activeTab === 'competitions' && (
-        <div className="competitions-section">
-          <h3>🏆 Compétitions à venir</h3>
-          {/* Competition content will go here */}
-        </div>
-      )}
+        ))}
+      </div>
 
       {selectedUser && (
         <Modal
@@ -254,54 +173,19 @@ export default function Karate({ user }) {
           <div className="user-progression">
             <div className="belt-history">
               <h3>Historique des ceintures</h3>
-              {selectedUser.beltHistory?.map((entry, index) => (
-                <div 
-                  key={index}
-                  className={`belt-entry ${entry.belt === selectedUser.currentBelt ? 'current' : ''}`}
-                  style={{
-                    background: BELT_COLORS[entry.belt]?.color || '#fff',
-                    color: entry.belt === 'white' ? '#000' : '#fff'
-                  }}
-                >
-                  <span className="belt-name">
-                    {BELT_COLORS[entry.belt]?.name}
-                  </span>
-                  <span className="belt-date">
-                    {new Date(entry.date).toLocaleDateString()}
-                  </span>
-                </div>
-              ))}
+              {selectedUser.beltHistory
+                ?.filter(entry => entry.date) // Only show belts with dates
+                .sort((a, b) => new Date(a.date) - new Date(b.date))
+                .map((entry, index) => renderBelt(entry.belt, entry.date))
+              }
             </div>
 
-            <div className="courses-summary">
-              <div className="courses-counts">
-                <div className="course-stat">
-                  <span className="stat-label">Cours privés</span>
-                  <span className="stat-value">{selectedUser.privateLessons || 0}</span>
-                </div>
-                <div className="course-stat">
-                  <span className="stat-label">Cours de groupe</span>
-                  <span className="stat-value">{selectedUser.groupLessons || 0}</span>
-                </div>
-              </div>
-
-              <div className="next-belt-progress">
-                <div className="progress-label">
-                  <span>Progression vers la prochaine ceinture</span>
-                  <span>{selectedUser.attendedClasses} / {selectedUser.requiredClasses}</span>
-                </div>
-                <div className="progress-bar">
-                  <div 
-                    className="progress-fill"
-                    style={{ 
-                      width: `${(selectedUser.attendedClasses / selectedUser.requiredClasses) * 100}%` 
-                    }}
-                  />
-                </div>
-                <div className="remaining-classes">
-                  {selectedUser.requiredClasses - selectedUser.attendedClasses} cours restants
-                </div>
-              </div>
+            <div className="next-belts">
+              <h3>Prochaines ceintures</h3>
+              {selectedUser.beltHistory
+                ?.filter(entry => !entry.date) // Show belts without dates
+                .map((entry, index) => renderBelt(entry.belt))
+              }
             </div>
           </div>
         </Modal>
