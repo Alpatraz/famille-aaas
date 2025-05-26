@@ -37,8 +37,11 @@ export default function Karate({ user }) {
 
   const loadKarateData = async () => {
     try {
-      // Load users
-      const usersSnap = await getDocs(collection(db, 'karate_users'));
+      // Load users with karate enabled
+      const usersSnap = await getDocs(query(
+        collection(db, 'users'), 
+        where('practicesKarate', '==', true)
+      ));
       const usersData = usersSnap.docs.map(doc => ({
         id: doc.id,
         ...doc.data()
@@ -83,7 +86,17 @@ export default function Karate({ user }) {
   return (
     <div className="karate-container">
       <div className="karate-header">
-        <h2>🥋 Karaté</h2>
+        <div className="header-content">
+          <h2>🥋 Karaté</h2>
+          {user.role === 'parent' && (
+            <button 
+              className="settings-button"
+              onClick={() => setShowSettings(true)}
+            >
+              ⚙️
+            </button>
+          )}
+        </div>
         <div className="tabs">
           <button 
             className={`tab ${activeTab === 'progression' ? 'active' : ''}`}
@@ -103,14 +116,6 @@ export default function Karate({ user }) {
           >
             🏆 Compétitions
           </button>
-          {user.role === 'parent' && (
-            <button 
-              className="settings-button"
-              onClick={() => setShowSettings(true)}
-            >
-              ⚙️
-            </button>
-          )}
         </div>
       </div>
 
@@ -131,7 +136,7 @@ export default function Karate({ user }) {
                       color: karateUser.currentBelt === 'white' ? '#000' : '#fff'
                     }}
                   >
-                    {karateUser.name} - {BELT_COLORS[karateUser.currentBelt]?.name}
+                    {karateUser.displayName} - {BELT_COLORS[karateUser.currentBelt]?.name}
                   </div>
                   <div className="progress-section">
                     <div className="progress-bar">
@@ -243,7 +248,7 @@ export default function Karate({ user }) {
 
       {selectedUser && (
         <Modal
-          title={`🥋 Progression de ${selectedUser.name}`}
+          title={`🥋 Progression de ${selectedUser.displayName}`}
           onClose={() => setSelectedUser(null)}
         >
           <div className="user-progression">
