@@ -9,6 +9,13 @@
   margin-bottom: 0.75rem;
 }
 
+.header-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+}
+
 .todo-header h2 {
   margin: 0;
   font-size: 1rem;
@@ -18,91 +25,67 @@
   gap: 0.4rem;
 }
 
-.folders-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(60px, 1fr));
-  gap: 0.75rem;
+.settings-button {
+  background: none;
+  border: none;
+  font-size: 1.2rem;
+  cursor: pointer;
+  padding: 0.4rem;
+  border-radius: 50%;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
-.folder-card {
+.settings-button:hover {
+  background: #f1f5f9;
+  transform: rotate(30deg);
+}
+
+.sections-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.section-folder {
   display: flex;
   flex-direction: column;
   align-items: center;
+  gap: 0.5rem;
   cursor: pointer;
   transition: all 0.2s ease;
-  text-align: center;
-  gap: 0.3rem;
 }
 
-.folder-card:hover {
+.section-folder:hover {
   transform: translateY(-2px);
 }
 
 .folder-icon {
-  width: 50px;
-  height: 50px;
+  width: 60px;
+  height: 60px;
+  background: #f8fafc;
+  border: 2px solid #e2e8f0;
   border-radius: 12px;
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 1.5rem;
-  background: #f8fafc;
-  border: 2px solid #e2e8f0;
   transition: all 0.2s ease;
 }
 
-.folder-card:hover .folder-icon {
+.section-folder:hover .folder-icon {
   background: #f1f5f9;
   border-color: #cbd5e1;
 }
 
 .folder-name {
-  font-size: 0.8rem;
+  font-size: 0.85rem;
   color: #475569;
+  text-align: center;
   font-weight: 500;
-}
-
-.new-list-form {
-  background: #f8fafc;
-  border: 2px solid #e2e8f0;
-  border-radius: 8px;
-  padding: 0.75rem;
-  margin-bottom: 0.75rem;
-}
-
-.new-list-form input {
-  width: 100%;
-  padding: 0.5rem;
-  border: 2px solid #e2e8f0;
-  border-radius: 6px;
-  font-size: 0.8rem;
-  margin-bottom: 0.75rem;
-}
-
-.form-actions {
-  display: flex;
-  gap: 0.5rem;
-}
-
-.confirm-button,
-.cancel-button {
-  flex: 1;
-  padding: 0.5rem;
-  border: none;
-  border-radius: 6px;
-  font-size: 0.8rem;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.confirm-button {
-  background: #3b82f6;
-  color: white;
-}
-
-.cancel-button {
-  background: #e2e8f0;
-  color: #475569;
 }
 
 .folder-view,
@@ -148,6 +131,49 @@
 .add-button:hover {
   background: #2563eb;
   transform: translateY(-1px);
+}
+
+.new-list-form {
+  background: #f8fafc;
+  border: 2px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 0.75rem;
+  margin-bottom: 0.75rem;
+}
+
+.new-list-form input {
+  width: 100%;
+  padding: 0.5rem;
+  border: 2px solid #e2e8f0;
+  border-radius: 6px;
+  font-size: 0.8rem;
+  margin-bottom: 0.75rem;
+}
+
+.form-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.confirm-button,
+.cancel-button {
+  flex: 1;
+  padding: 0.5rem;
+  border: none;
+  border-radius: 6px;
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.confirm-button {
+  background: #3b82f6;
+  color: white;
+}
+
+.cancel-button {
+  background: #e2e8f0;
+  color: #475569;
 }
 
 .lists-grid {
@@ -240,19 +266,19 @@
 }
 
 @media (max-width: 768px) {
-  .folders-grid {
-    grid-template-columns: repeat(auto-fill, minmax(50px, 1fr));
+  .sections-grid {
+    grid-template-columns: repeat(auto-fill, minmax(70px, 1fr));
     gap: 0.5rem;
   }
 
   .folder-icon {
-    width: 40px;
-    height: 40px;
+    width: 50px;
+    height: 50px;
     font-size: 1.2rem;
   }
 
   .folder-name {
-    font-size: 0.7rem;
+    font-size: 0.75rem;
   }
 
   .lists-grid {
@@ -265,5 +291,41 @@
 
   .add-item-form button {
     width: 100%;
+  }
+}
+
+@media (max-width: 480px) {
+  .todo-header h2 {
+    font-size: 0.95rem;
+  }
+
+  .sections-grid {
+    grid-template-columns: repeat(auto-fill, minmax(60px, 1fr));
+  }
+
+  .folder-icon {
+    width: 40px;
+    height: 40px;
+    font-size: 1rem;
+  }
+
+  .folder-name {
+    font-size: 0.7rem;
+  }
+
+  .list-card {
+    padding: 0.5rem;
+  }
+
+  .list-card h4 {
+    font-size: 0.8rem;
+  }
+
+  .item {
+    padding: 0.4rem;
+  }
+
+  .item-text {
+    font-size: 0.75rem;
   }
 }

@@ -4,86 +4,63 @@ import { collection, addDoc, getDocs, deleteDoc, doc, updateDoc, setDoc, getDoc 
 import Modal from './Modal';
 import './TodoManager.css';
 
-const DEFAULT_FOLDERS = {
-  'events': {
-    name: 'Événements',
-    icon: '🎉'
-  },
-  'shopping': {
-    name: 'Courses',
-    icon: '🛒'
-  },
-  'home': {
-    name: 'Maison',
-    icon: '🏠'
-  },
-  'vacation': {
-    name: 'Vacances',
-    icon: '✈️'
-  },
-  'projects': {
-    name: 'Projets',
-    icon: '📋'
-  }
+const SECTIONS = {
+  'tasks': { name: 'Tâches', icon: '✅' },
+  'rewards': { name: 'Récompenses', icon: '🎁' },
+  'consequences': { name: 'Conséquences', icon: '⚠️' }
 };
 
 export default function TodoManager() {
-  const [folders, setFolders] = useState({});
-  const [selectedFolder, setSelectedFolder] = useState(null);
+  const [sections, setSections] = useState({});
+  const [selectedSection, setSelectedSection] = useState(null);
   const [selectedList, setSelectedList] = useState(null);
+  const [showSettings, setShowSettings] = useState(false);
   const [newListName, setNewListName] = useState('');
   const [newItemText, setNewItemText] = useState('');
   const [showNewList, setShowNewList] = useState(false);
   const [showListView, setShowListView] = useState(false);
 
   useEffect(() => {
-    loadFolders();
+    loadSections();
   }, []);
 
-  const loadFolders = async () => {
+  const loadSections = async () => {
     try {
-      // Create default folders if they don't exist
-      for (const [id, folderData] of Object.entries(DEFAULT_FOLDERS)) {
-        const folderRef = doc(db, 'todos', id);
-        const folderDoc = await getDoc(folderRef);
+      // Create default sections if they don't exist
+      for (const [id, sectionData] of Object.entries(SECTIONS)) {
+        const sectionRef = doc(db, 'todos', id);
+        const sectionDoc = await getDoc(sectionRef);
         
-        if (!folderDoc.exists()) {
-          await setDoc(folderRef, folderData);
+        if (!sectionDoc.exists()) {
+          await setDoc(sectionRef, {
+            ...sectionData,
+            lists: []
+          });
         }
       }
 
-      // Load all folders
+      // Load all sections
       const snap = await getDocs(collection(db, 'todos'));
       const data = snap.docs.reduce((acc, doc) => {
         acc[doc.id] = { id: doc.id, ...doc.data() };
         return acc;
       }, {});
 
-      setFolders(data);
+      setSections(data);
     } catch (error) {
-      console.error('Error loading folders:', error);
+      console.error('Error loading sections:', error);
     }
   };
 
   const handleAddList = async () => {
-    if (!newListName.trim() || !selectedFolder) return;
+    if (!newListName.trim() || !selectedSection) return;
 
     try {
-      const folderRef = doc(db, 'todos', selectedFolder);
-      const folderDoc = await getDoc(folderRef);
-
-      if (!folderDoc.exists()) {
-        const defaultData = DEFAULT_FOLDERS[selectedFolder] || {
-          name: 'New Folder',
-          lists: []
-        };
-        await setDoc(folderRef, defaultData);
-      }
-
-      const updatedFolder = {
-        ...folders[selectedFolder],
+      const sectionRef = doc(db, 'todos', selectedSection);
+      const updatedSection = {
+        ...sections[selectedSection],
         lists: [
-          ...(folders[selectedFolder].lists || []),
+          ...(sections[selectedSection].lists || []),
           {
             id: Date.now().toString(),
             name: newListName,
@@ -92,10 +69,10 @@ export default function TodoManager() {
         ]
       };
 
-      await updateDoc(folderRef, updatedFolder);
-      setFolders(prev => ({
+      await updateDoc(sectionRef, updatedSection);
+      setSections(prev => ({
         ...prev,
-        [selectedFolder]: updatedFolder
+        [selectedSection]: updatedSection
       }));
 
       setNewListName('');
@@ -106,12 +83,12 @@ export default function TodoManager() {
   };
 
   const handleAddItem = async () => {
-    if (!newItemText.trim() || !selectedFolder || !selectedList) return;
+    if (!newItemText.trim() || !selectedSection || !selectedList) return;
 
     try {
-      const updatedFolder = {
-        ...folders[selectedFolder],
-        lists: folders[selectedFolder].lists.map(list =>
+      const updatedSection = {
+        ...sections[selectedSection],
+        lists: sections[selectedSection].lists.map(list =>
           list.id === selectedList
             ? {
                 ...list,
@@ -129,10 +106,10 @@ export default function TodoManager() {
         )
       };
 
-      await updateDoc(doc(db, 'todos', selectedFolder), updatedFolder);
-      setFolders(prev => ({
+      await updateDoc(doc(db, 'todos', selectedSection), updatedSection);
+      setSections(prev => ({
         ...prev,
-        [selectedFolder]: updatedFolder
+        [selectedSection]: updatedSection
       }));
 
       setNewItemText('');
@@ -142,12 +119,12 @@ export default function TodoManager() {
   };
 
   const handleToggleItem = async (itemId) => {
-    if (!selectedFolder || !selectedList) return;
+    if (!selectedSection || !selectedList) return;
 
     try {
-      const updatedFolder = {
-        ...folders[selectedFolder],
-        lists: folders[selectedFolder].lists.map(list =>
+      const updatedSection = {
+        ...sections[selectedSection],
+        lists: sections[selectedSection].lists.map(list =>
           list.id === selectedList
             ? {
                 ...list,
@@ -161,10 +138,10 @@ export default function TodoManager() {
         )
       };
 
-      await updateDoc(doc(db, 'todos', selectedFolder), updatedFolder);
-      setFolders(prev => ({
+      await updateDoc(doc(db, 'todos', selectedSection), updatedSection);
+      setSections(prev => ({
         ...prev,
-        [selectedFolder]: updatedFolder
+        [selectedSection]: updatedSection
       }));
     } catch (error) {
       console.error('Error toggling item:', error);
@@ -172,12 +149,12 @@ export default function TodoManager() {
   };
 
   const handleDeleteItem = async (itemId) => {
-    if (!selectedFolder || !selectedList) return;
+    if (!selectedSection || !selectedList) return;
 
     try {
-      const updatedFolder = {
-        ...folders[selectedFolder],
-        lists: folders[selectedFolder].lists.map(list =>
+      const updatedSection = {
+        ...sections[selectedSection],
+        lists: sections[selectedSection].lists.map(list =>
           list.id === selectedList
             ? {
                 ...list,
@@ -187,46 +164,52 @@ export default function TodoManager() {
         )
       };
 
-      await updateDoc(doc(db, 'todos', selectedFolder), updatedFolder);
-      setFolders(prev => ({
+      await updateDoc(doc(db, 'todos', selectedSection), updatedSection);
+      setSections(prev => ({
         ...prev,
-        [selectedFolder]: updatedFolder
+        [selectedSection]: updatedSection
       }));
     } catch (error) {
       console.error('Error deleting item:', error);
     }
   };
 
-  const handleFolderClick = (folderId) => {
-    setSelectedFolder(folderId);
-    setShowListView(true);
-  };
-
   return (
     <div className="todo-manager">
       <div className="todo-header">
-        <h2>📝 To-Do</h2>
+        <div className="header-content">
+          <h2>📝 To-Do</h2>
+          <button 
+            className="settings-button"
+            onClick={() => setShowSettings(true)}
+          >
+            ⚙️
+          </button>
+        </div>
       </div>
 
-      <div className="folders-grid">
-        {Object.entries(folders).map(([id, folder]) => (
+      <div className="sections-grid">
+        {Object.entries(SECTIONS).map(([id, section]) => (
           <div
             key={id}
-            className="folder-card"
-            onClick={() => handleFolderClick(id)}
+            className="section-folder"
+            onClick={() => {
+              setSelectedSection(id);
+              setShowListView(true);
+            }}
           >
-            <div className="folder-icon">{folder.icon}</div>
-            <span className="folder-name">{folder.name}</span>
+            <div className="folder-icon">{section.icon}</div>
+            <span className="folder-name">{section.name}</span>
           </div>
         ))}
       </div>
 
       {showListView && (
         <Modal
-          title={`${folders[selectedFolder]?.icon} ${folders[selectedFolder]?.name}`}
+          title={`${SECTIONS[selectedSection]?.icon} ${SECTIONS[selectedSection]?.name}`}
           onClose={() => {
             setShowListView(false);
-            setSelectedFolder(null);
+            setSelectedSection(null);
             setSelectedList(null);
           }}
         >
@@ -264,7 +247,7 @@ export default function TodoManager() {
               )}
 
               <div className="lists-grid">
-                {(folders[selectedFolder]?.lists || []).map(list => (
+                {(sections[selectedSection]?.lists || []).map(list => (
                   <div
                     key={list.id}
                     className="list-card"
@@ -286,7 +269,7 @@ export default function TodoManager() {
                 </button>
                 <h3>
                   {
-                    folders[selectedFolder]?.lists.find(
+                    sections[selectedSection]?.lists.find(
                       list => list.id === selectedList
                     )?.name
                   }
@@ -307,7 +290,7 @@ export default function TodoManager() {
               </div>
 
               <div className="items-list">
-                {folders[selectedFolder]?.lists
+                {sections[selectedSection]?.lists
                   .find(list => list.id === selectedList)
                   ?.items.map(item => (
                     <div key={item.id} className={`item ${item.completed ? 'completed' : ''}`}>
