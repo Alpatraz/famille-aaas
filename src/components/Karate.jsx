@@ -63,6 +63,13 @@ const SECTIONS = {
   competition: { name: 'Compétition', icon: '🏆' }
 };
 
+const COURSE_TYPES = {
+  'regular': { name: 'Cours de groupe régulier', icon: '🥋' },
+  'weapons': { name: 'Cours d\'armes', icon: '⚔️' },
+  'combat': { name: 'Cours de combat', icon: '🥊' },
+  'competition': { name: 'Cours de compétition', icon: '🏆' }
+};
+
 const DAYS = [
   { id: 'monday', name: 'Lundi' },
   { id: 'tuesday', name: 'Mardi' },
@@ -94,6 +101,17 @@ export default function Karate({ user }) {
     nextDate: new Date().toISOString().split('T')[0]
   });
   const [coursesData, setCoursesData] = useState({});
+  const [showCourseModal, setShowCourseModal] = useState(false);
+  const [courseForm, setCourseForm] = useState({
+    name: '',
+    type: 'regular',
+    day: '',
+    time: '',
+    duration: 60,
+    recurrence: 'weekly',
+    participants: []
+  });
+  const [courses, setCourses] = useState([]);
 
   useEffect(() => {
     loadData();
@@ -113,7 +131,6 @@ export default function Karate({ user }) {
         const karateData = await getDoc(doc(db, 'karate_users', userDoc.id));
         const karateInfo = karateData.data() || {};
         
-        // Calculate course statistics
         const privateCount = karateInfo.privateLessons?.enabled ? 
           (karateInfo.privateLessons.attendedClasses || 0) : 0;
         const groupCount = karateInfo.groupClasses?.attended || 0;
@@ -138,6 +155,13 @@ export default function Karate({ user }) {
       
       setKarateUsers(users);
       setCoursesData(coursesInfo);
+
+      const coursesSnap = await getDocs(collection(db, 'karate_courses'));
+      const coursesData = coursesSnap.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      }));
+      setCourses(coursesData);
     } catch (error) {
       console.error('Error loading karate data:', error);
     } finally {
@@ -220,6 +244,38 @@ export default function Karate({ user }) {
     } catch (error) {
       console.error('Error saving private lesson:', error);
       alert('Erreur lors de la sauvegarde du cours privé');
+    }
+  };
+
+  const handleSaveCourse = async () => {
+    try {
+      if (!courseForm.name || !courseForm.day || !courseForm.time || courseForm.participants.length === 0) {
+        alert('Veuillez remplir tous les champs requis');
+        return;
+      }
+
+      const courseData = {
+        ...courseForm,
+        createdAt: new Date().toISOString()
+      };
+
+      const courseRef = doc(collection(db, 'karate_courses'));
+      await setDoc(courseRef, courseData);
+
+      await loadData();
+      setShowCourseModal(false);
+      setCourseForm({
+        name: '',
+        type: 'regular',
+        day: '',
+        time: '',
+        duration: 60,
+        recurrence: 'weekly',
+        participants: []
+      });
+    } catch (error) {
+      console.error('Error saving course:', error);
+      alert('Erreur lors de la sauvegarde du cours');
     }
   };
 
@@ -387,6 +443,144 @@ export default function Karate({ user }) {
     </Modal>
   );
 
+  const renderCourseModal = () => (
+    <Modal
+      title="🥋 Ajouter un cours"
+      onClose={() => setShowCourseModal(false)}
+    >
+      <div className="course-form">
+        <div className="form-group">
+          <label>Nom du cours</label>
+          <input
+            type="text"
+            value={courseForm.name}
+            onChange={(e) => setCourseForm(prev => ({
+              ...prev,
+              name: e.target.value
+            }))}
+            placeholder="Ex: Cours débutants"
+          />
+        </div>
+
+        <div className="form-group">
+          <label>Type de cours</label>
+          <select
+            value={courseForm.type}
+            onChange={(e) => setCourseForm(prev => ({
+              ...prev,
+              type: e.target.value
+            }))}
+          >
+            {Object.entries(COURSE_TYPES).map(([key, { name }]) => (
+              <option key={key} value={key}>
+                {name}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        <div className="form-group">
+          <label>Jour</label>
+          <select
+            value={courseForm.day}
+            onChange={(e) => setCourseForm(prev => ({
+              ...prev,
+              day: e.target.value
+            }))}
+          >
+            <option value="">Sélectionner un jour</option>
+            {DAYS.map(day => (
+              <option key={day.id} value={day.id}>
+                {day.name}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        <div className="form-group">
+          <label>Heure</label>
+          <input
+            type="time"
+            value={courseForm.time}
+            onChange={(e) => setCourseForm(prev => ({
+              ...prev,
+              time: e.target.value
+            }))}
+          />
+        </div>
+
+        <div className="form-group">
+          <label>Durée (minutes)</label>
+          <input
+            type="number"
+            value={courseForm.duration}
+            onChange={(e) => setCourseForm(prev => ({
+              ...prev,
+              duration: parseInt(e.target.value)
+            }))}
+            min="30"
+            step="15"
+          />
+        </div>
+
+        <div className="form-group">
+          <label>Récurrence</label>
+          <select
+            value={courseForm.recurrence}
+            onChange={(e) => setCourseForm(prev => ({
+              ...prev,
+              recurrence: e.target.value
+            }))}
+          >
+            {RECURRENCE.map(option => (
+              <option key={option.id} value={option.id}>
+                {option.name}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        <div className="form-group">
+          <label>Participants</label>
+          <div className="participants-grid">
+            {karateUsers.map(user => (
+              <div
+                key={user.id}
+                className={`participant-card ${courseForm.participants.includes(user.id) ? 'selected' : ''}`}
+                onClick={() => {
+                  setCourseForm(prev => ({
+                    ...prev,
+                    participants: prev.participants.includes(user.id)
+                      ? prev.participants.filter(id => id !== user.id)
+                      : [...prev.participants, user.id]
+                  }));
+                }}
+              >
+                <span className="participant-avatar">{user.avatar}</span>
+                <span className="participant-name">{user.displayName}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div className="form-actions">
+          <button 
+            className="save-button"
+            onClick={handleSaveCourse}
+          >
+            Enregistrer
+          </button>
+          <button 
+            className="cancel-button"
+            onClick={() => setShowCourseModal(false)}
+          >
+            Annuler
+          </button>
+        </div>
+      </div>
+    </Modal>
+  );
+
   const renderUserCard = (user) => (
     <div className="user-karate-card">
       <div className="belt-info">
@@ -508,6 +702,62 @@ export default function Karate({ user }) {
         </Modal>
       )}
 
+      {activeSection === 'cours' && (
+        <Modal
+          title={`${SECTIONS[activeSection].icon} ${SECTIONS[activeSection].name}`}
+          onClose={() => setActiveSection(null)}
+        >
+          <div className="courses-section">
+            <button 
+              className="add-course-button"
+              onClick={() => setShowCourseModal(true)}
+            >
+              ➕ Ajouter un cours
+            </button>
+
+            <div className="courses-grid">
+              {courses.map(course => (
+                <div key={course.id} className="course-card">
+                  <div className="course-header">
+                    <h3>
+                      {COURSE_TYPES[course.type].icon} {course.name}
+                    </h3>
+                    <span className="course-type">
+                      {COURSE_TYPES[course.type].name}
+                    </span>
+                  </div>
+
+                  <div className="course-details">
+                    <p className="course-schedule">
+                      {DAYS.find(d => d.id === course.day)?.name} à {course.time}
+                      <br />
+                      Durée: {course.duration} minutes
+                    </p>
+                    <p className="course-recurrence">
+                      {RECURRENCE.find(r => r.id === course.recurrence)?.name}
+                    </p>
+                  </div>
+
+                  <div className="course-participants">
+                    <h4>Participants</h4>
+                    <div className="participants-list">
+                      {course.participants.map(participantId => {
+                        const participant = karateUsers.find(u => u.id === participantId);
+                        return participant ? (
+                          <div key={participantId} className="participant-tag">
+                            {participant.avatar} {participant.displayName}
+                          </div>
+                        ) : null;
+                      })}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </Modal>
+      )}
+
       {showSettings && (
         <Modal
           title="⚙️ Paramètres Karaté"
@@ -619,6 +869,7 @@ export default function Karate({ user }) {
         </Modal>
       )}
 
+      {showCourseModal && renderCourseModal()}
       {showPrivateLessons && renderPrivateLessonsModal()}
     </div>
   );
