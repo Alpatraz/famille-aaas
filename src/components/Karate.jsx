@@ -40,6 +40,7 @@ export default function Karate({ user }) {
   const [selectedUser, setSelectedUser] = useState(null);
   const [editingBeltDate, setEditingBeltDate] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [showSettings, setShowSettings] = useState(false);
 
   useEffect(() => {
     loadKarateData();
@@ -137,33 +138,67 @@ export default function Karate({ user }) {
 
   return (
     <div className="karate-container">
-      <div className="users-grid">
-        {karateUsers.map(karateUser => (
-          <div 
-            key={karateUser.id} 
-            className="user-karate-card"
-            onClick={() => setSelectedUser(karateUser)}
-          >
-            <div className="belt-info">
-              {renderBelt(karateUser.currentBelt)}
-              <div className="progress-section">
-                <div className="progress-bar">
-                  <div 
-                    className="progress-fill"
-                    style={{ 
-                      width: `${(karateUser.attendedClasses / karateUser.requiredClasses) * 100}%` 
-                    }}
-                  />
-                </div>
-                <div className="progress-text">
-                  <span>{karateUser.displayName}</span>
-                  <span>{karateUser.attendedClasses} / {karateUser.requiredClasses} cours</span>
+      <div className="karate-header">
+        <div className="header-content">
+          <h2>🥋 Karaté</h2>
+          <div className="section-buttons">
+            <button 
+              className={`section-button ${activeTab === 'progression' ? 'active' : ''}`}
+              onClick={() => setActiveTab('progression')}
+            >
+              📈 Progression
+            </button>
+            <button 
+              className={`section-button ${activeTab === 'cours' ? 'active' : ''}`}
+              onClick={() => setActiveTab('cours')}
+            >
+              📚 Cours
+            </button>
+            <button 
+              className={`section-button ${activeTab === 'competitions' ? 'active' : ''}`}
+              onClick={() => setActiveTab('competitions')}
+            >
+              🏆 Compétitions
+            </button>
+            <button 
+              className="section-button settings"
+              onClick={() => setShowSettings(true)}
+            >
+              ⚙️
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {activeTab === 'progression' && (
+        <div className="users-grid">
+          {karateUsers.map(karateUser => (
+            <div 
+              key={karateUser.id} 
+              className="user-karate-card"
+              onClick={() => setSelectedUser(karateUser)}
+            >
+              <div className="belt-info">
+                {renderBelt(karateUser.currentBelt)}
+                <div className="progress-section">
+                  <div className="progress-bar">
+                    <div 
+                      className="progress-fill"
+                      style={{ 
+                        width: `${(karateUser.attendedClasses / karateUser.requiredClasses) * 100}%` 
+                      }}
+                    />
+                  </div>
+                  <div className="progress-text">
+                    <span>{karateUser.displayName}</span>
+                    <span>{karateUser.attendedClasses} / {karateUser.requiredClasses} cours</span>
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
+      )}
 
       {selectedUser && (
         <Modal
@@ -174,7 +209,7 @@ export default function Karate({ user }) {
             <div className="belt-history">
               <h3>Historique des ceintures</h3>
               {selectedUser.beltHistory
-                ?.filter(entry => entry.date) // Only show belts with dates
+                ?.filter(entry => entry.date)
                 .sort((a, b) => new Date(a.date) - new Date(b.date))
                 .map((entry, index) => renderBelt(entry.belt, entry.date))
               }
@@ -183,10 +218,22 @@ export default function Karate({ user }) {
             <div className="next-belts">
               <h3>Prochaines ceintures</h3>
               {selectedUser.beltHistory
-                ?.filter(entry => !entry.date) // Show belts without dates
+                ?.filter(entry => !entry.date)
                 .map((entry, index) => renderBelt(entry.belt))
               }
             </div>
+          </div>
+        </Modal>
+      )}
+
+      {showSettings && (
+        <Modal
+          title="⚙️ Paramètres Karaté"
+          onClose={() => setShowSettings(false)}
+        >
+          <div className="karate-settings">
+            <h3>Configuration des cours et passages de grades</h3>
+            {/* Settings content will go here */}
           </div>
         </Modal>
       )}
