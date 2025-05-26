@@ -93,6 +93,7 @@ export default function Karate({ user }) {
     recurrence: 'weekly',
     nextDate: new Date().toISOString().split('T')[0]
   });
+  const [coursesData, setCoursesData] = useState({});
 
   useEffect(() => {
     loadData();
@@ -105,9 +106,27 @@ export default function Karate({ user }) {
       );
       
       const users = [];
+      const coursesInfo = {};
+      
       for (const userDoc of usersSnap.docs) {
         const userData = userDoc.data();
         const karateData = await getDoc(doc(db, 'karate_users', userDoc.id));
+        const karateInfo = karateData.data() || {};
+        
+        // Calculate course statistics
+        const privateCount = karateInfo.privateLessons?.enabled ? 
+          (karateInfo.privateLessons.attendedClasses || 0) : 0;
+        const groupCount = karateInfo.groupClasses?.attended || 0;
+        const requiredForNextBelt = karateInfo.requiredClasses || 20;
+        const remainingClasses = Math.max(0, requiredForNextBelt - (privateCount + groupCount));
+        
+        coursesInfo[userDoc.id] = {
+          privateCount,
+          groupCount,
+          totalCount: privateCount + groupCount,
+          remainingClasses,
+          requiredForNextBelt
+        };
         
         users.push({
           id: userDoc.id,
@@ -116,7 +135,9 @@ export default function Karate({ user }) {
           ...karateData.data()
         });
       }
+      
       setKarateUsers(users);
+      setCoursesData(coursesInfo);
     } catch (error) {
       console.error('Error loading karate data:', error);
     } finally {
@@ -378,6 +399,38 @@ export default function Karate({ user }) {
             Ceinture {BELT_COLORS[user.currentBelt]?.name}
           </div>
         </div>
+        
+        <div className="courses-summary">
+          <div className="courses-counts">
+            <div className="course-stat">
+              <span className="stat-label">Cours privés</span>
+              <span className="stat-value">{coursesData[user.id]?.privateCount || 0}</span>
+            </div>
+            <div className="course-stat">
+              <span className="stat-label">Cours de groupe</span>
+              <span className="stat-value">{coursesData[user.id]?.groupCount || 0}</span>
+            </div>
+          </div>
+          
+          <div className="next-belt-progress">
+            <div className="progress-label">
+              <span>Progrès vers la prochaine ceinture</span>
+              <span>{coursesData[user.id]?.totalCount || 0} / {coursesData[user.id]?.requiredForNextBelt || 20}</span>
+            </div>
+            <div className="progress-bar">
+              <div 
+                className="progress-fill"
+                style={{
+                  width: `${Math.min(100, ((coursesData[user.id]?.totalCount || 0) / (coursesData[user.id]?.requiredForNextBelt || 20)) * 100)}%`
+                }}
+              />
+            </div>
+            <div className="remaining-classes">
+              {coursesData[user.id]?.remainingClasses || 0} cours restants
+            </div>
+          </div>
+        </div>
+
         {user.privateLessons?.enabled && (
           <div className="private-lessons-info">
             <p>Cours privés : {DAYS.find(d => d.id === user.privateLessons.schedule.day)?.name} à {user.privateLessons.schedule.time}</p>
