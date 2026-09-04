@@ -21,8 +21,11 @@ const json = (body: unknown, status = 200) =>
     headers: { "cache-control": "no-store" },
   });
 
-const isIsoDate = (value: unknown): value is string =>
-  typeof value === "string" && /^\d{4}-\d{2}-\d{2}$/.test(value);
+const isIsoDate = (value: unknown): value is string => {
+  if (typeof value !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
+  const parsed = new Date(`${value}T00:00:00.000Z`);
+  return Number.isFinite(parsed.getTime()) && parsed.toISOString().slice(0, 10) === value;
+};
 
 const clamp = (value: unknown, minimum: number, maximum: number, fallback: number) => {
   const numeric = Number(value);
@@ -111,10 +114,9 @@ const schema = {
 export default async (request: Request, _context: Context) => {
   if (request.method === "GET") {
     return json({
-      available: Boolean(
-        Netlify.env.get("NETLIFY_AI_GATEWAY_KEY") ||
-          Netlify.env.get("OPENAI_API_KEY"),
-      ),
+      available: Boolean(Netlify.env.get("OPENROUTER_API_KEY")),
+      provider: "OpenRouter",
+      privacy: "zdr",
     });
   }
   if (request.method !== "POST") return json({ error: "Méthode refusée." }, 405);
@@ -131,7 +133,10 @@ export default async (request: Request, _context: Context) => {
   }
 
   const familyId = String(body.familyId ?? "");
-  const childName = String(body.childName ?? "Enfant").slice(0, 80);
+  const requestedChildName = String(body.childName ?? "").trim();
+  const childName = ["Alexandre", "Anna", "Antoine"].includes(requestedChildName)
+    ? requestedChildName
+    : "Enfant à déterminer";
   const periodStart = body.periodStart;
   const periodEnd = body.periodEnd;
   const documents = Array.isArray(body.documents) ? body.documents.slice(0, 6) : [];
@@ -142,13 +147,10 @@ export default async (request: Request, _context: Context) => {
   if (!(await authenticateFamily(request, familyId)))
     return json({ error: "Session familiale non autorisée." }, 401);
 
-  const apiKey =
-    Netlify.env.get("OPENAI_API_KEY") ??
-    Netlify.env.get("NETLIFY_AI_GATEWAY_KEY");
-  const baseUrl =
-    Netlify.env.get("OPENAI_BASE_URL") ??
-    Netlify.env.get("NETLIFY_AI_GATEWAY_BASE_URL");
-  if (!apiKey || !baseUrl)
+  const apiKey = Netlify.env.get("OPENROUTER_API_KEY");
+  const model =
+    Netlify.env.get("OPENROUTER_MODEL")?.trim() || "google/gemini-3.8-flash";
+  if (!apiKey)
     return json({ error: "L’analyse Guillaume OS n’est pas disponible." }, 503);
 
   const textDocuments = documents
@@ -190,33 +192,50 @@ Règles :
     ...imageDocuments,
   ];
 
-  const gatewayResponse = await fetch(`${baseUrl.replace(/\/$/, "")}/v1/chat/completions`, {
-    method: "POST",
-    headers: {
-      authorization: `Bearer ${apiKey}`,
-      "content-type": "application/json",
-    },
-    body: JSON.stringify({
-      model: "gpt-5.4-mini",
-      messages: [
-        { role: "system", content: instructions },
-        { role: "user", content: userContent },
-      ],
-      response_format: {
-        type: "json_schema",
-        json_schema: { name: "school_work_plan", strict: true, schema },
+  let openRouterResponse: Response;
+  try {
+    openRouterResponse = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        authorization: `Bearer ${apiKey}`,
+        "content-type": "application/json",
+        "http-referer": "https://famille-aaas.netlify.app/",
+        "x-openrouter-title": "Famille AAAs — Guillaume OS",
       },
-      max_completion_tokens: 3200,
-    }),
-  });
+      body: JSON.stringify({
+        model,
+        messages: [
+          { role: "system", content: instructions },
+          { role: "user", content: userContent },
+        ],
+        response_format: {
+          type: "json_schema",
+          json_schema: { name: "school_work_plan", strict: true, schema },
+        },
+        max_tokens: 3200,
+        provider: {
+          zdr: true,
+          data_collection: "deny",
+          require_parameters: true,
+        },
+      }),
+      signal: AbortSignal.timeout(55_000),
+    });
+  } catch {
+    console.error("OpenRouter request failed before receiving a response");
+    return json({ error: "Guillaume OS n’a pas pu joindre le service d’analyse." }, 502);
+  }
 
-  if (!gatewayResponse.ok) {
-    const failure = await gatewayResponse.text();
-    console.error("AI Gateway error", gatewayResponse.status, failure.slice(0, 500));
+  if (!openRouterResponse.ok) {
+    console.error(
+      "OpenRouter error",
+      openRouterResponse.status,
+      openRouterResponse.headers.get("x-request-id") ?? "sans identifiant",
+    );
     return json({ error: "Guillaume OS n’a pas pu terminer l’analyse." }, 502);
   }
 
-  const completion = (await gatewayResponse.json()) as {
+  const completion = (await openRouterResponse.json()) as {
     choices?: Array<{ message?: { content?: string } }>;
   };
   const content = completion.choices?.[0]?.message?.content;
