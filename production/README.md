@@ -16,3 +16,5 @@ La fonction `analyze-homework-plan` appelle directement OpenRouter, sans dépend
 - `OPENROUTER_MODEL` : facultatif; le modèle par défaut est `google/gemini-3.8-flash`.
 
 Chaque requête impose le mode Zero Data Retention, refuse les fournisseurs qui collectent les données et exige la prise en charge native du schéma JSON. Les documents et réponses scolaires ne sont jamais écrits dans les journaux de la fonction.
+
+La configuration OpenRouter est chargée à chaque nouveau déploiement Netlify.
