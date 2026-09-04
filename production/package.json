@@ -1,0 +1,13 @@
+{
+  "name": "famille-aaas-production",
+  "private": true,
+  "version": "4.0.0",
+  "type": "module",
+  "scripts": {
+    "build": "node --check netlify/functions/analyze-homework-plan.mts",
+    "test": "node --test tests/*.test.mjs"
+  },
+  "devDependencies": {
+    "@netlify/functions": "4.2.5"
+  }
+}
