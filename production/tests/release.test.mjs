@@ -28,6 +28,12 @@ test("pending school items never auto-create planning events", async () => {
   assert.match(client, /planningEventId:c\?void 0:r/);
 });
 
+test("plans show every extracted homework item", async () => {
+  const client = await read("../public/_next/static/chunks/08a6.wv7jqj1g.js");
+  assert.match(client, /e\.items\.map\(e=>/);
+  assert.doesNotMatch(client, /e\.items\.slice\(0,5\)\.map/);
+});
+
 test("the AI endpoint authenticates the family and uses private OpenRouter routing", async () => {
   const fn = await read("../netlify/functions/analyze-homework-plan.mts");
   assert.match(fn, /authenticateFamily/);
